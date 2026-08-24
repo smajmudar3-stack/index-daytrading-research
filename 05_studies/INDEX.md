@@ -65,11 +65,17 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/combo_sweep.py` | Exhaustive gate-combination sweep: every 1..6-way combo, every structure. |
 | `scripts/daily_engine.py` | What do these structures pay if you trade ~1 per day, gated on regime? |
 | `scripts/delta_hedged_gains.py` | Delta-hedged gains on SPY, 2008-2025 — a modern replication of Bakshi & Kapadia |
+| `scripts/diagnose_1300.py` | Is the 13:00 -> 15:00 result real, or a half-day artifact? |
 | `scripts/earnings_convexity.py` | Buy convexity before a DATED catalyst — the one version of the idea with |
 | `scripts/edge_budget.py` | The edge budget: what directional hit rate does a once-a-day intraday trade actually need, |
 | `scripts/exotic_claims_test.py` | Tests the specific HEADLINE CLAIMS made about each exotic structure, on real SPY |
 | `scripts/exotic_structure_costs.py` | Empirical cost measurement for exotic / multi-leg option structures. |
 | `scripts/fat_tail_test.py` | Are black swans more common than the model says? Yes. Does that make options cheap? No. |
+| `scripts/gao_corrected.py` | Gao/Baltussen intraday momentum, with the outcome window defined correctly. |
+| `scripts/gao_intraday_momentum.py` | The actual Gao-Han-Li-Zhou intraday momentum rule, on minute bars. |
+| `scripts/intraday_inventory.py` | What intraday data can we actually test a directional rule against? |
+| `scripts/intraday_inventory2.py` | Second pass: the timestamps live where the first pass did not look. |
+| `scripts/intraday_predict_matrix.py` | Does any half-hour of the day predict any other? The full matrix. |
 | `scripts/leadlag_test.py` | Cross-asset intraday lead-lag, tested at the resolution a retail system can actually act on. |
 | `scripts/leadlag_trade.py` | Honest test of the IWM -> QQQ lead-lag that showed up in leadlag_test.py. |
 | `scripts/lit_search.py` | Rate-limited Semantic Scholar lookups for the spinoff / event-driven literature. |
@@ -80,6 +86,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/option_edge.py` | Greeks, option pricing, and structure selection for a swing-horizon view. |
 | `scripts/osap_spinoff_decay.py` | Compute in-sample vs post-publication performance of the OSAP 'Spinoff' predictor. |
 | `scripts/osap_spinoff_ports.py` | Portfolio-level detail for the OSAP 'Spinoff' predictor: leg composition and breadth. |
+| `scripts/outlier_day_effect.py` | One day is generating the entire intraday "edge". Identify it and re-test. |
 | `scripts/parse_ssi.py` | — |
 | `scripts/preann_test.py` | Pre-announcement overnight drift — the one live candidate from the literature. |
 | `scripts/preswan_signals.py` | Do BIG MOVERS look different in the days BEFORE they move? |
@@ -120,4 +127,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**115 files.**
+**122 files.**

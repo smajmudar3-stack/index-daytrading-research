@@ -170,6 +170,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `blackswan_select.py` | 135 | 6 KB |
 | `blackswan_test.py` | 136 | 6 KB |
 | `build_bundle.py` | 111 | 4 KB |
+| `build_indexes.py` | 82 | 3 KB |
 | `build_iv_features.py` | 102 | 4 KB |
 | `bwb_and_box.py` | 162 | 8 KB |
 | `cb_cboe_idx.py` | 95 | 4 KB |
@@ -184,11 +185,17 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `combo_sweep.py` | 195 | 8 KB |
 | `daily_engine.py` | 242 | 10 KB |
 | `delta_hedged_gains.py` | 159 | 7 KB |
+| `diagnose_1300.py` | 130 | 5 KB |
 | `earnings_convexity.py` | 178 | 8 KB |
 | `edge_budget.py` | 75 | 3 KB |
 | `exotic_claims_test.py` | 238 | 11 KB |
 | `exotic_structure_costs.py` | 261 | 11 KB |
 | `fat_tail_test.py` | 125 | 6 KB |
+| `gao_corrected.py` | 140 | 5 KB |
+| `gao_intraday_momentum.py` | 120 | 5 KB |
+| `intraday_inventory.py` | 60 | 2 KB |
+| `intraday_inventory2.py` | 56 | 2 KB |
+| `intraday_predict_matrix.py` | 146 | 6 KB |
 | `leadlag_test.py` | 65 | 3 KB |
 | `leadlag_trade.py` | 62 | 3 KB |
 | `lit_search.py` | 55 | 2 KB |
@@ -199,6 +206,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `option_edge.py` | 344 | 13 KB |
 | `osap_spinoff_decay.py` | 102 | 4 KB |
 | `osap_spinoff_ports.py` | 46 | 2 KB |
+| `outlier_day_effect.py` | 104 | 4 KB |
 | `parse_ssi.py` | 44 | 2 KB |
 | `preann_test.py` | 167 | 7 KB |
 | `preswan_signals.py` | 133 | 6 KB |
@@ -234,4 +242,4 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**200 files total.**
+**208 files total.**
