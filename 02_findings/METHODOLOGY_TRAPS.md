@@ -1,11 +1,11 @@
-# Twelve ways a backtest lies
+# Thirteen ways a backtest lies
 
-Four of these produced *fake winning strategies* in this repo before being
+Five of these produced *fake winning strategies* in this repo before being
 caught. Check every new backtest against this list before believing it.
 
 ---
 
-## The four that actually faked a win here
+## The five that actually faked a win here
 
 ### 1. Capital-at-risk that ignores naked legs
 A jade lizard showed **+800%/year** and a **−1.8-billion%** drawdown in the same
@@ -43,32 +43,59 @@ NaNs and fabricates a return out of nothing. Hit XLRE and XLC.
 
 ---
 
+## 5. One extreme day faking a whole matrix of effects
+
+Found 2026-08-24, and it nearly passed. A full intraday predictability matrix on
+SPY showed **12 of 78** half-hour bucket pairs beating the multiple-testing
+threshold, when noise predicts ~0.2. Top pair 13:00 -> 15:00 at **t = +7.45**.
+
+It was a single session: **2025-04-09**, the tariff-pause rally.
+
+| test | pairs beating threshold | top pair |
+|---|---:|---|
+| all days, Pearson | 12 / 78 | 13:00 -> 15:00, t = +7.45 |
+| drop 2025-04-09 | 10 / 78 | 11:00 -> 13:00 |
+| drop 5 largest-range days | 3 / 78 | 13:30 -> 15:30 |
+| **Spearman rank** | **1 / 78** | consistent with noise |
+
+**The tell is that the top pair changes identity at every step.** A real effect
+does not reshuffle when you remove one day. The mechanism: on a violently
+trending day every half-hour bucket moves the same way, so one observation
+injects correlation into *many* pairs simultaneously -- which also explains why
+13:00 appeared in three of the top four pairs with inconsistent signs.
+
+**Fix:** report Spearman alongside Pearson on any correlation-based signal
+hunt, and check leave-one-day-out sensitivity before believing a t-stat.
+Dropping the single largest |x| took t from +7.45 to +0.84 here.
+
+---
+
 ## The other eight
 
-**5. Conditional accuracy ≠ expected return.** "Right 70% of the time" says
+**6. Conditional accuracy ≠ expected return.** "Right 70% of the time" says
 nothing about profit if the 30% are larger. Always measure expectancy.
 
-**6. Whole-group transforms are look-ahead.** Normalizing, ranking or
+**7. Whole-group transforms are look-ahead.** Normalizing, ranking or
 winsorizing across the full sample uses future data. Transform within the
 training window only.
 
-**7. Calendar annualization.** Annualizing by elapsed time a signal that fires
+**8. Calendar annualization.** Annualizing by elapsed time a signal that fires
 ~5×/year inflated CAGR by more than 2×. Annualize by exposure, not wall clock.
 
-**8. Duplicate trades.** Two DTE targets resolving to the same expiry
+**9. Duplicate trades.** Two DTE targets resolving to the same expiry
 double-counted: 153,340 → 147,350 after dedup.
 
-**9. Mid-price fills.** The single largest source of fake edge in options
+**10. Mid-price fills.** The single largest source of fake edge in options
 backtesting. Enter at ask, exit at bid, or the result is fiction.
 
-**10. Multiple testing.** Expected best |t| under the null is ≈ √(2·ln N). Test
+**11. Multiple testing.** Expected best |t| under the null is ≈ √(2·ln N). Test
 200 variants and a |t| of 3.2 is the *expected* maximum from noise alone. Use
 Deflated Sharpe (Bailey & López de Prado).
 
-**11. Bin-width sensitivity.** If a result changes when you change bucket
+**12. Bin-width sensitivity.** If a result changes when you change bucket
 boundaries, it is a binning artifact, not a signal.
 
-**12. Fixed strike vs delta-based selection.** A fixed % moneyness is a
+**13. Fixed strike vs delta-based selection.** A fixed % moneyness is a
 different amount of risk in different volatility regimes. Select by delta.
 
 ---
