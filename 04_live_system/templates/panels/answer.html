@@ -1,0 +1,27 @@
+{# THE one decision. Nothing else on the page may render an action verb. #}
+<section class="answer {{ p.severity or '' }}" id="panel-{{ p.key }}">
+  <div class=lab>{{ p.body.label }}</div>
+  <div class=verb>{{ p.body.verb }}</div>
+  <p class=because>{{ p.body.because }}</p>
+
+  {% if p.body.rows %}
+  <div class=rows>
+    {% for r in p.body.rows %}
+    <div class="row {{ r.severity or '' }}"><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}</span></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.body.blockers %}
+  <details open>
+    <summary>{{ p.body.blockers|length }} gate{{ '' if p.body.blockers|length == 1 else 's' }} standing this down</summary>
+    <div class=rows>
+      {% for b in p.body.blockers %}
+      <div class="row stop"><span class=k>{{ b.gate }}</span><span class=v>{{ b.reason }}</span></div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+  <div class=trust>{{ p.body.trust }}</div>
+</section>

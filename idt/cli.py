@@ -51,16 +51,23 @@ def cmd_bootstrap(_args):
     return 0
 
 
-def cmd_serve(_args):
-    return _run_live("gap_dashboard.py")
+def cmd_serve(args):
+    """The dashboard. `--legacy` serves the pre-Phase-4 single-file page.
+
+    The old one is kept reachable for one release so a number that looks wrong on the
+    new page can be checked against the old one, which is the only honest way to
+    migrate a page nobody has a test for yet."""
+    if getattr(args, "legacy", False):
+        return _run_live("gap_dashboard.py")
+    return _run_live("dashboard_app.py")
 
 
 def cmd_refresh(_args):
     return _run_live("scan_all.py")
 
 
-def cmd_audit(_args):
-    return _run_live("audit_dash.py")
+def cmd_audit(args):
+    return _run_live("audit_dash.py", *(["--strict"] if getattr(args, "strict", False) else []))
 
 
 def main(argv=None):
@@ -72,6 +79,12 @@ def main(argv=None):
             ("refresh", cmd_refresh, "run one full signal cycle now"),
             ("audit", cmd_audit, "check every number the dashboard shows (exits non-zero on failure)")):
         s = sub.add_parser(name, help=help_)
+        if name == "serve":
+            s.add_argument("--legacy", action="store_true",
+                           help="serve the pre-Phase-4 single-file dashboard instead")
+        if name == "audit":
+            s.add_argument("--strict", action="store_true",
+                           help="also fail on warnings")
         s.set_defaults(func=fn)
     args = p.parse_args(argv)
     return args.func(args)

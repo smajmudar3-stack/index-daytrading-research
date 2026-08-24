@@ -1,0 +1,15 @@
+{# Fallback for a panel with no template of its own: render its rows. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}{% if p.state == "stale" %} <span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}</h3>
+  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
+  {% if p.body.rows %}
+  <div class=rows>
+    {% for r in p.body.rows %}
+    <div class="row {{ r.severity or '' }}"><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}{% if r.tier %} <span class="tier {{ r.tier }}">{{ r.tier }}</span>{% endif %}</span></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if p.body.text %}<p class=note>{{ p.body.text }}</p>{% endif %}
+  {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>

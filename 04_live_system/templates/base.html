@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>{{ title }}</title>
+<link rel=stylesheet href="/static/app.css?v={{ asset_version }}">
+</head>
+<body data-view="{{ view }}">
+
+<header class=top>
+  <div>
+    <h1>{{ title }}</h1>
+    <div class=sub>{{ subtitle }}</div>
+  </div>
+  <div class=actions>
+    <a class=btn href="/docs">What this knows</a>
+    <a class="btn primary" href="/refresh?view={{ view }}">Refresh</a>
+  </div>
+</header>
+
+{% include "status.html" %}
+
+<nav class=nav>
+  {% for v in views %}<a href="/{{ v.slug }}" class="{{ 'on' if v.slug == view else '' }}">{{ v.label }}</a>{% endfor %}
+</nav>
+<p class=viewq>{{ view_question }}</p>
+
+<main id=view>
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+{{ footer }}
+</footer>
+
+<script src="/static/app.js?v={{ asset_version }}"></script>
+</body>
+</html>

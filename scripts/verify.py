@@ -36,6 +36,9 @@ SMOKE = [
     # Fixed by the bundle split repair: mes_signals moved here from 05_studies,
     # so the documented launchd/refresh entry point imports again.
     "mes_signals", "mes_dashboard", "signals_all",
+    # Phase 4: the new dashboard. gap_dashboard stays in the list because it is still
+    # reachable via `idt serve --legacy` for one release.
+    "dashboard_app",
 ]
 
 # The bundle split filed the live system and the research harnesses in separate
@@ -200,7 +203,10 @@ def _exempt_lines(path):
 # A line saying the words in order to refute them is the point of the exercise.
 REFUTATION_MARKER = re.compile(
     r"refut|retired|rejected|REJECTED|superseded|VERDICT_LOG"
-    r"|measured\s+at|tested\s+at|lost\s+\d|-\d+(?:\.\d+)?%\s*(?:per\s+trade|/trade)"
+    # The repo writes a minus as U+2212 in prose and as ASCII in code. Matching only
+    # ASCII meant a line that DID carry its refutation number was flagged as advice,
+    # which is the false positive that makes a gate get switched off.
+    r"|measured\s+at|tested\s+at|lost\s+\d|[-−]\d+(?:\.\d+)?%\s*(?:per\s+trade|/trade|to\s)"
     r"|used\s+to\s+(?:say|return|read|end|be)|no\s+longer|must\s+not|never\s+again"
     r"|hard-blocked|not\s+a\s+signal|is\s+WRONG",
     re.I)

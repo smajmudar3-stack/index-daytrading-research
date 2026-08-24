@@ -1,0 +1,16 @@
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
+  <table>
+    <tr><th>input</th><th>weight</th><th>basis</th><th>evidence</th></tr>
+    {% for r in p.body.rows %}
+    <tr>
+      <td>{{ r.k }}</td>
+      <td class=num>{{ r.v }}</td>
+      <td><span class="tier {{ r.tier }}">{{ r.tier }}</span></td>
+      <td style="color:var(--muted);font-size:var(--t-xs)">{{ r.evidence }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>

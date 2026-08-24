@@ -1,0 +1,13 @@
+{# Dispatch on the panel's STATE first. A panel that could not run must never be
+   rendered by the same template as one that ran and found nothing.
+
+   The ok/stale branch tries the panel's own template and falls back to the generic
+   row renderer. It does NOT use `ignore missing`: that would render an empty string
+   for a typo'd key, which is the silent-failure shape this whole rewrite removes. #}
+{% if p.state == "unavailable" %}
+  {% include "panels/_unavailable.html" %}
+{% elif p.state == "empty" %}
+  {% include "panels/_empty.html" %}
+{% else %}
+  {% include ["panels/" ~ p.key ~ ".html", "panels/_generic.html"] %}
+{% endif %}

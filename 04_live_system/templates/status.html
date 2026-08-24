@@ -1,0 +1,6 @@
+{# One status line. It replaced four banners that could disagree with each other. #}
+<div class="status {{ status.severity or '' }}">
+  <strong>{{ status.headline }}</strong>
+  {% for c in status.chips %}<span class="chip {{ c.severity or '' }}">{{ c.label }}</span>{% endfor %}
+  {% if status.detail %}<span style="color:var(--muted)">{{ status.detail }}</span>{% endif %}
+</div>
