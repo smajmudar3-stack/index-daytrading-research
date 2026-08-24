@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "owner": "Sholo",
+  "rule": "Orchestrators consult this policy for every dispatch. No silent deviation: any override requires a logged reason in the dispatch log. Edits to this file are owner-only.",
+  "runMachines": ["outpost"],
+  "runMachinesRule": "Orchestrated runs may only launch on these hostnames. Workers run headless with permission prompts disabled, so the MACHINE is the sandbox, not the worktree: a worker can read anything the user can, including credentials in dotfiles. Dedicated or disposable machines only. Override per invocation with --unsafe-machine; the deviation is recorded in the run's event log and dispatch log.",
+  "classes": {
+    "build": {
+      "providers": ["claude-code", "codex"],
+      "strategy": "alternate",
+      "notes": "Load-balance across the Claude Max and Codex Max quotas. Neither vendor is default."
+    },
+    "review": {
+      "strategy": "cross-vendor",
+      "rule": "Reviewer must be a different vendor than the author of the diff.",
+      "mandatoryWhen": ["diff touches auth, payments, data migrations, or deletion paths", "diff exceeds ~200 lines"]
+    },
+    "research": {
+      "providers": ["grok"],
+      "fallback": "xai-api",
+      "notes": "X search and research briefs. Output lands as a brief file in the project repo, consumed by build sessions."
+    },
+    "mechanical": {
+      "providers": ["haiku", "codex-mini"],
+      "strategy": "cheapest-capable",
+      "notes": "Renames, sweeps, formatting, bulk edits."
+    }
+  },
+  "subagent": {
+    "rule": "In-session delegation is routed by the shape of the work, not by how important it feels. Pick the cheapest tier that can carry the shape.",
+    "notes": "The classes above route whole nodes of a run to a vendor. This section routes work a session hands to a subagent inside its own context, which is where most delegation actually happens.",
+    "tiers": {
+      "haiku": {
+        "shape": ["mechanical single-file edits", "sweeps", "log greps"],
+        "notes": "Deterministic edits with a known target. The instruction says exactly what to change, so the model is doing typing, not deciding."
+      },
+      "sonnet": {
+        "shape": ["multi-file inventories", "find every place X happens", "read-only audits of one dimension"],
+        "notes": "Search-heavy and conclusion-light. The agent reads widely and reports what it found; the calling session draws the conclusion."
+      },
+      "opus": {
+        "shape": ["architecture judgement", "adversarial review", "synthesis across other agents' findings"],
+        "notes": "Work where the answer is a judgement rather than a list, including deciding whether the cheaper agents' findings are right."
+      }
+    },
+    "breakEven": {
+      "rule": "Delegate when the reading-to-output ratio is high, or when the work splits across independent dimensions that can run at the same time.",
+      "doNotDelegate": "Work that is fast to do directly. Spawn overhead plus a cold context makes a one-line edit slower through a small model than done inline.",
+      "notes": "Written down here so it is decided once. The test is the ratio and the split, not the size of the file or the seniority of the task."
+    },
+    "toolChoice": {
+      "rule": "Read-only work that produces findings goes to in-session subagents; work that produces committed diffs goes to `tars run`.",
+      "notes": "Findings come back into the calling session's context and are cheap to discard. Diffs need a worktree, a critic and a merge, which is what the runner exists for."
+    }
+  },
+  "logging": {
+    "path": ".tars/dispatch-log.jsonl",
+    "fields": ["ts", "class", "provider", "task", "outcome", "deviationReason"],
+    "required": true
+  },
+  "resilience": {
+    "rule": "Capacity failures fail over without consuming a work retry. Cooldowns are circuit breakers, not sleeps inside provider processes.",
+    "cooldownsMs": {
+      "quota_exhausted": 3600000,
+      "auth_failed": 3600000,
+      "transient_network": 120000,
+      "timeout": 300000
+    }
+  },
+  "evaluation": {
+    "cadence": "periodic",
+    "rule": "Policy changes are proposed from dispatch-log evidence, never from orchestrator preference."
+  }
+}

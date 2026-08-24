@@ -1,0 +1,11 @@
+# Derived from imports across 04_live_system/ and 05_studies/ (repo shipped without one).
+numpy
+pandas
+pyarrow
+scipy
+requests
+yfinance
+anthropic
+
+# 05_studies/dl_ensemble.py only. Heavy (~1 GB); install separately if you need it:
+#   venv/bin/pip install torch
