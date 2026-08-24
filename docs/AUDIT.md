@@ -72,7 +72,15 @@ three contradictory answers is still three contradictory answers.
 
 ## 3. Defects found
 
-### 3.1 The dashboard contradicts itself on a single page — CONFIRMED
+### 3.1 The dashboard contradicts itself on a single page — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved.** The page, both desktop notifications, and the two engines that
+> manufactured the advice (`gex_periscope`, `gex_signal`) were rewritten to report a
+> range regime rather than a side. `tldr_card()` is deleted. `scripts/verify.py`
+> check 6 now fails the build if imperative directional advice reappears in the live
+> system, and `test_only_the_answer_panel_may_issue_an_action` fails if any panel
+> other than the decision card states an action.
+
 
 `04_live_system/gap_dashboard.py`:
 
@@ -94,7 +102,12 @@ The code knows about this. `master_panel()`'s docstring (:314) says the dashboar
 periscope reading 'price is FALLING' above a desk brief saying 'sit out'." A master
 call was added on top; the conflicting sources underneath were never removed.
 
-### 3.2 Four live modules cannot run — CONFIRMED
+### 3.2 Four live modules cannot run — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved.** `mes_signals` moved into `04_live_system/`, `sizing_curve` and
+> `final_system` moved out to `05_studies/`. The verify gate's bundle-split ratchet
+> is now empty and fails if a live module imports a study module again.
+
 
 The bundling split a flat directory into `04_live_system/` and `05_studies/` and
 broke the imports across the seam:
@@ -110,7 +123,12 @@ broke the imports across the seam:
 `04_live_system/` is **not** a runnable copy of the live system, and nothing in the
 docs says so.
 
-### 3.3 The health check can never fail a gate — CONFIRMED
+### 3.3 The health check can never fail a gate — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved.** `audit_dash.py` exits 1 on any hard failure or unrunnable check, and
+> gained `--strict` plus a third outcome bucket so a failed check and an unrunnable
+> one are distinguishable. Two live bugs inside it were fixed at the same time.
+
 
 `04_live_system/audit_dash.py` runs 23 value-level checks and prints
 `n pass / n warn / n fail`, but `main()` has no `sys.exit`, so the process **always
@@ -118,7 +136,13 @@ exits 0**. Any cron, launchd job or CI step gating on it passes while the dashbo
 is broken. This is the exact failure mode the file's own docstring was written to
 prevent: "data that was RETURNED but not CORRECT, displayed as if live."
 
-### 3.4 Failure is silent almost everywhere — CONFIRMED
+### 3.4 Failure is silent almost everywhere — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved.** The `except: pass` blocks are gone from the live system. Panels return
+> one of four explicit states and a raising panel becomes a visible error card rather
+> than blanking the page. A cycle writes `cycle_report.json` naming every step that
+> failed. Eight gates that returned "allow" on an exception now block.
+
 
 `04_live_system/` has 229 `try:` blocks and **78** `except …: pass`. The HTTP
 handler swallows every exception in `/refresh`, in position tracking and in account
@@ -126,13 +150,24 @@ setting, then issues a 302 redirect regardless — a user clicking "🔄 Update"
 identical response whether the refresh worked or every engine threw. Combined with
 §3.3, the system's default behaviour under failure is to look fine.
 
-### 3.5 The studies are unrunnable on any other machine — CONFIRMED
+### 3.5 The studies are unrunnable on any other machine — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved, and it was larger than reported.** Beyond the 53 hardcoded paths there
+> were 50 more resolving to a directory that never existed here and 34 more that were
+> cwd-relative. All route through `idt.paths`. The ratchet baseline is 0.
+
 
 **53 hardcoded `/Users/sahilmajmudar/...` paths across 26 files** in `05_studies/`.
 No environment variable, no fallback. Every one of those scripts fails on line ~15
 of any clone.
 
-### 3.6 Import-time execution — CONFIRMED
+### 3.6 Import-time execution — CONFIRMED · RESOLVED 2026-08-24
+
+> **Resolved for `05_studies/`:** all 117 modules import without running work, and the
+> verify gate holds it there. Doing so exposed two scripts that could not run at all
+> (`UnboundLocalError` from a shadowed `paths` and from module-level accumulators),
+> both found by `ruff` and fixed.
+
 
 Modules that do real work at import rather than under `if __name__ == "__main__"`:
 **15 of 53** in `04_live_system/`, 24 of 45 in `05_studies/`, 57 of 70 in

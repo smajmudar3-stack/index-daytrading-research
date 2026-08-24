@@ -12,6 +12,7 @@ What it checks:
   4. no file hardcodes a foreign home directory
   5. no study module runs script work at import
   6. no live module recommends a strategy this repo's own research refuted
+  7. MANIFEST.md lists every file that exists
 
 Run:  venv/bin/python scripts/verify.py
 """
@@ -240,6 +241,43 @@ def retired_advice_hits():
     return hits
 
 
+# ---------------------------------------------------------------------------
+# Check 7: MANIFEST freshness.
+#
+# MANIFEST.md is the repo's own index and it was stale by seven files when this
+# effort started, while claiming "200 files total". A stale index is worse than no
+# index: a reader trusts it and concludes a file does not exist.
+#
+# It compares the file LIST, not the line counts, and that is a deliberate choice.
+# Line counts change on every commit, so a count-checking gate would be red almost
+# always, and a gate that is always red gets ignored, taking the gates next to it
+# with it. The failure that actually matters is a file existing and not being
+# listed, which is what this catches.
+MANIFEST = os.path.join(ROOT, "MANIFEST.md")
+
+
+def manifest_drift():
+    """Compare the manifest's paths against the tree, enumerated exactly as the
+    generator does, so the two cannot disagree about what counts as a file."""
+    if not os.path.exists(MANIFEST):
+        return ["MANIFEST.md is missing — run: venv/bin/python scripts/build_manifest.py"]
+    listed = set(re.findall(r"^\| `([^`]+)`", open(MANIFEST, encoding="utf-8").read(), re.M))
+    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+                         cwd=ROOT, capture_output=True, text=True).stdout.split("\n")
+    actual = {p for p in out if p and os.path.isfile(os.path.join(ROOT, p))}
+    missing = sorted(actual - listed)
+    ghosts = sorted(listed - actual)
+    out = []
+    problems = []
+    if missing:
+        problems.append(f"{len(missing)} file(s) exist but are not listed: {', '.join(missing[:5])}")
+    if ghosts:
+        problems.append(f"{len(ghosts)} listed file(s) no longer exist: {', '.join(ghosts[:5])}")
+    if problems:
+        problems.append("fix: venv/bin/python scripts/build_manifest.py")
+    return problems
+
+
 def main():
     print("VERIFY — index-daytrading-research")
 
@@ -319,6 +357,11 @@ def main():
 
     # 6. retired advice -----------------------------------------------------
     hits = retired_advice_hits()
+    # 7. manifest freshness --------------------------------------------------
+    drift = manifest_drift()
+    check("manifest", not drift,
+          "MANIFEST.md lists every file that exists" if not drift else "; ".join(drift))
+
     check("retired-advice", not hits,
           f"{len(list(advice_files()))} live/shared modules recommend nothing this repo refuted"
           if not hits else f"{len(hits)} instance(s): " + " | ".join(hits[:4]))

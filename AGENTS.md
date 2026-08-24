@@ -68,21 +68,36 @@ Rules:
   `03_research/` literature and repo sweeps, `04_live_system/` the dashboard and its
   engines, `05_studies/` the backtest harnesses, `06_data_guide/` the data inventory,
   `scripts/` repo tooling (the verify gate).
-- **Four live modules are broken by the bundle split** — `final_system`, `mes_dashboard`,
-  `signals_all`, `sizing_curve` import modules filed under `05_studies/`. The verify gate
-  ratchets this set: fixing one means removing it from `BUNDLE_BROKEN`, and a new break fails.
-- **53 hardcoded `/Users/<original-author>/` paths** in `05_studies/` make those scripts
-  unrunnable anywhere else. The verify gate ratchets the count so it cannot grow.
-- **15 of 53 live modules run work at import** (`gex_regime`, `scan_all`, `option_pricer`
-  and others). `scan_all.py` in particular is a script, not a function — editing a
-  `def main():` in it does nothing.
-- **The dashboard contradicts its own research on the same page.** `gap_dashboard.py:1381`
-  (footer) and `:1344` (glossary) still teach the rejected "below the flip = buy premium"
-  rule that `rules_panel()` twenty lines earlier calls hard-blocked. Fix the content before
-  touching the layout.
-- **Secrets come from a `.env` outside the repo.** `_key()` is copy-pasted in `ai_desk.py`,
-  `analyst.py`, `uw_client.py` and `fetch_minutes.py`, each pointing at the original
-  author's home directory first. Nothing places live orders: `risk_gates.DRY_RUN = True`.
+  `scripts/` repo tooling (verify gate, manifest generator, data bootstrap),
+  `idt/` the shared package (paths, keys, db, bs, snapshots) and the `idt` CLI,
+  `test/` the offline suite, `07_superseded/` retired documents that are not instructions.
+- **`idt` is how everything resolves.** `idt.paths` for the two data roots (STATE_ROOT for
+  live snapshots, DATA_ROOT for the 16 GB that is not in git), `idt.keys` for API keys,
+  `idt.db` for sqlite with WAL and a busy timeout, `idt.bs` for the one Black-Scholes,
+  `idt.snapshots` for reading and writing versioned snapshots. Never duplicate their logic.
+- **One decision, one place.** Only `panels/today.answer()` may state an action. Every other
+  panel is context and says so. `test_only_the_answer_panel_may_issue_an_action` walks every
+  panel in every view and fails if that stops being true.
+- **Panels return dicts, never HTML.** Four states, all visually distinct: `ok`, `empty`,
+  `stale`, `unavailable`. "No closed trades yet" and "the book could not be read" lead to
+  opposite actions, and both used to render as an empty string.
+- **A snapshot from an older engine is REFUSED, not shown.** `idt.snapshots` stamps a schema
+  version on write. A version mismatch is not stale data to warn about, it is data written by
+  code that no longer exists: when the engines stopped emitting the refuted advice, the page
+  still served it from a periscope written twenty minutes earlier.
+- **Gates fail CLOSED.** A gate that cannot evaluate blocks. Seven of them used to return
+  "allow" on an exception, including `check_entry` itself. A missing, empty, exhausted or
+  malformed `data/events.json` blocks trading; each case has its own test.
+- **`audit_dash.py` exits 1 on failure** and has `--strict`. It reports a third outcome,
+  "could not run", because a failed check and an unrunnable one are different problems.
+- **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
+  three unrelated things at once, so green and red next to each other told you nothing.
+- **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),
+  `ruff check .`. All offline, all in `.tars/profile.json`, all run by CI. If you add a file,
+  run `scripts/build_manifest.py` or the manifest check fails.
+- **Secrets come from `<repo>/.env`** via `idt.keys`, never from a hardcoded home directory.
+  Copy `.env.example`. Nothing places live orders: `risk_gates.DRY_RUN = True`,
+  `LIVE_AGENT = False`, and a test asserts no order-placement code has appeared.
 
 <!-- tars:operating-contract:start — managed by `tars adopt`, edits here are overwritten -->
 

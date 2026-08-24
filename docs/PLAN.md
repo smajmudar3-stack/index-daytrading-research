@@ -3,6 +3,28 @@
 Written 2026-08-24, after the full audit in [AUDIT.md](AUDIT.md). Every problem cited
 here was reproduced, not inferred.
 
+## Status as of 2026-08-24
+
+All seven phases are built. `session/build-all-phases`, six commits, nothing pushed.
+
+| phase | state | evidence |
+|---|---|---|
+| 1 truth | done | `docs/VERDICT_LOG.md`, `07_superseded/`, engines rewritten, guarded by verify check 6 |
+| 2 failure is visible | done | `audit_dash` exits 1, 8 fail-open gates closed, cycle report, panel guards |
+| 3 runs anywhere | done | `idt` package + CLI, 0 hardcoded paths, bundle split closed, `bootstrap_data.py` |
+| 4 the interface | done | 4 views, panels return dicts, Jinja templates, partial refresh |
+| 5 tests | done | 47 offline tests, one Black-Scholes, in the verify manifest |
+| 6 the platform | done | snapshot schemas, WAL, CI, ruff |
+| 7 housekeeping | done | MANIFEST generated and gate-checked, README and RUNBOOK corrected |
+
+**Still open, and deliberately so.** The 16 GB of market data is not reconstructible from
+this repo, so every backtest remains unrunnable on a clean clone by design. The real-quote
+credit log reads 0 of 60 sessions, which is the one open validation that decides whether
+the 0DTE sleeve is real. And replacing yfinance in the decision path is a spend decision
+that belongs to the operator.
+
+---
+
 **The through-line.** This repo's research is unusually honest and its engineering is
 unusually confusing, and those two facts are connected. The research changed its mind
 twice; the code and the UI kept every version. So the dashboard shows several answers to
