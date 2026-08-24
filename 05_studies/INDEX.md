@@ -50,6 +50,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/blackswan_flip.py` | Two questions the last test raised but did not answer. |
 | `scripts/blackswan_select.py` | Can SELECTION rescue far-OTM buying? The owner's actual thesis, tested. |
 | `scripts/blackswan_test.py` | Black-swan lottery test: does buying very cheap far-OTM options pay? |
+| `scripts/breakout_tradeable.py` | Enter AT the break, not at 10:00. The difference is the whole result. |
 | `scripts/build_bundle.py` | Consolidate the whole index-daytrading repo into one self-describing folder. |
 | `scripts/build_indexes.py` | Generate per-folder INDEX.md files from real docstrings, not guesses. |
 | `scripts/build_iv_features.py` | Feasibility check: can we build the index-level constructs the paper sweep needs? |
@@ -81,6 +82,8 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/leadlag_trade.py` | Honest test of the IWM -> QQQ lead-lag that showed up in leadlag_test.py. |
 | `scripts/lit_search.py` | Rate-limited Semantic Scholar lookups for the spinoff / event-driven literature. |
 | `scripts/macro_test.py` | Does the macro/rates narrative actually predict sector returns at swing horizon? |
+| `scripts/mirror_drift_control.py` | Is QQQ's breakout asymmetry a signal, or is it just drift? |
+| `scripts/mirror_test.py` | The mirror test: is a breakout "hit rate" directional, or just volatility? |
 | `scripts/openalex_gap.py` | Fill remaining gaps: recent works citing Cusatis-Miles-Woolridge, plus targeted title searches. |
 | `scripts/openalex_lit.py` | OpenAlex lookups for the spinoff / event-driven anomaly literature. |
 | `scripts/option_drag.py` | Measure the true hurdle for expressing a 90-minute directional view in a 0DTE option, |
@@ -129,4 +132,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**124 files.**
+**127 files.**

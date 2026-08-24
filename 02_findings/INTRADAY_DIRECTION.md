@@ -173,6 +173,58 @@ understand that this is paying a spread to synthesize a futures position.
 
 ---
 
+## 4b. Candlestick and chart patterns: real, and useless
+
+The most precise answer in the whole sweep. "Retail Trader's Ruin" tested a
+7-pattern battery on the **Russell 3000 with point-in-time membership and
+delisting correction -- 4,152 stocks**, with pre-declared significance,
+cost, and survival gates.
+
+**All 7 of 7 patterns are statistically significant. The family is still
+refuted.** Maximum Cohen's **d = 0.026** against a materiality floor of 0.2,
+and only 1 of 7 is sign-preserving at 5bp of cost.
+
+That is the honest shape of the thing: with 4,000 stocks you can measure the
+effect precisely, and the precise measurement is about one-eighth of a
+materially relevant effect, smaller than the spread you pay to trade it.
+
+The peer-reviewed intraday tests agree:
+
+| study | test | result |
+|---|---|---|
+| Duvinage et al. 2013, *Quant Finance* | 5-min bars, 30 DJIA names, SSPA correction | **no rule beats buy-and-hold** |
+| Fock et al. 2005, *J. Derivatives* | 19 patterns, intraday DAX & Bund futures | **no predictive ability**, alone or with oscillators |
+| Marshall, Young & Rose 2006, *JBF* | 28 rules, EGARCH bootstrap | no rule significant; significant t-stats ran **backwards** |
+| Horton 2009, *QREF* | 9 patterns, 349 S&P 500 names | "little value" |
+
+Marshall et al.'s detail is worth keeping: Opening White Marubozu, a *bullish*
+pattern, predicted significantly **negative** returns; Long Black and Black
+Marubozu, *bearish* patterns, predicted significantly **positive** ones.
+Returns after all bullish single lines were positive less than half the time.
+
+### Our own test agrees
+
+Opening-range breakout on 496 SPY and 495 QQQ sessions, entered at the break:
+**+1.18 bp (t = 0.34)** and **+5.74 bp (t = 1.36)**. Neither is significant.
+The apparent +13 to +23 bp came from measuring the move before the breakout --
+see trap #6.
+
+### Two traps specific to pattern literature
+
+**Bulkowski's "average rise" is a perfect-foresight exit.** His own glossary
+defines it as the move to the **ultimate high** -- the highest peak before a 20%
+decline. You cannot trade to the ultimate high. Every headline percentage in the
+*Encyclopedia* is a maximum favourable excursion, not a return. His bullish
+engulfing ranks **84th of 103** and the best move 10 days after an upward
+breakout is a **drop of 1.18%**.
+
+**The exit rule is the strategy.** Lu, Chen & Hsu crossed 3 trend definitions
+with 4 holding strategies: the same eight patterns are profitable with one exit
+rule and unprofitable with another, on identical data. Before believing any
+pattern, test it against a **random-entry control using the identical exit**.
+
+---
+
 ## 5. What this rules out
 
 | claim | verdict |
