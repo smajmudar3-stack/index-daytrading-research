@@ -44,6 +44,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scalp_backtest.py` | scalp_backtest.py — does the WALL-FADE scalp work, conditioned on gamma regime? |
 | `scalp_update.py` | scalp_update.py — FAST live scalp updater for the morning momentum window (9:30–12:00 ET). |
 | `scripts/_test_spinoff_regex.py` | — |
+| `scripts/accuracy_hurdle.py` | What directional accuracy would we actually NEED to profit from 0DTE options? |
 | `scripts/base_rate_check.py` | Base-rate check for the conditional dip-buying result. |
 | `scripts/bigmove_hunt.py` | What actually precedes a BIG MOVE? The selection problem, done properly. |
 | `scripts/blackswan_flip.py` | Two questions the last test raised but did not answer. |
@@ -118,6 +119,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/test_intraday_momentum.py` | Baltussen/Da/Lammers/Martens (JFE 2021) market intraday momentum, tested on our own |
 | `scripts/test_intraday_momentum_spy.py` | Independent, genuinely-recent check of market intraday momentum on SPY 1-minute data |
 | `scripts/test_witching_drift.py` | Test the "derivative payoff bias" / third-Friday AM-settlement drift on our own SPX data. |
+| `scripts/theta_hurdle.py` | The spread is not the binding cost on 0DTE direction -- theta is. |
 | `scripts/uw_backtest_weights.py` | Backtest the UW inputs that HAVE history, so their weights are earned. |
 | `scripts/zebra_vs_call.py` | ZEBRA vs a plain 0.80-delta call vs ATM call vs 100 shares — head to head, |
 | `validate_condor_real.py` | validate_condor_real.py — the condor edge, priced on REAL SPXW quotes instead of a model. |
@@ -127,4 +129,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**122 files.**
+**124 files.**

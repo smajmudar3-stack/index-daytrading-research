@@ -164,6 +164,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | file | lines | size |
 |---|---:|---:|
 | `_test_spinoff_regex.py` | 25 | 1 KB |
+| `accuracy_hurdle.py` | 128 | 6 KB |
 | `base_rate_check.py` | 95 | 3 KB |
 | `bigmove_hunt.py` | 208 | 9 KB |
 | `blackswan_flip.py` | 117 | 5 KB |
@@ -238,8 +239,9 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `test_intraday_momentum.py` | 116 | 5 KB |
 | `test_intraday_momentum_spy.py` | 69 | 3 KB |
 | `test_witching_drift.py` | 85 | 4 KB |
+| `theta_hurdle.py` | 108 | 5 KB |
 | `uw_backtest_weights.py` | 165 | 7 KB |
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**208 files total.**
+**210 files total.**

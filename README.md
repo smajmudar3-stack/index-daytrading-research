@@ -35,6 +35,10 @@ recommend anything the backtests say loses money.
 **[02_findings/WHAT_WORKS.md](02_findings/WHAT_WORKS.md)** — the three surviving
 signals and their measured strength.
 
+**[02_findings/INTRADAY_DIRECTION.md](02_findings/INTRADAY_DIRECTION.md)** — the
+full answer on intraday direction: the ~53% accuracy ceiling, the theta hurdle
+that exceeds it, and the one dealer-gamma signal that clears it.
+
 **[02_findings/METHODOLOGY_TRAPS.md](02_findings/METHODOLOGY_TRAPS.md)** — twelve
 ways a backtest lies. Four of these produced fake winning strategies in this
 repo before being caught. Check any new backtest against this list first.
