@@ -405,15 +405,25 @@ def master_panel():
 def gex_panel(x):
     if not x:
         return ""
-    stance = x.get("stance", "selective")
-    scol = {"buy_premium": "go", "sell_premium": "red", "selective": "info"}.get(stance, "info")
+    # gex_signal's `stance` is a RANGE forecast now (wide_range / average_range / tight_range),
+    # not a buy_premium / sell_premium order. The old values are kept in the map so a stale
+    # snapshot written before the change still renders instead of falling through to a colour
+    # that means something else.
+    stance = x.get("stance", "average_range")
+    scol = {"wide_range": "warn", "tight_range": "mut", "average_range": "info",
+            "buy_premium": "warn", "sell_premium": "mut", "selective": "info"}.get(stance, "info")
     pm = x.get("condor_survival", {})
     # The playbook and the thesis are engine prose and still carry the retired instruction
     # ("buy puts on a decisive break BELOW the gamma flip"). Same gate as the periscope: keep the
     # reasoning, drop the order, and drop an item that was nothing but the order. When something is
     # cut, SAY so: a silently shortened sentence reads like the engine had less to say, which is a
     # different lie from the one being fixed.
-    play = "".join(f"<li>{_no_advice(p)}</li>" for p in x.get("direction_playbook", []) if _no_advice(p))
+    # `direction_playbook` became `direction_findings`: the engine used to tell the reader how to
+    # pick a side, and now reports that no way of picking one survived testing. Both keys are read
+    # so a snapshot written before the change still renders.
+    play = "".join(f"<li>{_no_advice(p)}</li>"
+                   for p in (x.get("direction_findings") or x.get("direction_playbook") or [])
+                   if _no_advice(p))
     thesis = str(x.get("thesis") or "").strip()
     thesis_txt = _no_advice(thesis)
     if thesis_txt != thesis:
@@ -460,7 +470,7 @@ def gex_panel(x):
   </div>
   {bc_html}
   <div class=gexcav>⚠️ {x.get('caveat','')}</div>
-  <details class=gexplay><summary>Which side? (GEX = size, DIX = tilt, trigger = confirm)</summary><ol>{play}</ol></details>
+  <details class=gexplay><summary>Why there is no side here (what was tested for direction, and what it showed)</summary><ol>{play}</ol></details>
   <div class=gexfoot>updated {x.get('as_of','—')} · SqueezeMetrics · range edge 15-yr, measured against VIX9D-implied vol (t=−13.2) · DIX direction is real on the underlying (+12.8bp, t=+3.0) but was not monetisable in 0DTE options, and as a premium-selling filter it tested as noise (p=0.49)</div>
 </div>"""
 
@@ -478,12 +488,12 @@ def gex_panel(x):
 # guarantee: prose has more shapes than a regex, which is why the panels also carry the measured
 # result in red next to anything directional.
 _RETIRED_ADVICE = re.compile(
-    r"buy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+)*(?:call|put)"  # buy a naked CALL
+    r"buy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+)*(?:call|put)"  # noqa: retired-advice
     r"|(?:call|put)[\s/-]+debit\s+spread"                                            # call debit spread
     r"|naked[\s-](?:call|put)"                                                       # naked-CALL day
-    r"|go\s+naked|naked\s+only|naked\s+is\s+fine"                                    # go naked on a break
+    r"|go\s+naked|naked\s+only|naked\s+is\s+fine"                                    # noqa: retired-advice
     r"|(?:call|put)\s+on\s+a\s+(?:hold|decisive|break|clean)"                        # CALL on a hold above
-    r"|=\s*(?:puts|calls)",                                                          # below flip = puts
+    r"|=\s*(?:puts|calls)",                                                          # noqa: retired-advice
     re.I)
 
 

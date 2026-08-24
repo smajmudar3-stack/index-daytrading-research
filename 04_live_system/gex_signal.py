@@ -1,15 +1,29 @@
-"""gex_signal.py — LIVE 0DTE dealer-gamma REGIME signal (the real, 15-year-robust edge).
+"""gex_signal.py — LIVE 0DTE dealer-gamma RANGE regime (the one finding that survived).
 
 What it is: dealer Gamma Exposure (GEX) from the prior close is known before today's open and
-predicts the day's INTRADAY RANGE with a huge, monotone, every-year-stable effect (2011-2026,
-t=-16). It does NOT predict direction. So it answers the one question that most improves naked
-0DTE call/put trading: SHOULD I BE BUYING PREMIUM TODAY AT ALL, and how much fuel is in the tank?
+predicts the day's INTRADAY RANGE with a monotone, every-year-stable effect over 2011-2026.
+Measured against VIX9D, a real market-priced implied vol, realised range comes in at 0.843x
+implied on high-gamma days against 1.139x on low, t = -13.2, significant in every four-year
+sub-period. It does NOT predict direction, and it never did.
 
-  low / negative gamma  -> big range (dealers amplify)  -> GO: naked directional has fuel, press size
-  high / positive gamma -> pin / chop (dealers dampen)  -> NO-GO: theta death, sit out or sell premium
+  low / negative gamma  -> dealers hedge WITH the move  -> range runs wider than implied
+  high / positive gamma -> dealers hedge AGAINST it     -> range comes in tighter, price pins
 
-Direction (call vs put) is NOT in GEX — get it from your opening drive + flow (Unusual Whales /
-Market Chameleon / Barchart). This tool sizes the OPPORTUNITY; the trigger picks the side.
+WHAT THIS MODULE IS NO LONGER ALLOWED TO SAY. This docstring used to quote t=-16 and frame the
+regime as the question that "most improves naked 0DTE call/put trading", and the thesis it wrote
+could read "IDEAL naked-CALL day. Buy a naked CALL". Both are retired:
+
+  - t=-16 is the rounded beta against the repo's own causal vol forecast, not against a price
+    anyone can trade. The figure worth quoting is t=-13.2 against VIX9D. See docs/VERDICT_LOG.md.
+  - buying 0DTE premium on ANY directional signal in this repo measured -10% to -11% per trade,
+    and the "low gamma means premium has fuel" version measured -7.2% (straddle) to -19.1%
+    (strangle). A wide range does not make a long option profitable; it has to beat what the
+    option already costs, and it does not.
+  - selling the range does not work either at real prices: the 0DTE condor gated on this regime
+    is approximately break-even on 1,919 sessions of real SPXW bid/ask.
+
+So the regime read is genuine and it is reported as a RANGE FORECAST. It is an input to a
+decision made elsewhere, not an instruction, and it carries no side.
 
 Free data: SqueezeMetrics historical GEX CSV (updates ~daily). Writes data/gex_snapshot.json.
 """
@@ -103,18 +117,24 @@ def _uw_live():
         im = uw.get("implied_move") or {}
         move = im.get("move_pct")                       # market's own expected 0DTE move %
         dist = (spot / flip - 1) if flip else (0.02 if (net or 0) > 0 else -0.02)
-        if dist < -0.001:                               # below the flip → short gamma → trend/big range
-            regime = "SHORT GAMMA (live)"; stance = "buy_premium"; call = "GO — trend regime (dealers amplify)"
-            note = ("UW same-day: price is BELOW the zero-gamma flip → dealers short gamma → they push moves "
-                    "further → big-range/trend day. Naked longs have fuel; ride the direction, bail on a reclaim above flip.")
-        elif dist < 0.003:                              # right around the flip → transitional
-            regime = "AT/NEAR FLIP (live)"; stance = "selective"; call = "TRANSITIONAL — watch the flip"
-            note = ("UW same-day: price is sitting near the zero-gamma flip — the coiled line. Regime can tip either "
-                    "way. Trade only on a decisive break (below = puts/trend, hold above = calls/pin-grind).")
-        else:                                           # comfortably above flip → long gamma → pin
-            regime = "LONG GAMMA / PIN (live)"; stance = "sell_premium"; call = "PIN — naked premium bleeds"
-            note = ("UW same-day: price is above the zero-gamma flip with net long dealer gamma → they fade moves → "
-                    "pin/chop. Naked longs bleed theta; use spreads, or sell premium (condor) around the pin.")
+        # Same vocabulary as the baseline path below: a range forecast, never a side and never
+        # an order. These three branches used to end in "naked longs have fuel", "below = puts"
+        # and "sell premium around the pin"; all three are refuted at real prices, and having
+        # the LIVE path say something the BASELINE path no longer said was its own bug.
+        if dist < -0.001:                               # below the flip -> dealers hedge with the move
+            regime = "SHORT GAMMA (live)"; stance = "wide_range"; call = "WIDE range expected"
+            note = ("UW same-day: price is BELOW the zero-gamma flip, so dealers are short gamma and hedge in the "
+                    "direction of the move, pushing it further. Expect a wider range than implied. This says how "
+                    "big, not which way.")
+        elif dist < 0.003:                              # right around the flip -> undecided
+            regime = "AT/NEAR FLIP (live)"; stance = "average_range"; call = "Regime undecided"
+            note = ("UW same-day: price is sitting on the zero-gamma flip. Neither regime is established, so the "
+                    "range read carries no information right now. A decisive move to either side resolves it.")
+        else:                                           # comfortably above flip -> dealers hedge against
+            regime = "LONG GAMMA / PIN (live)"; stance = "tight_range"; call = "TIGHT range expected — pin"
+            note = ("UW same-day: price is above the zero-gamma flip with net long dealer gamma, so dealers fade "
+                    "moves and the index pins. Expect a tighter range than implied. This is the best-evidenced "
+                    "read the system has, and it still does not convert into a profitable trade at real quotes.")
         exp_oc = move if move else None
         exp_range = round(move * 1.7, 2) if move else None
         return {"stance": stance, "regime": regime, "call": call, "note": note,
@@ -143,11 +163,13 @@ def run():
     dz_series = (g["dix"] - g["dix"].rolling(252, min_periods=60).mean()) / g["dix"].rolling(252, min_periods=60).std()
     dz = float(dz_series.iloc[-1])
     if dz > 0.5 and q <= 2:
-        dix_call = "BULLISH tilt — high dark-pool buying on a low-gamma day (→ favor CALLS; 60% green, t=+3.0)"
+        dix_call = ("BULLISH tilt — high dark-pool buying on a low-gamma day (60% green, t=+3.0 on the "
+                    "UNDERLYING). Real on the index, but it was not monetisable in 0DTE options: the move is "
+                    "+12.8bp and the option costs ~0.37% of spot. Context, not a trade.")
     elif dz > 0.5:
         dix_call = "mild bullish — DIX high but gamma not low (weaker signal)"
     elif dz < -0.5:
-        dix_call = "DIX low — no long edge; don't force a call, wait for the drive/flow"
+        dix_call = "DIX low — no bullish tilt today."
     else:
         dix_call = "DIX neutral — direction from opening drive + flow only"
 
@@ -199,29 +221,37 @@ def run():
         nb_conv = 30 if dz > 0 else 20
         nb_bias = "neutral"
 
-    # regime label + naked-premium call
+    # Regime label and the RANGE forecast it implies.
+    #
+    # `stance` used to be buy_premium / sell_premium, i.e. an order. Both directions of that
+    # order are refuted at real prices (see the module docstring), so the field now names the
+    # range expectation instead: wide / average / tight. Downstream code reads `stance`, so the
+    # key is kept and only its vocabulary changed; anything still branching on the old values
+    # will fall through to the neutral path rather than silently taking the retired branch.
     if neg:
-        regime = "NEGATIVE GAMMA"; call = "GO — big-range regime"
-        note = ("Dealers are SHORT gamma: they buy rallies / sell dips, AMPLIFYING moves. This is the "
-                "top ~9% of days for intraday range (avg ~2.4% vs ~1.0% normal). Naked long calls/puts "
-                "have the most fuel here — theta gets paid off by the move. Press size when a direction sets up.")
-        stance = "buy_premium"
+        regime = "NEGATIVE GAMMA"; call = "WIDE range expected"
+        note = ("Dealers are SHORT gamma: they buy rallies and sell dips, so their hedging runs WITH the move "
+                "and amplifies it. This is the top ~9% of days for intraday range (avg ~2.4% against ~1.0% "
+                "normal). That is a forecast of SIZE, not of side, and a wide range does not by itself make a "
+                "long option pay: it still has to beat what the option costs, which it did not in testing.")
+        stance = "wide_range"
     elif q <= 2:
-        regime = f"LOW GAMMA (Q{q}/5)"; call = "GO — above-average range"
-        note = ("Gamma is low: dealers dampen less, so moves extend. Good conditions for naked directional "
-                "0DTE — wait for the opening drive/flow to pick the side, then ride it.")
-        stance = "buy_premium"
+        regime = f"LOW GAMMA (Q{q}/5)"; call = "Above-average range expected"
+        note = ("Gamma is low, so dealer hedging dampens less and moves extend further than on a typical day. "
+                "A statement about range only. No directional edge was found in this data at any horizon.")
+        stance = "wide_range"
     elif q == 3:
-        regime = "MID GAMMA (Q3/5)"; call = "NEUTRAL — average day"
-        note = ("Middle regime — no range edge either way. Only buy naked premium with a strong directional "
-                "trigger; otherwise the day likely chops enough to bleed theta.")
-        stance = "selective"
+        regime = "MID GAMMA (Q3/5)"; call = "Average range expected"
+        note = ("Middle regime, no range edge in either direction. This is the regime that tells you least.")
+        stance = "average_range"
     else:
-        regime = f"HIGH GAMMA (Q{q}/5)"; call = "NO-GO for naked premium — PIN/CHOP"
-        note = ("Dealers are LONG gamma: they sell rallies / buy dips, PINNING the index. Smallest-range "
-                "regime (avg ~0.7%). Naked long 0DTE bleeds theta here — this is the leak. Either sit out, "
-                "or FLIP to being the seller (iron condor / credit spread) — condor survival is highest now.")
-        stance = "sell_premium"
+        regime = f"HIGH GAMMA (Q{q}/5)"; call = "TIGHT range expected — pin"
+        note = ("Dealers are LONG gamma: they sell rallies and buy dips, so their hedging runs AGAINST the move "
+                "and pins the index. Smallest-range regime (avg ~0.7%), and realised range comes in at 0.843x "
+                "the VIX9D-implied move against 1.139x on low-gamma days (t = -13.2). This is the strongest and "
+                "best-evidenced read the system has. It still does not convert into a profitable condor at real "
+                "quotes, which is itself the finding: the market has this priced.")
+        stance = "tight_range"
 
     # SqueezeMetrics values are the 15-yr BACKTESTED BASELINE (prior close). If a UW key is set, the
     # LIVE same-day read takes over the headline regime/stance/expected-range; SM stays as the baseline.
@@ -281,46 +311,51 @@ def run():
     conflict = bool(fired and live_score is not None and live_score < -12)  # DIX bullish vs UW bearish
 
     if conflict:
-        bias = "⚔️ CONFLICT — stand down"; conv = 22
-        dhint = ("Night-before DIX leaned BULLISH but LIVE UW flow flipped BEARISH — the signals disagree. "
-                 "Don't force a side. Wait for them to align, or trade only the periscope flip break (below flip = "
-                 "puts, reclaim + hold = calls).")
+        # These labels are LEANS, not orders. "favor CALLS" / "favor PUTS" were the old wording
+        # and they read as instructions on the page; the underlying directional read measured
+        # -10% to -11% per trade out of sample (docs/VERDICT_LOG.md).
+        bias = "CONFLICT — inputs disagree"; conv = 22
+        dhint = ("The night-before DIX read leaned bullish and live flow leaned bearish. When the two inputs "
+                 "disagree the reconciled lean carries no information.")
     elif net > 0.15:
-        bias = "BULLISH — favor CALLS"; conv = min(78, 48 + int(net * 40))
+        bias = "BULLISH LEAN"; conv = min(78, 48 + int(net * 40))
         dhint = None
     elif net < -0.15:
-        bias = "BEARISH — favor PUTS"; conv = min(72, 42 + int(-net * 40))
-        dhint = ("Lean is bearish. There's no reliable night-before PUT edge, so treat this as a REACTIVE play: "
-                 "buy puts on a decisive break BELOW the gamma flip (short gamma amplifies the drop).")
+        bias = "BEARISH LEAN"; conv = min(72, 42 + int(-net * 40))
+        dhint = ("Bearish lean. No reliable night-before directional edge was found in this data, so this is "
+                 "context only.")
     else:
         bias = "NEUTRAL — no clean edge"; conv = 30
         dhint = None
 
-    # THESIS: vehicle depends on the RECONCILED direction AND the range regime.
-    # A naked long only pays when RANGE is there; bullish into a PIN = slow grind = use a SPREAD not naked.
-    range_word = ("BIG range likely (trend)" if stance == "buy_premium"
-                  else "small range / pin likely" if stance == "sell_premium" else "average range")
+    # THESIS: the range forecast, plus the reconciled lean reported as context.
+    #
+    # This block used to choose a VEHICLE and write an order: "IDEAL naked-CALL day. Buy a naked
+    # CALL (ATM/1-ITM, nearest 0DTE)", "buy puts on a decisive break BELOW the gamma flip", "SELL
+    # an iron condor around the pin". Every one of those is refuted or unproven at real prices
+    # (docs/VERDICT_LOG.md), and the thesis string is printed straight onto the dashboard. So the
+    # thesis now states the range expectation and names the lean as a lean. What to do about it is
+    # decided in one place, by master_call and the deterministic gates, and it is not decided here.
+    range_word = ("wide range likely" if stance == "wide_range"
+                  else "tight range / pin likely" if stance == "tight_range" else "average range")
     bull = "BULLISH" in bias
     bear = "BEARISH" in bias
-    if conflict:
-        action = dhint
-    elif bull and stance == "buy_premium":
-        action = (f"Clean bullish + big-range/short-gamma = IDEAL naked-CALL day. Buy a naked CALL (ATM/1-ITM, "
-                  f"nearest 0DTE) once price holds above the gamma flip. {conv}/100. Target ~{eff_oc}%; bail on a flip loss.")
-    elif bull and stance in ("selective", "sell_premium"):
-        action = (f"Bullish, but it's a PIN day — a NAKED call bleeds theta on a slow grind. Use a CALL DEBIT SPREAD "
-                  f"(buy ATM / sell ~+{max(0.5,eff_oc or 0.5):.1f}%) or shares; go naked only on a break above the call wall.")
-    elif bear:
-        action = dhint
-    elif stance == "sell_premium":
-        action = ("No directional edge and gamma pins the tape — don't buy premium. Sit out, or SELL an iron condor "
-                  f"around the pin (~±{(eff_oc or 0.5)*1.3:.1f}%; ~{bk['cond75']}% survive to close).")
-    elif stance == "buy_premium":
-        action = ("Big-range regime but no clear side. Wait for the open: take the side of the opening drive + flow; "
-                  "naked is fine here because the range supports it. Bail on a flip break against you.")
+    lean_note = ("Inputs disagree, so the lean carries no information today." if conflict
+                 else f"Lean is {'bullish' if bull else 'bearish' if bear else 'neutral'} at {conv}/100, "
+                      "which is context for a decision made elsewhere, not a trade. No directional edge in "
+                      "this data survived out-of-sample testing.")
+    if stance == "wide_range":
+        action = (f"Dealer hedging runs with the move today, so expect a wider range than implied "
+                  f"(~{eff_oc}% open to close). A wide range is not by itself profitable: a long option still has "
+                  f"to beat its own cost, and in testing it did not. {lean_note}")
+    elif stance == "tight_range":
+        action = (f"Dealer hedging runs against the move today, so expect a tighter range than implied "
+                  f"(~{eff_oc}% open to close; ~{bk['cond75']}% of 1.25-SD condors survived to the close in the "
+                  f"backtest). Selling that range is approximately break-even at real quotes, so this is a "
+                  f"regime read, not a setup. {lean_note}")
     else:
-        action = ("No clean edge and average range. Wait for the open: CALL on a hold above the flip with a clean drive "
-                  "(prefer a spread); PUT on a decisive break below the flip. Else sit out.")
+        action = (f"Average range regime (~{eff_oc}% open to close). This is the regime that tells you least. "
+                  f"{lean_note}")
     thesis = f"SPX today: {range_word}, {bias}. {action}"
     master_dir = ("conflict" if conflict else "bullish" if net > 0.15 else "bearish" if net < -0.15 else "neutral")
     reconcile = {"net": round(net, 2), "conflict": conflict, "master_dir": master_dir,
@@ -350,12 +385,20 @@ def run():
                    "catalyst with institutions buying (high DIX) can trend even in positive gamma. "
                    "Probabilistic tilt, not a ceiling — size accordingly."),
         "buckets": buckets,
-        "direction_playbook": [
-            "GEX gives you the REGIME (how big), never the SIDE. Pick the side from a trigger:",
-            "1) Opening drive: at ~10:00 ET, trade the side of 09:30->10:00 move (on low-gamma days it tends to continue).",
-            "2) Flow confirmation: Unusual Whales (sweeps/large 0DTE prints), Market Chameleon (options volume/PCR), Barchart (unusual options) — take the side the size is leaning.",
-            "3) Level: above prior-day VWAP/high = call bias; below = put bias.",
-            "On NO-GO (high-gamma) days: skip naked premium OR sell an iron condor around the pin instead.",
+        # This list used to be a "direction_playbook" telling the reader how to pick a side and
+        # then trade it. Every avenue in it was tested here and failed: 56 features and 220
+        # conditions produced ZERO combinations clearing 55% on both train and validate, real
+        # 0DTE order flow over 16,152 observations was null with a sign that flips between
+        # splits, and the opening-drive continuation did not replicate across SPY/QQQ/IWM. See
+        # 02_findings/FINDINGS.md. What replaces it is the honest version: what was looked for,
+        # and what was found.
+        "direction_findings": [
+            "Dealer gamma gives the RANGE (how big), never the SIDE. Nothing here gives the side.",
+            "Technical indicators: 56 features, 220 conditions, thousands of combinations, three-way split -> ZERO cleared 55% on train AND validate.",
+            "Real 0DTE order flow: 16,152 observations over 1,919 sessions -> null, and the sign flips between splits.",
+            "Candlestick and price-action patterns: ~30 patterns measured against the base rate -> none held +4pp on all three splits.",
+            "Opening-drive continuation: replicated on QQQ only, 1 of 3 symbols, which is what a fitted result looks like.",
+            "The practical consequence: there is no validated intraday directional trade here, and the flip-break version of one measured -7.2% to -19.1% per trade.",
         ],
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

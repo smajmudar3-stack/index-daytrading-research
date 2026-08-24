@@ -11,6 +11,7 @@ What it checks:
   3. no live module imports a module that lives under 05_studies/
   4. no file hardcodes a foreign home directory
   5. no study module runs script work at import
+  6. no live module recommends a strategy this repo's own research refuted
 
 Run:  venv/bin/python scripts/verify.py
 """
@@ -118,6 +119,121 @@ def study_files():
                 yield os.path.join(d, f)
 
 
+# ---------------------------------------------------------------------------
+# Check 6: the retired-advice guard.
+#
+# Phase 1 of docs/PLAN.md removed the refuted trades from the dashboard, both
+# desktop notifications and both engines that manufactured them. Without a gate,
+# one edit puts any of it back, and the failure is silent: the page still renders,
+# it just tells you to take a trade measured at -10% to -11% per trade.
+#
+# The hard part is that REFUTING a claim requires NAMING it. The glossary explains
+# why "below the flip = buy premium" is wrong, the footer says what is rejected,
+# and docs/VERDICT_LOG.md is nothing but retired claims. A naive grep fails on its
+# first run and then gets ignored, which is worse than no gate.
+#
+# So this matches the IMPERATIVE, not the mention. Two rules:
+#   1. Only files that PRODUCE operator-facing output are scanned. The record of
+#      what was wrong lives in docs/ and 07_superseded/ and is exempt.
+#   2. A line is exempt when it carries a refutation marker on the same line: a
+#      measured loss, a retired/refuted/rejected word, or a pointer to the verdict
+#      log. That is how the glossary and the footer legitimately say the words.
+RETIRED_ADVICE = re.compile(
+    r"\bbuy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+|long\s+)*(?:call|put)s?\b"
+    r"|\bBUY\s+(?:CALLS|PUTS)\b"
+    r"|\bnaked\s+(?:call|put)s?\s+(?:have|has)\b"
+    r"|\bpremium\s+has\s+fuel\b"
+    r"|\bhas\s+the\s+most\s+fuel\b"
+    r"|\bpress\s+size\b"
+    r"|\bIDEAL\s+naked\b"
+    r"|\bgo\s+naked\b|\bnaked\s+is\s+fine\b"
+    r"|below\s+(?:the\s+)?flip\s*=\s*(?:puts|calls|buy)"
+    r"|\bfavor\s+(?:CALLS|PUTS)\b",
+    re.I)
+
+# Comments and docstrings are EXEMPT, computed from the AST rather than guessed.
+#
+# This is not a loophole, it is the risk model. The guard exists to stop the product
+# telling the operator to take a refuted trade. A comment cannot reach the operator,
+# and the comments that quote the retired wording are the most valuable lines in these
+# files: they record what was removed and why, which is exactly what stops someone
+# putting it back. A gate that forced their deletion would destroy the institutional
+# memory it exists to protect.
+#
+# What is NOT exempt is any string a running program can print, render or send to a
+# model. That includes LLM system prompts, which is how the trading agent's own HARD
+# RULES were found still instructing the refuted trade.
+#
+# For the rare executable line that must contain the wording (this file's own patterns,
+# and the renderer's filter), the opt-out is explicit and greppable: `# noqa: retired-advice`.
+
+
+def _exempt_lines(path):
+    """Line numbers that are comment-only or inside a docstring."""
+    exempt = set()
+    try:
+        src = open(path, encoding="utf-8").read()
+    except OSError:
+        return exempt
+    for i, line in enumerate(src.splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("#") or "noqa: retired-advice" in line:
+            exempt.add(i)
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return exempt
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        body = getattr(node, "body", None)
+        if not body:
+            continue
+        first = body[0]
+        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) \
+                and isinstance(first.value.value, str):
+            for i in range(first.lineno, (first.end_lineno or first.lineno) + 1):
+                exempt.add(i)
+    return exempt
+
+
+# A line saying the words in order to refute them is the point of the exercise.
+REFUTATION_MARKER = re.compile(
+    r"refut|retired|rejected|REJECTED|superseded|VERDICT_LOG"
+    r"|measured\s+at|tested\s+at|lost\s+\d|-\d+(?:\.\d+)?%\s*(?:per\s+trade|/trade)"
+    r"|used\s+to\s+(?:say|return|read|end|be)|no\s+longer|must\s+not|never\s+again"
+    r"|hard-blocked|not\s+a\s+signal|is\s+WRONG",
+    re.I)
+
+# Only what the operator can end up reading or acting on. The history is exempt.
+ADVICE_SCAN_DIRS = ("04_live_system", "idt", "scripts")
+
+
+def advice_files():
+    for d in ADVICE_SCAN_DIRS:
+        base = os.path.join(ROOT, d)
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [x for x in dirnames
+                           if x not in ("data", "__pycache__", "templates", "static")]
+            for f in sorted(filenames):
+                if f.endswith(".py"):
+                    yield os.path.join(dirpath, f)
+
+
+def retired_advice_hits():
+    hits = []
+    for p in advice_files():
+        if os.path.abspath(p) == os.path.abspath(__file__):
+            continue                      # this file defines the patterns
+        exempt = _exempt_lines(p)
+        for i, line in enumerate(open(p, encoding="utf-8"), 1):
+            if i in exempt or REFUTATION_MARKER.search(line):
+                continue
+            if RETIRED_ADVICE.search(line):
+                hits.append(f"{os.path.relpath(p, ROOT)}:{i}: {line.strip()[:100]}")
+    return hits
+
+
 def main():
     print("VERIFY — index-daytrading-research")
 
@@ -194,6 +310,12 @@ def main():
     check("import-time-work", not loose,
           f"{len(list(study_files()))} study modules import without running"
           if not loose else "; ".join(loose[:5]))
+
+    # 6. retired advice -----------------------------------------------------
+    hits = retired_advice_hits()
+    check("retired-advice", not hits,
+          f"{len(list(advice_files()))} live/shared modules recommend nothing this repo refuted"
+          if not hits else f"{len(hits)} instance(s): " + " | ".join(hits[:4]))
 
     print(f"\n{len(failures)} failure(s)")
     return 1 if failures else 0

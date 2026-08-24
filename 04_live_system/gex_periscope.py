@@ -41,37 +41,67 @@ def bs_gamma(S, K, T, iv, r=0.04):
 _DAY = [None]        # scratch: (day_high, day_low, open) from the last chain() call
 
 
-def _signal_quality(sig, spot, flip, cw, pw, dir_score):
-    """Conviction 0-100 for the directional signal + an EXTENSION read (don't chase too late)."""
-    bull = sig == "BUY CALLS"; bear = sig == "BUY PUTS"
-    if not (bull or bear):
-        return {"conviction": 0, "entry": "", "entry_col": "mut"}
-    conv = 42 + min(33, abs(dir_score or 0) * 0.7)        # flow strength → base conviction
-    day = _DAY[0]; rng_pos = None
+def _position_in_range(spot, cw, pw):
+    """Where price sits between the walls and inside the day's range.
+
+    This used to be `_signal_quality()`, and it scored a 0-100 "conviction" for the BUY
+    CALLS / BUY PUTS verb this engine no longer emits. The conviction number had no
+    measured basis: it was `42 + flow_strength * 0.7` with hand-set penalties, i.e. a
+    fabricated prior presented as a percentage, for a directional read that tested at -10%
+    to -11% per trade (docs/VERDICT_LOG.md).
+
+    What was worth keeping is the geometry, which is measured and not directional: the walls
+    are the strikes carrying the most dealer gamma, they act as a ceiling and a floor, and
+    price sitting on one is a materially different situation from price sitting between
+    them. So this reports POSITION, and leaves what to do about it to the one place that
+    decides anything.
+    """
+    day = _DAY[0]
+    rng_pos = None
     if day and day[0] > day[1]:
-        rng_pos = (spot - day[1]) / (day[0] - day[1])     # 0=day low, 1=day high
-    entry = "ok entry — room to run"; ecol = "go"
-    if bull and cw:
-        room = (cw - spot) / spot * 100                   # % up to the call wall (resistance)
-        if room < 0.05:
-            entry = f"⚠️ EXTENDED — at/above the call wall {cw:.0f}. Chasing risk; wait for a pullback to buy."; ecol = "red"; conv -= 28
-        elif room < 0.2:
-            entry = f"late-ish — only {room:.2f}% to the {cw:.0f} wall. Small size or wait for a dip."; ecol = "warn"; conv -= 12
-        else:
-            entry = f"ok entry — ~{room:.2f}% room to the {cw:.0f} wall"
-        if rng_pos is not None and rng_pos > 0.9:
-            entry += " · at day highs (extended)"; conv -= 10
-    elif bear and pw:
-        room = (spot - pw) / spot * 100
-        if room < 0.05:
-            entry = f"⚠️ EXTENDED — at/below the put wall {pw:.0f}. Chasing; wait for a bounce to buy."; ecol = "red"; conv -= 28
-        elif room < 0.2:
-            entry = f"late-ish — only {room:.2f}% to the {pw:.0f} wall. Small size or wait."; ecol = "warn"; conv -= 12
-        else:
-            entry = f"ok entry — ~{room:.2f}% room to the {pw:.0f} wall"
-        if rng_pos is not None and rng_pos < 0.1:
-            entry += " · at day lows (extended)"; conv -= 10
-    return {"conviction": max(10, min(85, round(conv))), "entry": entry, "entry_col": ecol}
+        rng_pos = (spot - day[1]) / (day[0] - day[1])     # 0 = day low, 1 = day high
+
+    to_call = ((cw - spot) / spot * 100) if cw else None
+    to_put = ((spot - pw) / spot * 100) if pw else None
+
+    at_wall = None
+    if to_call is not None and to_call < 0.05:
+        at_wall = "call"
+    elif to_put is not None and to_put < 0.05:
+        at_wall = "put"
+
+    if at_wall == "call":
+        note = f"At or through the call wall ({cw:.0f}). That strike is where dealer gamma is heaviest above spot."
+        col = "warn"
+    elif at_wall == "put":
+        note = f"At or through the put wall ({pw:.0f}). That strike is where dealer gamma is heaviest below spot."
+        col = "warn"
+    elif to_call is not None and to_put is not None:
+        note = f"Between the walls: {to_put:.2f}% above the put wall, {to_call:.2f}% below the call wall."
+        col = "mut"
+    elif to_call is not None:
+        note = f"{to_call:.2f}% below the call wall ({cw:.0f})."
+        col = "mut"
+    elif to_put is not None:
+        note = f"{to_put:.2f}% above the put wall ({pw:.0f})."
+        col = "mut"
+    else:
+        note = "No wall resolved on either side."
+        col = "mut"
+
+    if rng_pos is not None and rng_pos > 0.9:
+        note += " Price is at the top of the day's range."
+    elif rng_pos is not None and rng_pos < 0.1:
+        note += " Price is at the bottom of the day's range."
+
+    return {
+        "at_wall": at_wall,
+        "pct_to_call_wall": round(to_call, 3) if to_call is not None else None,
+        "pct_to_put_wall": round(to_put, 3) if to_put is not None else None,
+        "day_range_pos": round(rng_pos, 3) if rng_pos is not None else None,
+        "note": note,
+        "note_col": col,
+    }
 
 
 # yfinance carries TWO tickers for the S&P 500 and they do not agree intraday:
@@ -268,39 +298,63 @@ def per_strike(ch, spot):
     return by
 
 
+# WHAT THIS FUNCTION IS ALLOWED TO SAY, and why the vocabulary changed.
+#
+# It used to return "BUY CALLS" / "BUY PUTS" as its `signal`, and `signal_why` ended in an
+# order ("Buy puts / put debit spread; trail to the put wall"). The dashboard printed both
+# verbatim under a heading reading RECOMMENDED. Out-of-sample testing measured that trade at
+# -10% to -11% per trade, and the specific "below the flip = buy premium" version at -7.2%
+# (straddle) to -19.1% (strangle). See docs/VERDICT_LOG.md.
+#
+# What dealer gamma actually predicts is the day's RANGE, not its direction: realised/implied
+# 0.843x on high-gamma days against 1.139x on low, t = -13.2 measured against VIX9D, stable
+# across every four-year sub-period of fifteen years. That finding is real and it is the only
+# thing this engine is entitled to report.
+#
+# So the vocabulary is now REGIME + RANGE, never a side and never an imperative:
+#   SHORT GAMMA · RANGE EXPANDS     below the flip, dealers hedge with the move
+#   AT THE FLIP · REGIME UNDECIDED  sitting on the line, neither state established
+#   LONG GAMMA · RANGE COMPRESSES   above the flip, dealers hedge against the move
+# Flow and the reconciled master decision still appear, but as a labelled LEAN, which is
+# context for a decision made elsewhere. One decision lives in one place, and it is not here.
+_LEAN_NOTE = ("Lean is context, not a signal: no directional edge in this data survived "
+              "out-of-sample testing, so it must not be traded on its own.")
+
+
 def recommend(spot, flip, net_pos, flow_bias, master=None):
-    """Clear intraday signal. `master` = the reconciled SPX decision ('bullish'/'bearish'/'neutral'/
-    'conflict') from gex_signal, when available — the periscope ALIGNS with it so panels never contradict.
-    EXCEPTION: a live flip break overrides the master (real-time price action wins). Returns (sig, why, col)."""
-    # 1) REACTIVE OVERRIDE — a flip break is a live regime change; it trumps the night-before master.
+    """The gamma regime at `spot`, as a state rather than an order.
+
+    `master` is the reconciled SPX read ('bullish'/'bearish'/'neutral'/'conflict') from
+    gex_signal when available. It is reported as a lean so panels never contradict each other,
+    and it is never converted into a trade here. Returns (state, why, col)."""
+    lean = ""
+    if master == "conflict":
+        lean = " Lean: CONFLICT — the night-before DIX read and live flow disagree."
+    elif master in ("bullish", "bearish"):
+        lean = f" Lean: {master} (reconciled master read)."
+    elif flow_bias in ("bullish", "bearish"):
+        lean = f" Lean: {flow_bias} (this ticker's live flow)."
+
+    # 1) Below the flip. Dealers are short gamma, so they hedge WITH the move and the day's
+    #    range runs wider. That is a statement about size, not about which way.
     if flip is not None:
         dist = (spot / flip - 1) * 100
-        if dist < -0.05:                       # BELOW the flip = short gamma = downside amplifies
-            ovr = " — this OVERRIDES the bullish read (live price action wins)" if master == "bullish" else ""
-            return ("BUY PUTS", f"Price BROKE below the gamma flip ({flip:.0f}) → dealers short gamma → they SELL into "
-                    f"weakness → downside accelerates. Buy puts / put debit spread; trail to the put wall{ovr}.", "red")
-        if dist < 0.15:                        # sitting on the flip — coiled
-            return ("AT FLIP — WAIT", f"Price is on the gamma flip ({flip:.0f}) — the coiled line. Break BELOW = puts; "
-                    "reclaim + hold ABOVE = calls. Don't pre-position.", "info")
-    # 2) ABOVE the flip — ALIGN with the master reconciled decision so nothing contradicts.
-    if master == "conflict":
-        return ("WAIT — signals conflict", "Master decision is CONFLICT (night-before DIX vs live UW flow disagree). "
-                "No directional 0DTE — wait for them to align, or trade only a decisive flip break.", "info")
-    if master == "bearish":
-        return ("CAUTION — bearish, wait for a flip break", "Master lean is bearish but price is holding above the flip "
-                "(pin). No long here. Buy puts only on a decisive break BELOW the flip.", "info")
-    if master == "bullish":
-        return ("BUY CALLS", "Master is bullish AND price holds above the flip → upside. Pin damps range, so prefer a "
-                "CALL DEBIT SPREAD; go naked only on a break above the call wall with a strong drive.", "go")
-    # 3) no master (e.g. NDX/QQQ, standalone) — fall back to this ticker's own live flow
-    if flow_bias == "bullish":
-        return ("BUY CALLS", "Above the flip with bullish flow → upside bias. Prefer a CALL DEBIT SPREAD; naked only on "
-                "a break above the call wall.", "go")
-    if flow_bias == "bearish":
-        return ("CAUTION — bearish flow into a pin", "Above the flip (pin) but flow leans puts. No clean trade — wait "
-                "for a flip break to confirm downside, or sit out.", "info")
-    return ("WAIT / SELL PREMIUM", "Above the flip, no directional edge → pin regime. Sit out, or SELL an iron condor "
-            "around the pin (defined risk).", "mut")
+        if dist < -0.05:
+            return ("SHORT GAMMA · RANGE EXPANDS",
+                    f"Price is below the gamma flip ({flip:.0f}), so dealers hedge in the direction of the move and "
+                    f"the day's range tends to run wider than the option market is pricing. This says how BIG, never "
+                    f"which WAY.{lean} {_LEAN_NOTE}", "warn")
+        if dist < 0.15:
+            return ("AT THE FLIP · REGIME UNDECIDED",
+                    f"Price is sitting on the gamma flip ({flip:.0f}). Neither regime is established, so the range "
+                    f"read has no signal here.{lean} {_LEAN_NOTE}", "info")
+
+    # 2) Above the flip. Dealers are long gamma and hedge against the move, so the range
+    #    compresses and the market tends to pin. This is the half of the finding that holds.
+    return ("LONG GAMMA · RANGE COMPRESSES",
+            "Price is above the gamma flip, so dealers hedge against the move and the day's range tends to come in "
+            "tighter than implied (0.843x realised/implied on high-gamma days against 1.139x on low, t = -13.2 "
+            f"against VIX9D).{lean} {_LEAN_NOTE}", "mut")
 
 
 def run(sym="SPY"):
@@ -336,9 +390,9 @@ def run(sym="SPY"):
         flip = float(x0 - y0 * (x1 - x0) / (y1 - y0)) if y1 != y0 else float(x0)
 
     if flip and spot > flip:
-        regime = "above gamma flip → dealers LONG gamma (pin/mean-revert; naked premium bleeds)"
+        regime = "above gamma flip → dealers LONG gamma → they hedge AGAINST the move → range compresses"
     elif flip:
-        regime = "below gamma flip → dealers SHORT gamma (amplify/trend; naked premium has fuel)"
+        regime = "below gamma flip → dealers SHORT gamma → they hedge WITH the move → range expands"
     elif net > 0:
         regime = "deep LONG gamma — no flip within ±10% (strong pin; flip is far below spot)"
     else:
@@ -370,22 +424,28 @@ def run(sym="SPY"):
         except Exception:
             master = None
     sig, why, sigcol = recommend(spot, flip, net > 0, dir_bias, master)
-    # PRICE-ACTION CONFIRMATION — flow must AGREE with price. Never say BUY CALLS while price is
-    # falling on the day, or BUY PUTS while it's rising. Flow/price divergence → CAUTION, not a trade.
+    # FLOW/PRICE DIVERGENCE. This check used to rewrite a "BUY CALLS" verb into a CAUTION verb,
+    # which was the right instinct applied to the wrong output: the engine should not have been
+    # emitting a side at all. The regime state above is a range read and price direction cannot
+    # contradict it, so the divergence is now recorded against the LEAN, where it belongs. It is
+    # still worth surfacing, because a lean that disagrees with the tape is the clearest evidence
+    # that the lean is noise.
+    lean_dir = master if master in ("bullish", "bearish") else (
+        dir_bias if dir_bias in ("bullish", "bearish") else None)
+    divergence = None
     day = _DAY[0]
-    if day and day[2]:
-        op = day[2]; dchg = (spot / op - 1) * 100
-        if sig == "BUY CALLS" and dchg < -0.15:
-            sig = "CAUTION — bullish flow, but price is FALLING"
-            why = (f"UW flow leans bullish, but {sym.replace('^','')} is RED on the day ({dchg:+.1f}%) — flow/price "
-                   "DIVERGENCE. Don't chase calls into a downtrend. Wait for price to turn up, or if it breaks the "
-                   "flip, that's the put setup.")
-            sigcol = "info"
-        elif sig == "BUY PUTS" and dchg > 0.15:
-            sig = "CAUTION — bearish flow, but price is RISING"
-            why = (f"Flow leans bearish, but {sym.replace('^','')} is GREEN ({dchg:+.1f}%) — divergence. Don't short a "
-                   "rising tape; wait for price to roll over.")
-            sigcol = "info"
+    if day and day[2] and lean_dir:
+        op = day[2]
+        dchg = (spot / op - 1) * 100
+        nm = sym.replace("^", "")
+        if lean_dir == "bullish" and dchg < -0.15:
+            divergence = (f"The lean is bullish but {nm} is red on the day ({dchg:+.1f}%). Flow and price disagree, "
+                          f"which is a reason to discount the lean, not to fade it.")
+        elif lean_dir == "bearish" and dchg > 0.15:
+            divergence = (f"The lean is bearish but {nm} is green on the day ({dchg:+.1f}%). Flow and price disagree, "
+                          f"which is a reason to discount the lean, not to fade it.")
+    if divergence:
+        why = f"{why} {divergence}"
 
     # flip-break detection: compare current side-of-flip to the prior run's
     side = None if flip is None else ("above" if spot >= flip else "below")
@@ -401,7 +461,7 @@ def run(sym="SPY"):
         "flip_dist_pct": round((spot / flip - 1) * 100, 2) if flip else None,
         "call_wall": call_wall, "put_wall": put_wall, "regime": regime, "flow": fl,
         "signal": sig, "signal_why": why, "signal_col": sigcol, "master_dir": master,
-        "quality": _signal_quality(sig, spot, flip, call_wall, put_wall, dir_score),
+        "position": _position_in_range(spot, call_wall, put_wall),
         "flip_side": side, "flip_break": flip_break,
         "uw": ({"dir_score": uw.get("dir_score"), "overall": uw.get("overall_bias"),
                 "flow": uw.get("flow"), "intraday": uw.get("intraday"),
