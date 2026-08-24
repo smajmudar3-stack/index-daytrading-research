@@ -1,0 +1,14 @@
+# Never commit credentials
+.env
+*.key
+*secret*
+
+# Market data lives locally -- 16 GB, see 06_data_guide/DATA.md
+data/
+*.parquet
+
+venv/
+__pycache__/
+*.pyc
+logs/
+.DS_Store
