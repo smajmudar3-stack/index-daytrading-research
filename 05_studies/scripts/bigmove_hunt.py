@@ -21,7 +21,6 @@ is a 40% improvement in the thing that decides whether a far-OTM ticket ever
 pays -- even though both numbers look small.
 """
 import os
-import sys
 import warnings
 
 import numpy as np

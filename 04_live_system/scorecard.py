@@ -339,4 +339,4 @@ if __name__ == "__main__":
         print(_j.dumps(report(), indent=1))
     except ScorecardUnavailable as e:
         print(f"scorecard unavailable: {e}", file=sys.stderr)
-        raise SystemExit(1)
+        raise SystemExit(1) from e

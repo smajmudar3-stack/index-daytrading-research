@@ -106,7 +106,7 @@ def main():
     print(f"\n  sanity: the TEST avg sits at the {pct:.0f}th percentile of the TRAIN grid "
           f"(inside the plateau = trustworthy; far above = suspicious)")
     print(f"  NOTE: {len(grid)} configs were searched. Treat the chosen cell as optimistic and the")
-    print(f"  TEST number as the honest one.")
+    print("  TEST number as the honest one.")
 
 
 if __name__ == "__main__":

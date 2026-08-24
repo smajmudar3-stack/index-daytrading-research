@@ -14,7 +14,6 @@ Rules, in priority order:
     trader needs, not an edge case to swallow.
 """
 import os
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 ET = ZoneInfo("America/New_York")
@@ -168,7 +167,6 @@ def prompt_block(account=None):
 
 
 if __name__ == "__main__":
-    import json
     print(prompt_block())
     print("\n── AFFORDABILITY: what can this account actually trade? ──")
     for r in affordability_report():

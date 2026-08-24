@@ -8,7 +8,7 @@ Those caps are what let it survive a bad streak long enough to compound. Account
 """
 import os
 import json
-from datetime import datetime, date
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 ET = ZoneInfo("America/New_York")
@@ -64,7 +64,7 @@ def target_for(today=None):
         return ms[0][1]
     if today >= ms[-1][0]:
         return ms[-1][1]
-    for (d0, v0), (d1, v1) in zip(ms, ms[1:]):
+    for (d0, v0), (d1, v1) in zip(ms, ms[1:], strict=False):
         if d0 <= today <= d1:
             span = (d1 - d0).days or 1
             frac = (today - d0).days / span

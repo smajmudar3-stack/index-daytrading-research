@@ -4,5 +4,6 @@
   "action": "STAND_DOWN",
   "conviction": 18,
   "headline": "No setup.",
-  "thesis": "Gamma gate closed; nothing clears the sizing rules."
+  "thesis": "Gamma gate closed; nothing clears the sizing rules.",
+  "schema_version": 1
 }

@@ -10,11 +10,8 @@ This measures the real SPY spread by VIX regime over 2008-2025, including
 short put you sold at 20 delta is bought back as a 70-90 delta option, which is
 a different and more expensive instrument.
 """
-import os
-import sys
 import warnings
 
-import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 

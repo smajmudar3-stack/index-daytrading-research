@@ -5,25 +5,26 @@ itself lives in the Today view, and only there. That separation is the fix for t
 page shouting several conflicting headlines at once, which master_panel()'s own
 docstring recorded as the original problem.
 """
-from .today import _age_min, _load
+from .today import _age_min, _load, _snapshot
 from . import OK, STALE, describe, empty, panel, safe, unavailable
 
 
 def _periscope(sym):
     name = f"periscope_{sym}.json"
-    p = _load(name)
     key = f"peri_{sym.lower()}"
     title = f"{sym} gamma levels"
-    if p is None:
-        return empty(key, title, f"No {sym} periscope snapshot yet.",
-                     fix=f"idt refresh   (writes 04_live_system/data/{name})")
-    if not p.get("ok"):
+    p, bad = _snapshot(name)
+    if bad and bad["kind"] == "empty":
+        return empty(key, title, bad["why"], fix=bad["fix"])
+    if bad and bad["kind"] == "unavailable":
+        return unavailable(key, title, bad["why"], fix=bad["fix"])
+    if p is not None and not p.get("ok"):
         return unavailable(key, title,
                            f"The {sym} periscope failed: {p.get('error', 'no reason recorded')}",
                            fix="idt audit")
 
     age = _age_min(name)
-    stale = age is not None and age > 20
+    stale = bool(bad and bad["kind"] == "stale")
     rows = [
         {"k": "spot", "v": f"{p.get('spot', '—')}"},
         {"k": "gamma flip", "v": f"{p.get('gamma_flip') or 'none within ±10%'}"},

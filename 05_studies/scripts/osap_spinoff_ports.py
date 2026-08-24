@@ -1,5 +1,5 @@
 """Portfolio-level detail for the OSAP 'Spinoff' predictor: leg composition and breadth."""
-import csv, math, os, statistics as st
+import csv, math, statistics as st
 from collections import defaultdict
 
 from idt import paths

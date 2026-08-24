@@ -2,7 +2,6 @@
 the trade. This is the number that actually determines whether a small account
 survives: you are marked to market daily and margin-called on the worst mark,
 not on the terminal outcome."""
-import numpy as np
 import pandas as pd
 
 from idt import paths
@@ -22,7 +21,10 @@ def main():
     df["spot"] = df["date"].map(spot)
     df = df.dropna(subset=["spot"])
     df = df[df["ask"] > 0]
-    paths = {k: v for k, v in df.groupby(["expiration", "strike", "type"], observed=True)}
+    # Named leg_paths, not paths: a local called `paths` shadows the idt.paths
+    # module for the entire function, so the require_data() call at the top of
+    # main() raised UnboundLocalError and the script could not run at all.
+    leg_paths = {k: v for k, v in df.groupby(["expiration", "strike", "type"], observed=True)}
 
     rows = []
     for exp, g in df.groupby("expiration", observed=True):
@@ -37,8 +39,8 @@ def main():
             continue
         k = cal.loc[(cal["strike"] - s0).abs().idxmin(), "strike"]
         try:
-            pc = paths[(exp, k, "call")].set_index("date")
-            pp = paths[(exp, k, "put")].set_index("date")
+            pc = leg_paths[(exp, k, "call")].set_index("date")
+            pp = leg_paths[(exp, k, "put")].set_index("date")
         except KeyError:
             continue
         idx = pc.index.intersection(pp.index)

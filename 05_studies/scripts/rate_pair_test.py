@@ -23,8 +23,6 @@ Two methodological corrections applied, both flagged against my earlier work:
   - The multiple-testing bar uses the number of INDEPENDENT tests, not the raw
     cell count -- 18 correlated sectors are nowhere near 18 independent trials.
 """
-import os
-import sys
 import warnings
 
 import numpy as np

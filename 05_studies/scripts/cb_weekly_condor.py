@@ -6,7 +6,6 @@ half-spread of all four legs is charged. Settlement is against the underlying cl
 expiration date (SPY options are AM/PM American and physically settled; charging no exit cost is
 therefore OPTIMISTIC and is flagged in the output by a second, exit-cost-charged column).
 """
-import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 from scipy import stats as st

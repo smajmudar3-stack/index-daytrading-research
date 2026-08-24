@@ -84,7 +84,7 @@ def report(sym, mult, ticks):
     clean = (u & ~d) | (d & ~u)
     print(f"\n  at 15m: a CLEAN one-sided {ticks:.0f}-pt move occurs on {clean.mean()*100:.1f}% of bars.")
     print(f"  Given a clean move happened, it was UP {((u & ~d).sum()/max(clean.sum(),1))*100:.1f}% of the time")
-    print(f"  -> guessing 'up' every time on those bars scores that %. THAT is the number to beat,")
+    print("  -> guessing 'up' every time on those bars scores that %. THAT is the number to beat,")
     print(f"     not 50%. And a signal must ALSO pick the {clean.mean()*100:.1f}% of bars that move at all.")
 
 

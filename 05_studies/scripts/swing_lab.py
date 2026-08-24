@@ -17,9 +17,6 @@ because it manufactured a fake edge in this repo before (see FINDINGS.md):
 
 Costs are charged on turnover, not waved away.
 """
-import itertools
-import os
-import sys
 
 import numpy as np
 import pandas as pd

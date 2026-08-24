@@ -69,7 +69,7 @@ def intraday_levels(etf, idx_sym, idx_name):
     tb = bars[bars.index.date == today].between_time("09:30", "16:00")
     prior = daily.iloc[-2]
     prior_close = float(prior["close"])
-    overnight_bars = bars[(bars.index.date == today) & (bars.index.strftime("%H:%M") < "09:30")]
+    bars[(bars.index.date == today) & (bars.index.strftime("%H:%M") < "09:30")]
     if tb.empty:
         # pre-market: show prior day + overnight only
         last = float(bars["close"].iloc[-1])

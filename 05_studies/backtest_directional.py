@@ -18,7 +18,6 @@ Structures tested separately, because they have very different payoff shapes:
 Reported as WEEKLY yield, plus the distribution, because a mean is meaningless on a payoff this skewed.
 """
 import numpy as np
-import pandas as pd
 
 import backtest_0dte_rules as B
 import backtest_daily as BD
@@ -67,7 +66,7 @@ def report(label, d, tr, risk_frac=RISK_FRAC):
     print(f"{'='*78}")
     print(f"  per trade : mean {r.mean()*100:+.2f}%  median {np.median(r)*100:+.2f}%  "
           f"win {(r>0).mean()*100:.0f}%  best {r.max()*100:+.0f}%  worst {r.min()*100:+.0f}%")
-    print(f"\n  WEEKLY YIELD")
+    print("\n  WEEKLY YIELD")
     print(f"    mean       {a.mean()*100:+.2f}%/week")
     print(f"    median     {np.median(a)*100:+.2f}%/week   <- the typical week")
     print(f"    win rate   {(a>0).mean()*100:.0f}% of weeks positive")

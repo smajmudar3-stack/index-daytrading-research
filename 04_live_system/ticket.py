@@ -216,7 +216,7 @@ if __name__ == "__main__":
             # Exit non-zero and say so plainly. A fill you believe is recorded and is not corrupts
             # every number downstream of it.
             print(f"FILL NOT RECORDED — {type(e).__name__}: {e}")
-            raise SystemExit(1)
+            raise SystemExit(1) from e
         raise SystemExit
 
     t = build()

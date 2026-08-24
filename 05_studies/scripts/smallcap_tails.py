@@ -73,7 +73,7 @@ def main():
 
     # ---- tail by price bucket, from the daily bars -----------------------
     print("\n  pulling daily history for the tail measurement ...", flush=True)
-    ohlc = dolt(f"""select act_symbol, `date`, `close`
+    ohlc = dolt("""select act_symbol, `date`, `close`
                     from stocks.ohlcv where `date` >= '2021-01-01'""")
     if ohlc.empty:
         print("  no ohlcv"); return

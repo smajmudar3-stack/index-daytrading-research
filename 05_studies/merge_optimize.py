@@ -2,7 +2,6 @@
 Question: can any blend beat the dominant overnight edge (E1) alone? Fit weights on
 2005-2015, test untouched on 2016-2026 — the honest test of whether merging adds value."""
 import numpy as np
-import pandas as pd
 from scipy.optimize import minimize
 import multi_edge as me
 
@@ -38,7 +37,7 @@ def main():
         res = minimize(neg_sh, np.repeat(0.25, 4), bounds=[(0, 1)]*4,
                        constraints=[{"type": "eq", "fun": lambda w: w.sum()-1}])
         w = res.x
-        print(f"  optimized weights (fit on train): " +
+        print("  optimized weights (fit on train): " +
               ", ".join(f"{c.split('_')[0]}={wi:.2f}" for c, wi in zip(E.columns, w)))
         stats((te*w).sum(axis=1), "OPTIMIZED merge (OOS)")
         # E1 + a small sleeve of the best diversifier (lowest corr to E1)

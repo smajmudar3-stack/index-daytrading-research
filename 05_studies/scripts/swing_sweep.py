@@ -19,7 +19,6 @@ Selection protocol, fixed in advance so it cannot be rationalised afterwards:
     see what the best result SHOULD look like under pure noise.
 """
 import itertools
-import json
 import os
 import sys
 import warnings
@@ -33,14 +32,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
 from swing_lab import (  # noqa: E402
-    COST_BPS,
-    SECTORS,
     SPLITS,
     build_features,
     build_regime,
     deflated_sharpe,
     load,
-    pch,
     rotation_backtest,
     slice_dates,
     stats_of,

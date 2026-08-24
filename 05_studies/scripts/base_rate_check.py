@@ -7,7 +7,6 @@ above the UNCONDITIONAL base rate, or are they the base rate?
 Rule 3 of the methodology: conditional accuracy is not expected return.
 """
 import pandas as pd
-import numpy as np
 
 from idt import paths
 

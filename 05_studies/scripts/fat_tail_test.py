@@ -21,7 +21,6 @@ Two comparisons, on the same 1.16M stock-days:
      real far-OTM contract prices — the delta of an option IS approximately the
      market's risk-neutral probability of finishing beyond that strike.
 """
-import os
 import warnings
 
 import numpy as np

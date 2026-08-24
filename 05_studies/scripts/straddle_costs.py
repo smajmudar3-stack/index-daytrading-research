@@ -4,7 +4,6 @@ Answers: what does crossing the spread on 2 legs cost, as a % of the premium?
 All numbers come from real EOD NBBO quotes (no model anywhere).
 """
 import sys
-import numpy as np
 import pandas as pd
 
 from idt import paths

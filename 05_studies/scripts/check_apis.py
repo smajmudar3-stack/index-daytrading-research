@@ -6,8 +6,6 @@ exactly what produced the retracted +3.7% condor edge, so this is worth
 establishing before building anything on top.
 """
 import json
-import os
-import sys
 import urllib.parse
 import urllib.request
 

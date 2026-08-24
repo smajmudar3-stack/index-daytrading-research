@@ -3,7 +3,6 @@
 Writes data/opt_eod/<SYM>_monthly_slice.parquet
 """
 import sys
-import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 

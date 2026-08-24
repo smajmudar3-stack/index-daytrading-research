@@ -1,7 +1,6 @@
 """Does ANY intraday signal work inside a specific MACRO/regime pocket? Condition the core
 momentum & mean-reversion signals on VIX regime, time-of-day, trend-vs-range day, gap, and
 day-of-week. Looking for a POSITIVE t>=2 pocket that also holds out-of-sample (2024-25 vs 2026)."""
-import glob
 import numpy as np
 import pandas as pd
 import yfinance as yf

@@ -5,7 +5,6 @@ high-DIX+backwardation, high-DIX+uptrend. Question: does requiring MORE of them 
 open→close win-rate (so conviction should scale with confluence)? And where's the sweet spot before
 it gets too picky (too few trades)? Calibrates the conviction score with evidence.
 """
-import numpy as np
 import pandas as pd
 from scipy import stats
 import yfinance as yf

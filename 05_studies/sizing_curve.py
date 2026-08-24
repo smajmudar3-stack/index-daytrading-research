@@ -20,7 +20,6 @@ research harness — it rebuilds the whole OOS panel and prints a table — so i
 here with the rest of them.
 """
 import numpy as np
-import pandas as pd
 
 import backtest_daily as BD
 
@@ -89,7 +88,7 @@ def main():
 
     f_opt, g_opt = optimal_f(r)
     print(f"\ngrowth-optimal risk fraction (empirical Kelly): f* = {f_opt*100:.0f}% of the account per trade")
-    print(f"  ...but that is the MAXIMUM of a curve that then collapses. What it costs to sit at f*:")
+    print("  ...but that is the MAXIMUM of a curve that then collapses. What it costs to sit at f*:")
     st = path_stats(r, f_opt)
     print(f"  at f* -> CAGR {st['cagr']:+.0f}%, max drawdown -{st['mdd']:.0f}%")
 

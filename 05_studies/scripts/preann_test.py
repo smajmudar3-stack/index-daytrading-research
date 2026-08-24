@@ -19,8 +19,6 @@ Measured on SPY close-to-open, which is exactly the window: ISM releases at
 so NFP here is a WEAKER proxy than the paper's 16:00->08:25 window and should
 be expected to underperform their number.
 """
-import os
-import sys
 import warnings
 from datetime import date, timedelta
 
@@ -116,7 +114,7 @@ def run():
     print("=" * 84)
     print(f"  sample {idx[0].date()} -> {idx[-1].date()}")
     print(f"  NON-ANNOUNCEMENT baseline: n={len(base)}  mean={base.mean():+.2f}bps")
-    print(f"  (paper's benchmark: +0.69bps)")
+    print("  (paper's benchmark: +0.69bps)")
 
     print("\n" + "-" * 84)
     print("SPECIFICATION CHECK — FOMC must be strong pre-2016 and dead after.")

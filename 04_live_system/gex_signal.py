@@ -27,11 +27,10 @@ decision made elsewhere, not an instruction, and it carries no side.
 
 Free data: SqueezeMetrics historical GEX CSV (updates ~daily). Writes data/gex_snapshot.json.
 """
-import json
+from idt import snapshots
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import numpy as np
 import pandas as pd
 import urllib.request
 
@@ -67,7 +66,7 @@ def _buckets():
                 "cond50": round(g["cond_50"].mean() * 100), "cond75": round(g["cond_75"].mean() * 100),
                 "cond100": round(g["cond_100"].mean() * 100)}
     edges = d["gex_z"].quantile([0.2, 0.4, 0.6, 0.8]).tolist()
-    negrng = round(d.loc[d["gex_z"].notna() & (d["neg_gamma"] if "neg_gamma" in d else False), "rng"].mean() * 100, 2) \
+    round(d.loc[d["gex_z"].notna() & (d["neg_gamma"] if "neg_gamma" in d else False), "rng"].mean() * 100, 2) \
         if "neg_gamma" in d.columns and d["neg_gamma"].any() else None
     return b, edges
 
@@ -212,14 +211,11 @@ def run():
         fired.append(("High DIX + backwardation (buy-the-stress)", 56, "+2.25"))
     if dz > 0.5 and trend_up:
         fired.append(("High DIX + uptrend", 55, "+2.05"))
-    # NIGHT-BEFORE (DIX) direction only — a preliminary vote, reconciled with LIVE flow below.
-    if fired:
-        nb_best = max(w for _, w, _ in fired)
-        nb_conv = min(75, nb_best + (len(fired) - 1) * 4)
-        nb_bias = "bullish"
-    else:
-        nb_conv = 30 if dz > 0 else 20
-        nb_bias = "neutral"
+    # `fired` is the list of night-before DIX conditions that triggered, and it IS read
+    # below (it feeds the reconciliation and the panel's list of inputs). What used to
+    # live here was a separate night-before conviction and bias, computed from it and
+    # then read by nothing at all; the reconciled `conv` and `bias` further down are what
+    # the page actually shows.
 
     # Regime label and the RANGE forecast it implies.
     #
@@ -340,10 +336,15 @@ def run():
                   else "tight range / pin likely" if stance == "tight_range" else "average range")
     bull = "BULLISH" in bias
     bear = "BEARISH" in bias
+    # dhint is the branch-specific explanation built above. It is appended rather than
+    # replaced: it was being computed and then discarded, so the reason a lean should be
+    # discounted never reached the page.
     lean_note = ("Inputs disagree, so the lean carries no information today." if conflict
                  else f"Lean is {'bullish' if bull else 'bearish' if bear else 'neutral'} at {conv}/100, "
                       "which is context for a decision made elsewhere, not a trade. No directional edge in "
                       "this data survived out-of-sample testing.")
+    if dhint:
+        lean_note = f"{lean_note} {dhint}"
     if stance == "wide_range":
         action = (f"Dealer hedging runs with the move today, so expect a wider range than implied "
                   f"(~{eff_oc}% open to close). A wide range is not by itself profitable: a long option still has "
@@ -402,7 +403,9 @@ def run():
         ],
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(snap, open(OUT, "w"), indent=2, default=str)
+    # Stamped so a snapshot written before the vocabulary change (stance was an
+    # order, not a range forecast) is refused rather than rendered.
+    snapshots.write(os.path.basename(OUT), snap)
     try:
         import signal_tracker
         signal_tracker.log(snap)      # accountability: record today's call for the running win-rate

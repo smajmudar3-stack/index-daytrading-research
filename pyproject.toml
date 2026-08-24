@@ -34,10 +34,23 @@ line-length = 110
 target-version = "py311"
 
 [tool.ruff.lint]
-# The research code is intentionally dense and uses single-letter names for
-# maths. Enforce the things that hide bugs, not the things that hide style.
+# The research code is intentionally dense and uses single-letter names for maths.
+# Enforce the rules that hide BUGS, not the ones that hide style.
+#
+# Two of these earned their place immediately. F823 caught two scripts that could not
+# run at all: a local dict named `paths` shadowed the idt.paths module for a whole
+# function, and a set of module-level accumulators mutated with `+=` inside main().
+# Both were introduced by the Phase 3 main-guard refactor and neither had a test.
 select = ["E9", "F", "B"]
 ignore = ["E501", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+# The 115 research harnesses are one-shot scripts that print a table. An unused loop
+# variable or an f-string without a placeholder in one of those is noise, and a linter
+# that is 90% noise gets switched off, taking the 10% that matters with it. The rules
+# that catch real breakage stay on everywhere.
+"05_studies/**" = ["B007", "B023", "B905", "F841", "F541", "B904"]
+"test/**" = ["F841"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

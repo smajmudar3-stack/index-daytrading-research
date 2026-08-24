@@ -5,7 +5,6 @@ entry time × width. The live signal reads today's regime + the current ET time 
 condor with real survival odds and wall-matched strikes — or None when a condor is NOT favorable
 (trend/low-gamma days, or too early for the width).
 """
-import math
 
 from idt import bs
 from datetime import datetime

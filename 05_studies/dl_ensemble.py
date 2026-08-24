@@ -10,7 +10,6 @@ RIGOR (this is the whole point — DL on daily direction overfits trivially):
   - honest baselines: majority class (~54%), and we compare the ensemble OOS to it.
 Only worth wiring into the live signal if the ENSEMBLE OOS accuracy clearly beats the baseline.
 """
-import os
 import numpy as np
 import pandas as pd
 import torch

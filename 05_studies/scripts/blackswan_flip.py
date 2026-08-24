@@ -15,7 +15,6 @@ Q2. THE 5000x. "$200 -> $1M" needs a 5,000x. The previous run found single
 Both computed from the same 10.5M real-quote purchases, bought at the ask,
 settled at intrinsic, worthless = -100%.
 """
-import os
 import warnings
 
 import numpy as np

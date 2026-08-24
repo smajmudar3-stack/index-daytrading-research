@@ -14,7 +14,7 @@
 Honest bar: momentum is a ~55-60% directional edge over weeks, not certainty. Conviction is
 capped accordingly. Writes data/swing_snapshot.json. Paper-trade first.
 """
-import json
+from idt import snapshots
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -431,7 +431,7 @@ def run():
     out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "epoch": datetime.now(ET).timestamp(),
            "market_context": ctx, "signals": top, "n_scanned": len(scanned)}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(out, open(OUT, "w"), indent=2, default=str)
+    snapshots.write(os.path.basename(OUT), out)
     print(f"swing scan {out['as_of']}: {len(top)} signals from {len(scanned)} names")
     for s in top:
         print(f"  {s['ticker']:5} {s['direction']:8} conv {s['conviction']:>2} | {s['structure']['play']}")

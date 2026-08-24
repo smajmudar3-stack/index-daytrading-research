@@ -21,7 +21,6 @@ HONESTY NOTE ON THE SWING SLEEVE
 """
 import os
 import json
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 ET = ZoneInfo("America/New_York")
@@ -112,7 +111,7 @@ def set_capital(name, value):
 
 def prompt_block():
     c = _load()
-    z, s = c["0dte"], c["swing"]
+    _z, s = c["0dte"], c["swing"]
     zb, sb = budget("0dte"), budget("swing")
     mode = s.get("mode", "index")
     swing_line = (

@@ -109,7 +109,9 @@ def rule_based(snap):
     lines = ["Today's gap tape, desk read (rule-based — add API credits for Fable):"]
     confirm = 0
     for c in cands:
-        go = c["setup"] == "GAP-AND-GO LONG"
+        # There was a bare `c["setup"] == "GAP-AND-GO LONG"` here: a comparison whose
+        # result went nowhere. Both setups are LONG (see the comment below), so nothing
+        # branched on it and removing it changes no behaviour.
         since = c["since_open_pct"]
         # confirming = moving in the trade's favour since the open (both setups are LONG)
         if since > 0.3:

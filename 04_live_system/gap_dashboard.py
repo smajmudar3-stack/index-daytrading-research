@@ -432,7 +432,7 @@ def gex_panel(x):
     bc = x.get("backcheck") or {}
     bc_html = (f"<div class=gexbc><b>Last session ({bc.get('date','')}):</b> predicted ~{bc.get('predicted_range','—')}% "
                f"range · realized <b>{bc.get('realized_range','—')}%</b> — {bc.get('verdict','')}</div>" if bc else "")
-    dix = x.get("dix_tilt", "")
+    x.get("dix_tilt", "")
     conv = x.get("conviction", 0)
     b = x.get("bias", "")
     # The engine writes the lean and the order together ("BULLISH — favor CALLS"). Keep the lean,
@@ -488,12 +488,12 @@ def gex_panel(x):
 # guarantee: prose has more shapes than a regex, which is why the panels also carry the measured
 # result in red next to anything directional.
 _RETIRED_ADVICE = re.compile(
-    r"buy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+)*(?:call|put)"  # noqa: retired-advice
+    r"buy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+)*(?:call|put)"  # allow: retired-advice
     r"|(?:call|put)[\s/-]+debit\s+spread"                                            # call debit spread
     r"|naked[\s-](?:call|put)"                                                       # naked-CALL day
-    r"|go\s+naked|naked\s+only|naked\s+is\s+fine"                                    # noqa: retired-advice
+    r"|go\s+naked|naked\s+only|naked\s+is\s+fine"                                    # allow: retired-advice
     r"|(?:call|put)\s+on\s+a\s+(?:hold|decisive|break|clean)"                        # CALL on a hold above
-    r"|=\s*(?:puts|calls)",                                                          # noqa: retired-advice
+    r"|=\s*(?:puts|calls)",                                                          # allow: retired-advice
     re.I)
 
 
@@ -1016,7 +1016,7 @@ def _uw_html(u):
     score = u.get("dir_score")
     scol = "go" if (score or 0) > 12 else "red" if (score or 0) < -12 else "info"
     proxy = u.get("proxy")
-    hdr = f"🐳 Unusual Whales — real flow decision layer" + (f" <span class=basel>(via {proxy} proxy)</span>" if proxy else "")
+    hdr = "🐳 Unusual Whales — real flow decision layer" + (f" <span class=basel>(via {proxy} proxy)</span>" if proxy else "")
     rows = [
         f"<div><span class=k>sweep/block flow</span><span class=v>{(u.get('flow') or {}).get('detail','—')[:60]}</span></div>",
         f"<div><span class=k>intraday tape flow</span><span class=v>{inf.get('bias','—')} · {inf.get('detail','')[:44]}</span></div>",

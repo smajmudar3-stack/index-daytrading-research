@@ -6,8 +6,6 @@ is visible per configuration instead of being hidden behind a single chosen winn
 
 Read the TEST column only. The TRAIN column is shown to expose overfitting, not to be traded.
 """
-import numpy as np
-import pandas as pd
 
 import hunt_features as HF
 import hunt_strategy as HS

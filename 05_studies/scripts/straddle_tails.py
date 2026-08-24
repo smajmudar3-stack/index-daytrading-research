@@ -1,7 +1,6 @@
 """Part E: the real-quote tail. Which months produced the worst short-premium
 losses, and how large were they as a multiple of the credit collected and of
 Reg-T naked margin?"""
-import numpy as np
 import pandas as pd
 import pickle
 

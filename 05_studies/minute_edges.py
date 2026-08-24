@@ -13,7 +13,6 @@ Costs: 1.5 bps per side (QQQ/SPY penny spread + slippage) = 3 bps round trip, ch
 every entry+exit. Position = the whole day-trade (1x notional). Causal throughout.
 """
 import glob
-import os
 import numpy as np
 import pandas as pd
 

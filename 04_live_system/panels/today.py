@@ -7,9 +7,27 @@ import json
 import os
 import time
 
-from idt import paths
+from idt import paths, snapshots
 
 from . import OK, STALE, describe, empty, panel, safe, unavailable
+
+
+def _snapshot(filename):
+    """A snapshot plus a ready-made panel if it cannot be used.
+
+    Returns (payload, bad_panel_kwargs). If bad_panel_kwargs is not None the caller
+    must render it instead of the data: a wrong-version snapshot in particular is not
+    old data to warn about, it is data written by code that no longer exists.
+    """
+    payload, status = snapshots.read(filename)
+    if status == "ok":
+        return payload, None
+    why, fix = snapshots.explain(filename, status)
+    if status == "absent":
+        return None, {"kind": "empty", "why": why, "fix": fix}
+    if status == "stale":
+        return payload, {"kind": "stale", "why": why, "fix": fix}
+    return None, {"kind": "unavailable", "why": why, "fix": fix}
 
 ET_FMT = "%Y-%m-%d %H:%M ET"
 
@@ -215,14 +233,14 @@ def gates():
 @describe("regime", "Dealer gamma — the range read")
 def regime():
     """The one finding that survived. A range forecast, never a direction."""
-    x = _load("gex_snapshot.json")
-    if x is None:
-        return empty("regime", "Dealer gamma — the range read",
-                     "No gamma snapshot has been written yet.",
-                     fix="idt refresh   (writes 04_live_system/data/gex_snapshot.json)")
+    x, bad = _snapshot("gex_snapshot.json")
+    if bad and bad["kind"] == "empty":
+        return empty("regime", "Dealer gamma — the range read", bad["why"], fix=bad["fix"])
+    if bad and bad["kind"] == "unavailable":
+        return unavailable("regime", "Dealer gamma — the range read", bad["why"], fix=bad["fix"])
 
     age = _age_min("gex_snapshot.json")
-    stale = age is not None and age > 90
+    stale = bool(bad and bad["kind"] == "stale")
     rows = [
         {"k": "regime", "v": x.get("regime", "—")},
         {"k": "range expected", "v": x.get("call", "—")},

@@ -8,7 +8,6 @@ The rule these tests encode: absence of evidence blocks. Every one of them is wr
 so that if the fail-open behaviour ever comes back, the test goes red rather than a
 trade going through.
 """
-import json
 import os
 
 import pytest

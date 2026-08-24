@@ -21,8 +21,6 @@ Held to expiry, so terminal value is intrinsic and no exit-liquidity assumption
 is needed. Every bucket reports mean, median, win rate, the biggest winner, and
 how much of the total P&L came from the single best trade.
 """
-import os
-import sys
 import warnings
 
 import numpy as np

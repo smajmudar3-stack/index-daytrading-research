@@ -36,7 +36,6 @@ def stats(x, label):
 pd.set_option("display.width", 220)
 
 # how much of naked short straddle variance is directional?
-import numpy.linalg as la
 
 
 def main():
@@ -52,7 +51,10 @@ def main():
 
     # index for fast path lookup
     df = df.sort_values(["expiration", "strike", "type", "date"])
-    paths = {k: v for k, v in df.groupby(["expiration", "strike", "type"], observed=True)}
+    # Named leg_paths, not paths: a local called `paths` shadows the idt.paths
+    # module for the entire function, so the require_data() call at the top of
+    # main() raised UnboundLocalError and the script could not run at all.
+    leg_paths = {k: v for k, v in df.groupby(["expiration", "strike", "type"], observed=True)}
 
     entries = []
     for exp, g in df.groupby("expiration", observed=True):
@@ -73,8 +75,8 @@ def main():
     rows = []
     for exp, d0, k, s0 in entries:
         try:
-            pc = paths[(exp, k, "call")]
-            pp = paths[(exp, k, "put")]
+            pc = leg_paths[(exp, k, "call")]
+            pp = leg_paths[(exp, k, "put")]
         except KeyError:
             continue
         pc = pc[pc["date"] >= d0].set_index("date")

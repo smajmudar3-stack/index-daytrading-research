@@ -23,7 +23,6 @@ dealer-gamma (DIX/GEX) where available.
 import os
 import sys
 import warnings
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
@@ -343,7 +342,7 @@ def main():
     print("=" * 100)
     print(f"  {len(STRUCTURES)} structures x {len(DTE_TARGETS)} DTE targets x "
           f"{len(HOLD_FRACTIONS)} hold fractions x {len(regs)} regimes")
-    print(f"  fills: long legs at ASK, short legs at BID, unwound adversely at exit\n")
+    print("  fills: long legs at ASK, short legs at BID, unwound adversely at exit\n")
 
     all_rows = []
     for y in years:

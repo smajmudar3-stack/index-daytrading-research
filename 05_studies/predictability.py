@@ -3,17 +3,18 @@ uptrend that pulled back a few days (exactly PSX's setup) — and measure, acros
 ~40 stocks, how often the NEXT day (and next 3 days) was actually green. This is the honest
 ceiling of single-day prediction: a probability, not a certainty."""
 import numpy as np
-import pandas as pd
 import yfinance as yf
 
 UNIV = ["XOM","CVX","COP","MPC","PSX","VLO","LLY","UNH","JNJ","ABBV","MRK","PFE","CAT","DE",
         "HON","RTX","GE","JPM","GS","V","MA","PG","KO","PEP","COST","WMT","HD","NKE","MCD",
         "FCX","NEM","LIN","NUE","NEE","DUK","AAPL","MSFT","NVDA","AMZN","META"]
 
-hits1, hits3, r1, r3, n = 0, 0, [], [], 0
-
 
 def main():
+    # These live INSIDE main() on purpose. At module level, the `+=` below made
+    # them locals and the first one raised UnboundLocalError, so wrapping the
+    # script body in main() had silently broken it.
+    hits1, hits3, r1, r3, n = 0, 0, [], [], 0
     for tk in UNIV:
         try:
             c = yf.download(tk, start="2010-01-01", interval="1d", progress=False, auto_adjust=True,
@@ -39,7 +40,7 @@ def main():
         n += idx.sum()
 
     r1, r3 = np.array(r1), np.array(r3)
-    print(f"'Strong uptrend + mild pullback' setup (exactly PSX today), 2010-2026:")
+    print("'Strong uptrend + mild pullback' setup (exactly PSX today), 2010-2026:")
     print(f"  matches found: {n:,} across {len(UNIV)} stocks")
     print(f"  NEXT DAY  green: {hits1/n*100:.1f}%   mean {r1.mean()*100:+.2f}%   std {r1.std()*100:.2f}%")
     print(f"  NEXT 3 DAYS green: {hits3/n*100:.1f}%   mean {r3.mean()*100:+.2f}%   std {r3.std()*100:.2f}%")

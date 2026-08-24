@@ -23,7 +23,6 @@ Conditions tested, all knowable at entry:
 For each, the comparison is against the SAME delta bucket unconditionally. A
 condition only counts if it beats that baseline, not if it beats zero.
 """
-import os
 import warnings
 
 import numpy as np

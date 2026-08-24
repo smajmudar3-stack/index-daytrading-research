@@ -32,7 +32,7 @@ from idt import paths
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
-from swing_lab import SPLITS, pch, slice_dates  # noqa: E402
+from swing_lab import pch  # noqa: E402
 
 SWING = paths.data("swing", "panel.parquet")
 OPT = paths.data("opt_eod", "SPY_options.parquet")

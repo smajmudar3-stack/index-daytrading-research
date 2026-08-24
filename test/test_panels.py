@@ -216,3 +216,58 @@ def test_status_says_when_no_cycle_has_run(state):
     s = views.status()
     assert "no cycle has run yet" in s["detail"]
     assert s["severity"] in ("watch", "stop")
+
+
+# ------------------------------------------------------- snapshot versioning ---
+#
+# A snapshot written BEFORE a code fix keeps serving the old wording AFTER it. When the
+# engines stopped emitting the refuted "buy premium" advice, the rendered page still
+# contained it, from a periscope written twenty minutes earlier. The code was clean and
+# the screen was not. A version stamp is the fix, and refusing is the correct response:
+# it is not old data to warn about, it is data written by code that no longer exists.
+
+def test_a_snapshot_from_an_older_engine_is_refused_not_shown(state):
+    import panels.markets as markets
+    state.put("periscope_SPX.json", "periscope_ok")
+    import json
+    p = state.path / "periscope_SPX.json"
+    old = json.loads(p.read_text())
+    old["schema_version"] = 1
+    old["signal"] = "BUY PUTS"          # what version 1 actually wrote
+    p.write_text(json.dumps(old), encoding="utf-8")
+
+    panel = markets.periscope_spx()
+    assert panel["state"] == UNAVAILABLE, "an old-schema snapshot must not be rendered"
+    assert "older version" in panel["note"]
+    assert "BUY PUTS" not in repr(panel), "the retired wording reached the page anyway"
+
+
+def test_an_unstamped_snapshot_is_refused_for_a_versioned_schema(state):
+    """Unstamped means it predates the stamp, which for periscope predates the fix."""
+    import json
+    import panels.markets as markets
+    state.put("periscope_SPX.json", "periscope_ok")
+    p = state.path / "periscope_SPX.json"
+    d = json.loads(p.read_text())
+    d.pop("schema_version")
+    p.write_text(json.dumps(d), encoding="utf-8")
+    assert markets.periscope_spx()["state"] == UNAVAILABLE
+
+
+def test_write_stamps_the_current_version(state):
+    from idt import snapshots
+    snapshots.write("gex_snapshot.json", {"as_of": "now", "regime": "HIGH GAMMA",
+                                          "stance": "tight_range"})
+    payload, status = snapshots.read("gex_snapshot.json")
+    assert status == "ok"
+    assert payload["schema_version"] == snapshots.SCHEMAS["gex"]["version"]
+
+
+def test_a_null_in_a_required_field_is_incomplete_not_ok(state):
+    """`.get(key, default)` does not protect against a key present with a None value.
+    That is verbatim what took the page down when a lapsed subscription returned nulls."""
+    from idt import snapshots
+    snapshots.write("periscope_SPX.json", {"as_of": "now", "ok": True,
+                                           "symbol": "^SPX", "spot": None})
+    _, status = snapshots.read("periscope_SPX.json")
+    assert status == "incomplete"

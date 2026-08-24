@@ -6,7 +6,6 @@ tradeable-at-open signals and their combos, split by BULLISH vs BEARISH, ranked 
   1-day reversal, 3-day momentum. Target = today's OPEN->CLOSE return (naked 0DTE captures this).
 All predictors from PRIOR close = zero look-ahead. Reports win rate + avg + t for each.
 """
-import numpy as np
 import pandas as pd
 from scipy import stats
 import yfinance as yf

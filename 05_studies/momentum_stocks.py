@@ -10,7 +10,6 @@ higher single-stock costs (~15 bps round trip). Looking for a genuine, significa
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from scipy import stats
 
 RT = 0.0015  # 15 bps round trip — realistic for volatile single-stock intraday
 

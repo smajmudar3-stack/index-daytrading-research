@@ -30,7 +30,7 @@ def excursion_table(df):
     rows = {}
     for e in ENTRIES:
         moves, maxexc = [], []
-        for day, g in df.groupby(df.index.date):
+        for _day, g in df.groupby(df.index.date):
             g = g.between_time("09:30", "16:00")
             at = g.between_time(e, "16:00")
             if len(at) < 3:
@@ -73,8 +73,8 @@ for tk, idx in [("SPY", "SPX"), ("QQQ", "NDX")]:
 
     # EV: iron condor entered ~11:30, shorts at +/-0.5% and +/-0.75%, wing 0.5%, sweep credit
     mv, _ = tab["11:30"]
-    print(f"  --- 0DTE iron condor entered 11:30, wing 0.5% of index, held to close ---")
-    print(f"  breakeven needs win% > risk/(risk+credit). Sweeping the assumed credit:")
+    print("  --- 0DTE iron condor entered 11:30, wing 0.5% of index, held to close ---")
+    print("  breakeven needs win% > risk/(risk+credit). Sweeping the assumed credit:")
     for D in (0.005, 0.0075):
         for cr in (0.0010, 0.0015, 0.0020):   # credit as % of index (e.g. 0.0015 = ~$1.1 on 750 SPX... )
             evR, wr = condor_ev(mv, D, 0.005, cr)

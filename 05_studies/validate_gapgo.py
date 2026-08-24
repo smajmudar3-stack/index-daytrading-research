@@ -6,7 +6,6 @@
 """
 import numpy as np
 import pandas as pd
-import yfinance as yf
 import momentum_stocks as ms
 
 WINNERS = {"NVDA","TSLA","MSTR","PLTR","AVGO","SMCI","COIN","ARM"}

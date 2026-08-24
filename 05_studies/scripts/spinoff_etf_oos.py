@@ -6,7 +6,7 @@ Returns are TOTAL returns (Yahoo adjusted close, dividends reinvested) and are
 NET of the fund's expense ratio and its own internal trading costs -- i.e. this is
 a genuine net-of-cost, investable track record, not a paper portfolio.
 """
-import json, math, os, time, urllib.request
+import json, math, time, urllib.request
 import statistics as st
 
 TICKERS = ["CSD", "SPY", "IWM", "MDY", "IJR"]
@@ -29,7 +29,7 @@ def fetch(t):
                 if b is not None:
                     out[time.strftime("%Y-%m", time.gmtime(a))] = float(b)
             return out
-        except Exception as e:
+        except Exception:
             time.sleep(3 * (i + 1))
     return {}
 

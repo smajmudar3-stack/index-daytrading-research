@@ -9,7 +9,6 @@ Event = a minute where |price-VWAP|/VWAP > threshold. Fade P&L over the next H m
   fade_ret = -sign(deviation) * forward_return   (profit if price reverts toward VWAP), minus cost.
 """
 import glob
-import os
 import numpy as np
 import pandas as pd
 from scipy import stats

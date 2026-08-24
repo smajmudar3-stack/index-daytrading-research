@@ -121,7 +121,7 @@ def combine(inputs):
 def table():
     """Display table for the dashboard footer — what counts and why."""
     rows = []
-    for k, (prior, tier, sign, ev) in REGISTRY.items():
+    for k, (_prior, _tier, sign, ev) in REGISTRY.items():
         w, t, s = weight(k)
         rows.append({"input": k, "weight": round(w, 3), "tier": t,
                      "sign": "+" if sign > 0 else ("−" if sign < 0 else "0"),

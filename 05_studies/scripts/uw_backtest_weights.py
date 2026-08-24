@@ -20,7 +20,6 @@ import sys
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 
-import numpy as np
 import pandas as pd
 
 from idt import paths

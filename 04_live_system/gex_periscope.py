@@ -22,9 +22,8 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from scipy.stats import norm
 
-from idt import bs
+from idt import bs, snapshots
 
 ET = ZoneInfo("America/New_York")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -370,7 +369,9 @@ def run(sym="SPY"):
         spot, ch = chain(sym)
     except Exception as e:
         snap = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False, "error": str(e)[:120]}
-        json.dump(snap, open(OUT, "w"), indent=2)
+        # Stamped and written atomically: the dashboard reads these while scan_all
+        # writes them, and a snapshot from an older engine must be refusable.
+        snapshots.write(os.path.basename(OUT), snap)
         print("periscope failed:", e); return snap
 
     by = per_strike(ch, spot)
@@ -416,7 +417,7 @@ def run(sym="SPY"):
                       "dir_score": uw["dir_score"]}
     except Exception:
         uw = None
-    dir_score = (uw or {}).get("dir_score", 0) if uw else 0
+    (uw or {}).get("dir_score", 0) if uw else 0
     dir_bias = (uw["overall_bias"] if uw else fl["bias"])
     # link to the MASTER reconciled SPX decision (only SPX has one) so panels never contradict
     master = None
@@ -475,7 +476,7 @@ def run(sym="SPY"):
         "note": ("Live dealer-gamma map. Flip is the intraday regime line; call wall = magnet/resistance, "
                  "put wall = support. Pins strongest into the afternoon as 0DTE gamma peaks."),
     }
-    json.dump(snap, open(OUT, "w"), indent=2, default=str)
+    snapshots.write(os.path.basename(OUT), snap)
     print(f"{sym} {spot:.2f} | net GEX {net/1e6:+.0f}M | flip {flip and round(flip,2)} "
           f"({snap.get('flip_dist_pct')}%) | call wall {call_wall} | put wall {put_wall}")
     print(f"  regime: {regime}")

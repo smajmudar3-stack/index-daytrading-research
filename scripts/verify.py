@@ -168,7 +168,7 @@ RETIRED_ADVICE = re.compile(
 # RULES were found still instructing the refuted trade.
 #
 # For the rare executable line that must contain the wording (this file's own patterns,
-# and the renderer's filter), the opt-out is explicit and greppable: `# noqa: retired-advice`.
+# and the renderer's filter), the opt-out is explicit and greppable: `# allow: retired-advice`.
 
 
 def _exempt_lines(path):
@@ -180,7 +180,7 @@ def _exempt_lines(path):
         return exempt
     for i, line in enumerate(src.splitlines(), 1):
         stripped = line.strip()
-        if stripped.startswith("#") or "noqa: retired-advice" in line:
+        if stripped.startswith("#") or "allow: retired-advice" in line:
             exempt.add(i)
     try:
         tree = ast.parse(src)

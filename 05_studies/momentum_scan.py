@@ -2,7 +2,6 @@
 trend (momentum continuation = the most robust directional edge, and it doesn't hinge on
 the Fed). Rank by trend quality + relative strength; flag beta (FOMC sensitivity)."""
 import numpy as np
-import pandas as pd
 import yfinance as yf
 
 UNIV = {

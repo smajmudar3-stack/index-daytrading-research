@@ -165,7 +165,7 @@ def main():
         print(f"  ({len(near):,} are positive in all three periods, but none reach "
               f"t > {bar:.2f}.)")
         if not near.empty:
-            print(f"\n  Best three-period-consistent cells (all still BELOW the bar):")
+            print("\n  Best three-period-consistent cells (all still BELOW the bar):")
             print(f"  {'structure':22s} {'gate':30s} {'n':>5s} {'t':>6s} "
                   f"{'p1':>8s} {'p2':>8s} {'p3':>8s}")
             for _, x in near.sort_values("t", ascending=False).head(10).iterrows():

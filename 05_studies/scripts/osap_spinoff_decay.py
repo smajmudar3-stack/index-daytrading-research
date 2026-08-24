@@ -4,7 +4,7 @@ Data: Chen & Zimmermann Open Source Asset Pricing, monthly long-short returns
       (PredictorLSretWide.csv), Oct 2025 release.
 Original paper (OP): Cusatis, Miles & Woolridge (1993 JFE), sample 1965-1988.
 """
-import csv, math, os, statistics as st
+import csv, math, statistics as st
 
 from idt import paths
 
@@ -94,7 +94,7 @@ def main():
     post = window(sp, 1994, 2100)
     if ins and post:
         mi = st.mean(ins); mp = st.mean(post)
-        print(f"\n===== Decay =====")
+        print("\n===== Decay =====")
         print(f"  in-sample mean      : {mi:+.3f}%/mo")
         print(f"  post-pub mean       : {mp:+.3f}%/mo")
         print(f"  decay               : {(1 - mp/mi)*100:.1f}% of in-sample mean")

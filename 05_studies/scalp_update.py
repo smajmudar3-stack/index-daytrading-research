@@ -9,7 +9,6 @@ Signal (from the backtest): trend/low-gamma day → go WITH a break of the sessi
 (short); pin/high-gamma day → SIT OUT (fading loses). Mid-range → wait for the break.
 """
 import json
-import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 

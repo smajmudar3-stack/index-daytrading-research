@@ -24,9 +24,7 @@ Design decisions that make this a fair test:
     not testable earlier. Reported separately rather than pooled.
   * Expiries must exist in BOTH snapshots -- they roll between dates.
 """
-import os
 import subprocess
-import sys
 import warnings
 
 import numpy as np
@@ -159,16 +157,16 @@ def main():
     print("=" * 96)
     print(f"  mean {r.mean()*100:+7.2f}%   median {r.median()*100:+7.2f}%   "
           f"win {(r>0).mean()*100:5.1f}%   t = {t:+.2f}")
-    print(f"  paper (delta-neutral, D-1 -> D): +2.3%")
+    print("  paper (delta-neutral, D-1 -> D): +2.3%")
     print(f"  IV change through the event: {(d.iv1-d.iv0).median():+.4f} (median)")
-    print(f"\n  by timing:")
+    print("\n  by timing:")
     for w, g in d.groupby("when"):
         if len(g) < 30:
             continue
         tt = g.ret.mean() / (g.ret.std() / np.sqrt(len(g)))
         print(f"    {w:22s} n={len(g):5d}  mean {g.ret.mean()*100:+6.2f}%  "
               f"win {(g.ret>0).mean()*100:5.1f}%  t={tt:+5.2f}")
-    print(f"\n  by cost quartile (is it the cheap ones that pay?):")
+    print("\n  by cost quartile (is it the cheap ones that pay?):")
     d["q"] = pd.qcut(d.cost, 4, labels=["cheapest", "q2", "q3", "priciest"])
     for lab, g in d.groupby("q"):
         print(f"    {str(lab):10s} n={len(g):5d}  mean {g.ret.mean()*100:+6.2f}%  "

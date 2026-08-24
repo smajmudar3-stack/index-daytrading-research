@@ -1,5 +1,5 @@
 """Rate-limited Semantic Scholar lookups for the spinoff / event-driven literature."""
-import json, os, sys, time, urllib.parse, urllib.request
+import json, os, time, urllib.parse, urllib.request
 
 from idt import paths
 
@@ -28,7 +28,7 @@ def fetch(q, limit=5):
         try:
             with urllib.request.urlopen(req, timeout=45) as r:
                 return json.load(r)
-        except Exception as e:
+        except Exception:
             time.sleep(6 * (attempt + 1))
     return {"data": [], "error": "failed"}
 

@@ -9,7 +9,6 @@ Test (DIX & GEX both from PRIOR close, lag 1 => known at today's open, zero look
   Does high prior-DIX predict a green day? Especially WITHIN the negative/low-gamma bucket where
   the move is big enough for a naked long to pay?
 """
-import numpy as np
 import pandas as pd
 from scipy import stats
 import yfinance as yf

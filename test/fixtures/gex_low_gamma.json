@@ -6,8 +6,9 @@
   "stance": "wide_range",
   "note": "Dealers are SHORT gamma, so their hedging runs with the move and amplifies it.",
   "exp_oc": 1.85,
-  "exp_range": 2.40,
-  "gex_z": -1.60,
+  "exp_range": 2.4,
+  "gex_z": -1.6,
   "quintile": 1,
-  "regime_source": "SqueezeMetrics prior close (15-yr baseline)"
+  "regime_source": "SqueezeMetrics prior close (15-yr baseline)",
+  "schema_version": 2
 }

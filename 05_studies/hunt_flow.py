@@ -15,7 +15,6 @@ NEXT 30 to 120 minutes, and with what hit rate?
 """
 import numpy as np
 import pandas as pd
-from scipy import stats as st
 
 from idt import paths
 

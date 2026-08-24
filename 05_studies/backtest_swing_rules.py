@@ -465,7 +465,7 @@ def section_walkforward(close, F):
         p = portfolio_returns(A)
         bo.summarize(A.ret, f"WALK-FWD swing (per-trade) vrp={vrp:.2f}", n_trials=len(GRID),
                      risk_frac=0.20)
-        bo.summarize(p.values, f"   ... as a PORTFOLIO (per 21d period) ", n_trials=len(GRID),
+        bo.summarize(p.values, "   ... as a PORTFOLIO (per 21d period) ", n_trials=len(GRID),
                      periods=12, risk_frac=0.50)
         if vrp == VRP_BASE:
             print("     picks:", ", ".join(f"{y}:n{n}K{k}{'R' if r else '-'}" for y, n, k, r, _ in picks))

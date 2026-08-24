@@ -11,7 +11,6 @@ The question is whether it is exploitable after put skew, or already in the pric
 """
 import numpy as np
 import pandas as pd
-from scipy import stats as st
 
 from idt import paths
 

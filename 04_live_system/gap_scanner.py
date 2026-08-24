@@ -17,7 +17,6 @@ import sqlite3
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import numpy as np
-import pandas as pd
 import yfinance as yf
 
 from idt import db, paths

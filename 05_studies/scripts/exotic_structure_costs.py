@@ -16,7 +16,6 @@ the number that actually matters for a small account.
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import pyarrow.compute as pc
 
 from idt import paths
 
