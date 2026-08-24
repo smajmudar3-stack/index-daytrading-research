@@ -1,6 +1,6 @@
 # Intraday direction: the ceiling, the hurdle, and the one thing that works
 
-Four independent research sweeps plus in-house measurement on 1,919 days of real
+Five independent research sweeps plus in-house measurement on 1,919 days of real
 SPXW quotes and 500 days of minute bars. This is the complete answer to "can
 intraday direction be predicted, and can it be traded."
 
@@ -173,7 +173,7 @@ understand that this is paying a spread to synthesize a futures position.
 
 ---
 
-## 4b. Candlestick and chart patterns: real, and useless
+## 5. Candlestick and chart patterns: real, and useless
 
 The most precise answer in the whole sweep. "Retail Trader's Ruin" tested a
 7-pattern battery on the **Russell 3000 with point-in-time membership and
@@ -225,7 +225,7 @@ pattern, test it against a **random-entry control using the identical exit**.
 
 ---
 
-## 5. What this rules out
+## 6. What this rules out
 
 | claim | verdict |
 |---|---|
@@ -257,7 +257,7 @@ Overfit strategies do not have zero expected out-of-sample return. They have
 
 ---
 
-## 6. What to build
+## 7. What to build
 
 1. **Compute NGE from our own option chains** and validate the Baltussen split
    on 2020–2026. Their sample ends May 2020, before the 0DTE era. Our SPXW
