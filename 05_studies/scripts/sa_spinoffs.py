@@ -20,24 +20,30 @@ def get_year(year):
     top = deref(arr, 0)
     return top
 
-rows = []
-for y in range(1998, 2027):
-    try:
-        top = get_year(y)
-        d = top.get("data") or []
-        for r in d:
-            r["year"] = y
-        rows.extend(d)
-        print(f"{y}: {len(d)} rows", file=sys.stderr)
-    except Exception as e:
-        print(f"{y}: ERROR {e}", file=sys.stderr)
-    time.sleep(0.4)
 
-json.dump(rows, open("sa_spinoffs.json", "w"), indent=1)
-print(f"TOTAL {len(rows)}")
+def main():
+    rows = []
+    for y in range(1998, 2027):
+        try:
+            top = get_year(y)
+            d = top.get("data") or []
+            for r in d:
+                r["year"] = y
+            rows.extend(d)
+            print(f"{y}: {len(d)} rows", file=sys.stderr)
+        except Exception as e:
+            print(f"{y}: ERROR {e}", file=sys.stderr)
+        time.sleep(0.4)
 
-# survivorship probe: '$' prefix = has a stockanalysis page
-no_dollar_spinco = [r for r in rows if not str(r.get("symbol", "")).startswith("$")]
-print(f"spincos WITHOUT $ prefix (likely delisted/no page): {len(no_dollar_spinco)}")
-print("examples:", [(r["year"], r["oldname"], r["symbol"], r["name"]) for r in no_dollar_spinco[:12]])
-print("keys seen:", sorted({k for r in rows for k in r}))
+    json.dump(rows, open("sa_spinoffs.json", "w"), indent=1)
+    print(f"TOTAL {len(rows)}")
+
+    # survivorship probe: '$' prefix = has a stockanalysis page
+    no_dollar_spinco = [r for r in rows if not str(r.get("symbol", "")).startswith("$")]
+    print(f"spincos WITHOUT $ prefix (likely delisted/no page): {len(no_dollar_spinco)}")
+    print("examples:", [(r["year"], r["oldname"], r["symbol"], r["name"]) for r in no_dollar_spinco[:12]])
+    print("keys seen:", sorted({k for r in rows for k in r}))
+
+
+if __name__ == "__main__":
+    main()

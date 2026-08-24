@@ -27,6 +27,8 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
@@ -46,8 +48,7 @@ from swing_lab import (  # noqa: E402
     trade_stats,
 )
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "data", "swing")
+OUT = paths.data("swing")
 
 KS = [1, 2, 3]
 HOLDS = [5, 10, 21, 42]

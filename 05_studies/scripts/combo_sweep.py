@@ -28,14 +28,15 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
 from daily_engine import context, gates  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRADES = os.path.join(ROOT, "data", "swing", "structure_trades.parquet")
-OUT = os.path.join(ROOT, "data", "swing", "combo_sweep.parquet")
+TRADES = paths.data("swing", "structure_trades.parquet")
+OUT = paths.data("swing", "combo_sweep.parquet")
 
 SPLITS = {"2008-2013": ("2008-01-01", "2013-12-31"),
           "2014-2019": ("2014-01-01", "2019-12-31"),
@@ -49,7 +50,7 @@ MIN_N_SPLIT = 20          # per-period minimum for the consistency check
 
 
 def main():
-    d = pd.read_parquet(TRADES).drop_duplicates(
+    d = pd.read_parquet(paths.require_data(TRADES)).drop_duplicates(
         subset=["date", "structure", "dte", "hold_frac"])
     c = context()
     G = gates(c)

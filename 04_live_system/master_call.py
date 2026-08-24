@@ -16,18 +16,22 @@ Two honesty rules are built into the prompt rather than bolted on afterwards:
 It also watches for BIG RUNS — the outsized-opportunity setups worth a look even when the core 0DTE
 rule is standing down — and flags them with a macOS notification.
 """
-import os
 import json
+import os
 import subprocess
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import ai_desk                        # the key, the health row and the cost brake live there
+import uw_client                      # the shared service-health vocabulary
+from idt import paths
+
 ET = ZoneInfo("America/New_York")
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "data", "master_call.json")
-SEEN = os.path.join(HERE, "data", "big_runs_seen.json")
+OUT = os.path.join(paths.STATE_ROOT, "master_call.json")
+SEEN = os.path.join(paths.STATE_ROOT, "big_runs_seen.json")
 MODEL = "claude-fable-5"
 FALLBACK = "claude-opus-4-8"
+CADENCE_S = 600          # 10 minutes between PAID calls, matching scan_all's own gate
 
 SYSTEM = (
     "You are the head trader for a small, aggressive 0DTE options account. You make THE call — one "
@@ -84,17 +88,42 @@ SYSTEM = (
 )
 
 
+def status():
+    """This module's health, in the shape every outside-service module returns.
+    See uw_client.STATES for what each state means."""
+    return ai_desk.anthropic_status("master_call")
+
+
+def _conviction(v):
+    """Conviction as an int. The prompt asks for a number and usually gets one,
+    but "72%" or a null raised ValueError inside the notify branch BELOW the
+    write — so the call landed on the page and the alert silently never fired."""
+    try:
+        return int(float(str(v).strip().rstrip("%")))
+    except (TypeError, ValueError):
+        print(f"master_call: unparseable conviction {v!r} — treating it as 0, so no alert fires")
+        return 0
+
+
+_NOTIFY_BROKEN = {"said": False}
+
+
 def _notify(title, msg):
+    """macOS desktop notification. Silence here used to hide the whole feature on
+    any non-Mac: osascript does not exist on Linux, so every big-run alert was
+    dropped with no trace. Say it once, then stop repeating it."""
     try:
         subprocess.run(["osascript", "-e",
                         f'display notification "{msg}" with title "{title}" sound name "Glass"'],
                        timeout=5, check=False)
-    except Exception:
-        pass
+    except (OSError, subprocess.SubprocessError) as e:
+        if not _NOTIFY_BROKEN["said"]:
+            print(f"master_call: desktop notifications unavailable ({type(e).__name__}: {e}) — "
+                  "alerts appear on the dashboard only")
+            _NOTIFY_BROKEN["said"] = True
 
 
 def _board():
-    import ai_desk
     parts = [ai_desk._distill()]
     for mod, label in (("rules", "VALIDATED RESEARCH"), ("risk_gates", "RISK GATES"),
                        ("sizing", "SIZING"), ("sleeves", "SLEEVES"), ("graduation", "TRACK RECORD")):
@@ -103,47 +132,86 @@ def _board():
             b = m.prompt_block()
             if b:
                 parts.append(f"== {label} ==\n{b}")
-        except Exception:
+        except Exception as e:
+            # A skipped block used to vanish from the prompt entirely, so the
+            # model read a board with no RISK GATES section and no way to tell
+            # that from a board with no gates. Say it is missing, in the prompt
+            # and in the log.
+            print(f"master_call: {label.lower()} block unavailable ({type(e).__name__}: {str(e)[:80]})")
+            parts.append(f"== {label} == UNAVAILABLE ({type(e).__name__}) — treat this section as unknown, "
+                         "not as empty")
             continue
     # gap scanner candidates feed the BIG RUNS scan
+    gap_path = os.path.join(paths.STATE_ROOT, "gap_snapshot.json")
     try:
-        gap = json.load(open(os.path.join(HERE, "data", "gap_snapshot.json")))
+        with open(gap_path, encoding="utf-8") as fh:
+            gap = json.load(fh)
         cands = gap.get("candidates") or []
         if cands:
             parts.append("== GAP / MOMENTUM CANDIDATES ==\n" + "\n".join(
                 f"  {c.get('ticker')} gap {c.get('gap_pct')}% rvol {c.get('rvol')}x "
                 f"open {c.get('open')} now {c.get('last')} since-open {c.get('since_open_pct')}% "
                 f"[{c.get('setup')}]" for c in cands[:12]))
-    except Exception:
-        pass
+    except FileNotFoundError:
+        pass                                   # no scan yet today: normal, and visibly empty
+    except (OSError, ValueError, AttributeError) as e:
+        print(f"master_call: gap snapshot unreadable ({type(e).__name__}: {e}) — no big-run candidates "
+              "in this prompt")
+        parts.append("== GAP / MOMENTUM CANDIDATES == UNAVAILABLE (snapshot unreadable)")
     return "\n\n".join(parts)
 
 
 def _load_seen():
+    """Tickers already alerted today. Missing is the normal start of a day."""
     try:
-        d = json.load(open(SEEN))
+        with open(SEEN, encoding="utf-8") as fh:
+            d = json.load(fh)
         if d.get("date") == datetime.now(ET).date().isoformat():
             return set(d.get("tickers", []))
-    except Exception:
-        pass
+    except FileNotFoundError:
+        pass                                   # nothing alerted yet today, not a fault
+    except (OSError, ValueError, AttributeError) as e:
+        print(f"master_call: {os.path.basename(SEEN)} unreadable ({type(e).__name__}: {e}) — big runs "
+              "may alert twice today")
     return set()
 
 
 def _save_seen(s):
     try:
-        json.dump({"date": datetime.now(ET).date().isoformat(), "tickers": sorted(s)},
-                  open(SEEN, "w"), indent=2)
-    except Exception:
-        pass
+        with open(paths.state("big_runs_seen.json"), "w", encoding="utf-8") as fh:
+            json.dump({"date": datetime.now(ET).date().isoformat(), "tickers": sorted(s)}, fh, indent=2)
+    except (OSError, TypeError, ValueError) as e:
+        # Not fatal, but not silent: an unsaved list means the same ticker
+        # notifies again on the next cycle, which trains the user to ignore it.
+        print(f"master_call: could not save the seen list ({type(e).__name__}: {e}) — big runs will "
+              "re-alert every cycle")
 
 
 
 
 def _load_out():
+    """The last call written, or {}. Missing is the first run; unreadable is a
+    fault and says so."""
     try:
-        return json.load(open(OUT))
-    except Exception:
+        with open(OUT, encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
         return {}
+    except (OSError, ValueError) as e:
+        print(f"master_call: cannot read {os.path.basename(OUT)} ({type(e).__name__}: {e})")
+        return {}
+
+
+def _write_out(d):
+    """Persist the call. A failed write is reported: the dashboard renders this
+    file, so losing it quietly leaves yesterday's call on screen."""
+    try:
+        with open(paths.state("master_call.json"), "w", encoding="utf-8") as fh:
+            json.dump(d, fh, indent=2, default=str)
+    except (OSError, TypeError, ValueError) as e:
+        print(f"master_call: could not write the master call ({type(e).__name__}: {e}) — the dashboard "
+              "will show the previous one")
+    return d
 
 def _market_open():
     """Single source of truth in session.py — 09:20 boot to 16:00 close. Anything that costs money
@@ -151,7 +219,9 @@ def _market_open():
     try:
         import session
         return session.awake()
-    except Exception:
+    except Exception as e:
+        print(f"master_call: session.py unavailable ({type(e).__name__}) — using the inline "
+              "09:20-16:00 gate")
         from datetime import datetime as _d
         from zoneinfo import ZoneInfo as _Z
         n = _d.now(_Z("America/New_York"))
@@ -160,15 +230,22 @@ def _market_open():
 def decide(force=False):
     if not force and not _market_open():
         return {**(_load_out() or {}), 'skipped': 'market closed'}
-    import ai_desk
-    key = ai_desk._key()
-    board = _board()
-    if not key:
-        r = {"ok": False, "error": "no API key", "action": "STAND_DOWN",
-             "headline": "Agent offline — no API key",
+    st = status()
+    if not ai_desk.anthropic_key() or ai_desk.llm_disabled():
+        # No key, or no permission to spend: STAND_DOWN and say which. Returning
+        # the last call instead would leave a live-looking headline on the page.
+        r = {"ok": False, "error": st["detail"], "state": st["state"], "action": "STAND_DOWN",
+             "headline": f"Agent offline — {ai_desk.anthropic_reason('master_call')}"[:90],
              "as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET")}
-        json.dump(r, open(OUT, "w"), indent=2)
-        return r
+        return _write_out(r)
+    # THE COST BRAKE. scan_all gates this on a 10-minute staleness check, but a
+    # gate in one caller protects only that caller, and this is a high-effort
+    # Fable call over the entire board. Hand back the last call in between.
+    ok_to_spend, why = ai_desk.claim_spend("master_call", CADENCE_S, force=force)
+    if not ok_to_spend:
+        return {**(_load_out() or {}), "skipped": why}
+    key = ai_desk.anthropic_key()
+    board = _board()
     try:
         from anthropic import Anthropic
         client = Anthropic(api_key=key)
@@ -183,25 +260,31 @@ def decide(force=False):
         raw = raw[raw.find("{"): raw.rfind("}") + 1]
         d = json.loads(raw)
         d["model"] = resp.model
+        ai_desk.note_llm_success("master_call")
     except Exception as e:
-        r = {"ok": False, "error": f"{type(e).__name__}: {str(e)[:120]}", "action": "STAND_DOWN",
-             "headline": "Master call unavailable",
+        # STAND_DOWN is the right answer when the decider is down, but the
+        # headline has to say WHICH failure it is: a rejected key and a network
+        # outage need different actions from the operator.
+        state, reason = ai_desk.note_llm_failure("master_call", e)
+        r = {"ok": False, "error": f"{type(e).__name__}: {str(e)[:120]}", "state": state,
+             "action": "STAND_DOWN",
+             "headline": f"Master call unavailable — {reason}"[:90],
              "as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET")}
-        json.dump(r, open(OUT, "w"), indent=2)
-        return r
+        return _write_out(r)
 
     d["ok"] = True
+    d["state"] = uw_client.STATE_AVAILABLE
     d["as_of"] = datetime.now(ET).strftime("%Y-%m-%d %H:%M ET")
-    json.dump(d, open(OUT, "w"), indent=2, default=str)
+    _write_out(d)
 
     # notify on a fresh actionable call
-    if d.get("action") == "ENTER" and int(d.get("conviction") or 0) >= 60:
+    if d.get("action") == "ENTER" and _conviction(d.get("conviction")) >= 60:
         _notify(f"🎯 {d.get('symbol','')} {str(d.get('structure','')).replace('_',' ')} "
                 f"· conv {d.get('conviction')}", str(d.get("headline", ""))[:120])
     # notify on NEW big runs only (once per ticker per day)
     seen = _load_seen()
     fresh = [b for b in (d.get("big_runs") or [])
-             if b.get("ticker") and b["ticker"] not in seen and int(b.get("conviction") or 0) >= 60]
+             if b.get("ticker") and b["ticker"] not in seen and _conviction(b.get("conviction")) >= 60]
     for b in fresh[:3]:
         _notify(f"🚀 BIG RUN · {b['ticker']} (conv {b.get('conviction')})", str(b.get("why", ""))[:120])
         seen.add(b["ticker"])
@@ -211,6 +294,8 @@ def decide(force=False):
 
 
 if __name__ == "__main__":
+    st = status()
+    print(f"anthropic {st['state']}: {st['detail']}")
     d = decide(force=True)
     if not d.get("ok"):
         print("error:", d.get("error"))

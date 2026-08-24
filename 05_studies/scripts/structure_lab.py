@@ -29,14 +29,15 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
-GEX = os.path.join(ROOT, "data", "squeeze_dix_gex.csv")
-OUT = os.path.join(ROOT, "data", "swing")
+SWING = paths.data("swing", "panel.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
+GEX = paths.data("squeeze_dix_gex.csv")
+OUT = paths.data("swing")
 
 # (delta, kind, qty). Positive qty = long (pay ask), negative = short (hit bid).
 # Deltas are absolute; puts are matched on |delta|.
@@ -93,7 +94,7 @@ HOLD_FRACTIONS = [0.5, 1.0]          # exit halfway to expiry, or at expiry
 
 def build_context():
     """Market-state factors used to gate entries."""
-    p = pd.read_parquet(SWING)
+    p = pd.read_parquet(paths.require_data(SWING))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     spy = close["SPY"]
 
@@ -115,7 +116,7 @@ def build_context():
         ctx["contango"] = (close["^VIX"] / close["^VIX3M"] < 1.0).astype(float)
 
     # Dealer gamma / dark-pool index, if the SqueezeMetrics file is present.
-    if os.path.exists(GEX):
+    if os.path.exists(GEX):          # optional file; absence is a documented degrade
         g = pd.read_csv(GEX)
         dcol = [c for c in g.columns if c.lower().startswith("date")][0]
         g[dcol] = pd.to_datetime(g[dcol])
@@ -254,8 +255,7 @@ def run_year(year, structures, regs, ctx, spy):
     """Backtest one calendar year; keeps memory bounded."""
     cols = ["date", "expiration", "strike", "type", "bid", "ask", "delta",
             "implied_volatility", "open_interest"]
-    tbl = pq.read_table(
-        OPT, columns=cols,
+    tbl = pq.read_table(paths.require_data(OPT), columns=cols,
         filters=[("date", ">=", pd.Timestamp(f"{year}-01-01")),
                  ("date", "<=", pd.Timestamp(f"{year}-12-31"))])
     ch = tbl.to_pandas()

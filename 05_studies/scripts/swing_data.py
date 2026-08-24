@@ -12,8 +12,9 @@ import time
 import pandas as pd
 import yfinance as yf
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "data", "swing")
+from idt import paths
+
+OUT = paths.data("swing")
 
 # The 11 SPDR sectors — the rotation universe. XLRE (2015) and XLC (2018) are
 # late additions; the backtest must handle ragged start dates, not drop them.

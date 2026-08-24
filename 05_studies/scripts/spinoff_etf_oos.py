@@ -9,7 +9,6 @@ a genuine net-of-cost, investable track record, not a paper portfolio.
 import json, math, os, time, urllib.request
 import statistics as st
 
-SCRATCH = "/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad"
 TICKERS = ["CSD", "SPY", "IWM", "MDY", "IJR"]
 P1, P2 = 1160000000, int(time.time())
 

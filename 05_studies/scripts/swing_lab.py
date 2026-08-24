@@ -25,8 +25,9 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PANEL = os.path.join(ROOT, "data", "swing", "panel.parquet")
+from idt import paths
+
+PANEL = paths.data("swing", "panel.parquet")
 
 SECTORS = ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLRE", "XLC"]
 
@@ -50,7 +51,7 @@ TRADING_DAYS = 252
 # data
 # --------------------------------------------------------------------------
 def load():
-    p = pd.read_parquet(PANEL)
+    p = pd.read_parquet(paths.require_data(PANEL))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     open_ = p.pivot(index="date", columns="ticker", values="open").sort_index()
     return close, open_

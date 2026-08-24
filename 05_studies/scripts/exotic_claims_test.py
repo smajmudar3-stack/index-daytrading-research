@@ -12,8 +12,10 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 COLS = ["date", "expiration", "strike", "type", "bid", "ask", "delta", "gamma",
         "theta", "vega", "implied_volatility", "open_interest"]
 
@@ -55,16 +57,16 @@ def bydelta(c, d):
 
 
 def main():
-    und = pd.read_parquet(UND)[["date", "close"]]
+    und = pd.read_parquet(paths.require_data(UND))[["date", "close"]]
     und["date"] = pd.to_datetime(und.date)
     und = und.set_index("date")["close"]
 
     alld = pd.to_datetime(pd.Series(sorted(
-        pq.read_table(OPT, columns=["date"]).column("date").to_pandas().unique())))
+        pq.read_table(paths.require_data(OPT), columns=["date"]).column("date").to_pandas().unique())))
     alld = alld[alld >= "2018-01-01"]
     sample = alld.groupby([alld.dt.year, alld.dt.month]).min().to_list()
 
-    df = pq.read_table(OPT, columns=COLS,
+    df = pq.read_table(paths.require_data(OPT), columns=COLS,
                        filters=[("date", "in", sample)]).to_pandas()
     df = df[(df.bid > 0) & (df.ask > df.bid) & (df.open_interest > 10)].copy()
     df["mid"] = (df.bid + df.ask) / 2
@@ -231,7 +233,7 @@ def main():
         print("median cost       : $%.0f ; round-trip spread $%.0f (%.1f%% of cost)"
               % (100 * z.cost.median(), 100 * z.rt.median(), 100 * z.rt.median() / z.cost.median()))
 
-    res.to_parquet("/Users/sahilmajmudar/index-daytrading/data/exotic_claims.parquet")
+    res.to_parquet(paths.data("exotic_claims.parquet"))
 
 
 if __name__ == "__main__":

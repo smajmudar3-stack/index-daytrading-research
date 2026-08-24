@@ -22,11 +22,13 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 TICKS = {"SPY": 2.5, "QQQ": 1.95, "IWM": 0.6}      # ~25 SPX / 80 NDX equivalents
 
 
 def load(sym, freq="5min"):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     df = pd.concat([pd.read_parquet(f) for f in fs])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df["mins"] = df.index.hour * 60 + df.index.minute

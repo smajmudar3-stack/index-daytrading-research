@@ -13,6 +13,11 @@ Outputs:
   2. CAGR / drawdown / terminal wealth across the whole range of f
   3. bootstrap ruin probability - the chance of losing half the account, at each f
   4. what the observed worst losing streak does to the account at each f
+
+Filed in 04_live_system/ by the bundle split, where its one import (backtest_daily)
+lived in 05_studies/ and so the module could not run from either directory. It is a
+research harness — it rebuilds the whole OOS panel and prints a table — so it belongs
+here with the rest of them.
 """
 import numpy as np
 import pandas as pd

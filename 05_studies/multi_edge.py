@@ -69,22 +69,27 @@ def build(tk):
     return pd.DataFrame({"E1_overnight": e1, "E2_rsi2dip": e2, "E3_gapfade": e3, "E4_trend": e4})
 
 
-for tk in ["SPY", "QQQ"]:
-    E = build(tk)
-    print(f"\n===== {tk} — individual edges =====")
-    for c in E.columns:
-        r = E[c]
-        cagr = (1+r).prod()**(252/len(r)) - 1
-        dd = ((1+r).cumprod()/(1+r).cumprod().cummax()-1).min()
-        print(f"  {c:14} Sharpe {sh(r):+5.2f}  CAGR {cagr*100:+6.2f}%  maxDD {dd*100:6.1f}%  "
-              f"exp {(r!=0).mean()*100:3.0f}%")
-    print("  correlation matrix:")
-    corr = E[E.columns].corr()
-    print(corr.round(2).to_string().replace("\n", "\n    "))
-    # equal-risk merge: scale each to same vol, average
-    vols = E.std().replace(0, np.nan)
-    w = (1/vols)/(1/vols).sum()
-    merged = (E * w).sum(axis=1)
-    cagr = (1+merged).prod()**(252/len(merged)) - 1
-    dd = ((1+merged).cumprod()/(1+merged).cumprod().cummax()-1).min()
-    print(f"  >>> MERGED (equal-risk): Sharpe {sh(merged):+.2f}  CAGR {cagr*100:+.1f}%  maxDD {dd*100:.1f}%")
+def main():
+    for tk in ["SPY", "QQQ"]:
+        E = build(tk)
+        print(f"\n===== {tk} — individual edges =====")
+        for c in E.columns:
+            r = E[c]
+            cagr = (1+r).prod()**(252/len(r)) - 1
+            dd = ((1+r).cumprod()/(1+r).cumprod().cummax()-1).min()
+            print(f"  {c:14} Sharpe {sh(r):+5.2f}  CAGR {cagr*100:+6.2f}%  maxDD {dd*100:6.1f}%  "
+                  f"exp {(r!=0).mean()*100:3.0f}%")
+        print("  correlation matrix:")
+        corr = E[E.columns].corr()
+        print(corr.round(2).to_string().replace("\n", "\n    "))
+        # equal-risk merge: scale each to same vol, average
+        vols = E.std().replace(0, np.nan)
+        w = (1/vols)/(1/vols).sum()
+        merged = (E * w).sum(axis=1)
+        cagr = (1+merged).prod()**(252/len(merged)) - 1
+        dd = ((1+merged).cumprod()/(1+merged).cumprod().cummax()-1).min()
+        print(f"  >>> MERGED (equal-risk): Sharpe {sh(merged):+.2f}  CAGR {cagr*100:+.1f}%  maxDD {dd*100:.1f}%")
+
+
+if __name__ == "__main__":
+    main()

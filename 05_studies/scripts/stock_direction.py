@@ -35,15 +35,16 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
 from swing_lab import SPLITS, deflated_sharpe, pch, slice_dates, zscore_past  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STOCKS = os.path.join(ROOT, "data", "stocks", "panel.parquet")
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-OUT = os.path.join(ROOT, "data", "swing")
+STOCKS = paths.data("stocks", "panel.parquet")
+SWING = paths.data("swing", "panel.parquet")
+OUT = paths.data("swing")
 
 BETA_WIN = 126   # ~6 months, the standard estimation window
 HORIZONS = [5, 10]  # "days to 2 weeks"
@@ -51,8 +52,8 @@ COST_BPS = 5.0
 
 
 def load():
-    st = pd.read_parquet(STOCKS)
-    sw = pd.read_parquet(SWING)
+    st = pd.read_parquet(paths.require_data(STOCKS))
+    sw = pd.read_parquet(paths.require_data(SWING))
 
     close = st.pivot(index="date", columns="ticker", values="close").sort_index()
     open_ = st.pivot(index="date", columns="ticker", values="open").sort_index()

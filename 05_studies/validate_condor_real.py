@@ -13,11 +13,13 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 
-PATH = "data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 
 
 def load():
-    df = pd.read_parquet(PATH, columns=[
+    df = pd.read_parquet(paths.require_data(PATH), columns=[
         "quote_date", "quote_time", "option_type", "mnes_rel", "mid", "bas",
         "active_underlying_price", "open_interest", "implied_volatility"])
     df["t"] = df.quote_time.astype(str)

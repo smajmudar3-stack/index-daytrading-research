@@ -1,5 +1,7 @@
 """OpenAlex lookups for the spinoff / event-driven anomaly literature."""
-import json, time, urllib.parse, urllib.request
+import json, os, time, urllib.parse, urllib.request
+
+from idt import paths
 
 MAIL = "smajmudar886@gmail.com"
 BASE = "https://api.openalex.org/works"
@@ -52,25 +54,33 @@ def abstract(w):
             pos[i] = word
     return " ".join(pos[i] for i in sorted(pos))
 
-out = {}
-for key, s in QUERIES.items():
-    d = q(s)
-    out[key] = d
-    print(f"\n############ {key}: {s}")
-    for w in d.get("results", []):
-        au = ", ".join((a.get("author") or {}).get("display_name", "") for a in (w.get("authorships") or [])[:5])
-        oa = (w.get("best_oa_location") or {}).get("pdf_url") or ""
-        doi = w.get("doi") or ""
-        print(f"\n--- {w.get('title')} ({w.get('publication_year')}) | {src(w)} | cites={w.get('cited_by_count')}")
-        print(f"    authors: {au}")
-        print(f"    doi: {doi}")
-        if oa:
-            print(f"    OA PDF: {oa}")
-        ab = abstract(w)
-        if ab:
-            print(f"    ABSTRACT: {ab[:2000]}")
-    time.sleep(1)
 
-with open("/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad/openalex.json", "w") as f:
-    json.dump(out, f)
-print("\nDONE")
+def main():
+    out = {}
+    for key, s in QUERIES.items():
+        d = q(s)
+        out[key] = d
+        print(f"\n############ {key}: {s}")
+        for w in d.get("results", []):
+            au = ", ".join((a.get("author") or {}).get("display_name", "") for a in (w.get("authorships") or [])[:5])
+            oa = (w.get("best_oa_location") or {}).get("pdf_url") or ""
+            doi = w.get("doi") or ""
+            print(f"\n--- {w.get('title')} ({w.get('publication_year')}) | {src(w)} | cites={w.get('cited_by_count')}")
+            print(f"    authors: {au}")
+            print(f"    doi: {doi}")
+            if oa:
+                print(f"    OA PDF: {oa}")
+            ab = abstract(w)
+            if ab:
+                print(f"    ABSTRACT: {ab[:2000]}")
+        time.sleep(1)
+
+    out_dir = paths.data("scratch")   # was a /private/tmp dir that no longer exists
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "openalex.json"), "w") as f:
+        json.dump(out, f)
+    print("\nDONE")
+
+
+if __name__ == "__main__":
+    main()

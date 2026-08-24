@@ -27,10 +27,10 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "data", "bigmove")
-os.makedirs(OUT, exist_ok=True)
+OUT = paths.data("bigmove")
 
 SPLITS = {"2010-2016": ("2010-01-01", "2016-12-31"),
           "2017-2021": ("2017-01-01", "2021-12-31"),
@@ -129,6 +129,11 @@ def features(g):
 
 
 def main():
+    # Created here, not at import. A directory conjured by a bare `import`
+    # turns "market data not installed" into "installed but empty" for every
+    # reader downstream, which is the harder failure to notice.
+    os.makedirs(OUT, exist_ok=True)
+
     px = build_universe()
     print(f"  {px.ticker.nunique()} names, {len(px):,} rows, "
           f"{px.date.min().date()} -> {px.date.max().date()}\n")

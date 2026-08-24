@@ -26,13 +26,15 @@ import pandas as pd
 import bt_options as bo
 import backtest_0dte_rules as B
 
+from idt import paths
+
 SPREAD, FEE = 0.010, 0.05
 OR_MIN, SESSION_MIN = 30, 390
 START = 2000.0
 
 
 def load_minutes(sym="SPY"):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     df = pd.concat([pd.read_parquet(f) for f in fs])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df["date"] = df.index.normalize().tz_localize(None)

@@ -9,11 +9,13 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 RT = 0.0003
 
 
 def load_minute(tk):
-    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(f"data/minute/{tk}/*.parquet"))])
+    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df.index = df.index.tz_convert("America/New_York")
     df = df.between_time("09:30", "15:59")
@@ -66,8 +68,13 @@ def report(name, r):
           f"Sharpe(trade) {sh:+4.1f}  n={len(r)}")
 
 
-for tk in ["QQQ", "SPY"]:
-    df = load_minute(tk)
-    print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — VWAP mean-reversion =====")
-    for k in (1.5, 2.0, 2.5):
-        report(f"fade at {k}sigma, exit VWAP", vwap_reversion(df, k=k))
+def main():
+    for tk in ["QQQ", "SPY"]:
+        df = load_minute(tk)
+        print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — VWAP mean-reversion =====")
+        for k in (1.5, 2.0, 2.5):
+            report(f"fade at {k}sigma, exit VWAP", vwap_reversion(df, k=k))
+
+
+if __name__ == "__main__":
+    main()

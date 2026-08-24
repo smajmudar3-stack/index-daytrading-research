@@ -6,19 +6,28 @@ Guardrails baked in (a sound agent, not a gambler): only ENTERs when conviction 
 board's signals agree; defined-risk preferred; capped open positions; STAND_DOWN is the default.
 Real-order execution is intentionally NOT wired here (the agent decides + paper-trades; live fills
 stay a supervised step). Runs on the scan cadence.
+
+Fail-closed, on purpose. Every gate between the model's proposal and the book — risk_gates, the
+pricer, sizing — used to be wrapped in `except Exception: pass`, so a gate that could not be imported
+disappeared and the trade was logged anyway, indistinguishably from one that passed every check. If a
+gate cannot run, the ENTER is REFUSED and says which gate was missing.
 """
-import os
 import json
+import logging
 import sqlite3
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import ai_desk
+from idt import db, keys, paths
+
+log = logging.getLogger("ai_trader")
 
 ET = ZoneInfo("America/New_York")
-HERE = os.path.dirname(os.path.abspath(__file__))
-DB = os.path.join(HERE, "data", "agent_trades.db")
-OUT = os.path.join(HERE, "data", "agent_snapshot.json")
+# Under STATE_ROOT, created on demand. The old HERE/"data" join with a bare sqlite3 handle had no
+# WAL and a 5-second lock while scan_all wrote the same book, and no directory at all on a clone.
+DB = paths.state("agent_trades.db")
+OUT = paths.state("agent_snapshot.json")
 MODEL = "claude-fable-5"
 FALLBACK = "claude-opus-4-8"
 CONV_MIN = 66          # don't enter below this
@@ -58,28 +67,39 @@ SYSTEM = (
 
 
 def _con():
-    c = sqlite3.connect(DB)
+    try:
+        c = db.connect(DB)
+    except sqlite3.Error as e:
+        log.error("ai_trader: cannot open the trade book at %s: %s", DB, e)
+        raise
     c.execute("""CREATE TABLE IF NOT EXISTS trades(id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, sym TEXT,
         action TEXT, structure TEXT, legs TEXT, size TEXT, conviction INT, expiry TEXT, thesis TEXT,
         est_prem REAL, entry_under REAL, status TEXT DEFAULT 'open', exit_under REAL, exit_ts TEXT, pnl_pct REAL)""")
     # peak favorable excursion — drives the trailing stop that lets winners run without giving it all back
+    # pnl_real_pct / exit_prem — real option-level P&L (premium in vs premium out), the honest number
+    # when we can price it. ticket.py carries the same DDL on purpose; change both together.
     cols = {r[1] for r in c.execute("PRAGMA table_info(trades)").fetchall()}
-    if "peak_fav" not in cols:
-        c.execute("ALTER TABLE trades ADD COLUMN peak_fav REAL DEFAULT 0")
-        c.commit()
-    # real option-level P&L (premium in vs premium out) — the honest number, when we can price it
-    if "pnl_real_pct" not in cols:
-        c.execute("ALTER TABLE trades ADD COLUMN pnl_real_pct REAL")
-        c.execute("ALTER TABLE trades ADD COLUMN exit_prem REAL")
-        c.commit()
+    for col, ddl in (("peak_fav", "REAL DEFAULT 0"), ("pnl_real_pct", "REAL"), ("exit_prem", "REAL")):
+        if col not in cols:
+            c.execute(f"ALTER TABLE trades ADD COLUMN {col} {ddl}")
+    c.commit()
     c.row_factory = sqlite3.Row
     return c
 
 
 def _load_snap(name):
+    """A live snapshot JSON, or {} when it has not been written yet."""
+    path = paths.state(name)
     try:
-        return json.load(open(os.path.join(HERE, "data", name)))
-    except Exception:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return {}          # first run, or that engine has not produced a snapshot yet
+    except (OSError, json.JSONDecodeError) as e:
+        # Corrupt is not empty: it means the writer died halfway and the agent is about to decide
+        # against a board with a hole in it.
+        log.warning("ai_trader: snapshot %s is unreadable (%s) — the agent will decide without it",
+                    path, e)
         return {}
 
 
@@ -88,25 +108,55 @@ def _spot(sym):
     m = {"SPX": "^SPX", "NDX": "^NDX"}
     try:
         return float(yf.Ticker(m.get(sym, sym)).fast_info["lastPrice"])
-    except Exception:
+    except Exception as e:
+        # A missing spot silently skips management of an open position, so it is a warning, not a shrug.
+        log.warning("ai_trader: no live quote for %s (%s: %s)", sym, type(e).__name__, e)
         return None
 
 
+def _count_open():
+    c = _con()
+    try:
+        return c.execute("SELECT COUNT(*) FROM trades WHERE status='open'").fetchone()[0]
+    finally:
+        c.close()
+
+
 def _open_summary():
-    c = _con(); rows = c.execute("SELECT * FROM trades WHERE status='open'").fetchall(); c.close()
+    c = _con()
+    try:
+        rows = c.execute("SELECT * FROM trades WHERE status='open'").fetchall()
+    finally:
+        c.close()
     if not rows:
         return "none"
     return "; ".join(f"#{r['id']} {r['sym']} {r['structure']} ({r['legs']}) conv{r['conviction']}" for r in rows)
 
 
 def _notify(title, msg):
+    """Desktop ping. Best effort by design: the book is the record, the ping is a courtesy, and
+    osascript does not exist off macOS. Logged at debug so a Linux box is not spammed every cycle,
+    but it returns whether it worked rather than swallowing the result."""
     try:
         import subprocess
         subprocess.run(["osascript", "-e", f'display notification "{msg}" with title "{title}" sound name "Glass"'],
                        timeout=5, check=False)
-    except Exception:
-        pass
+        return True
+    except Exception as e:
+        log.debug("ai_trader: desktop notification unavailable (%s: %s)", type(e).__name__, e)
+        return False
 
+
+def _write_snapshot(out):
+    """Write the agent snapshot the dashboard renders. A failed write leaves the previous decision on
+    screen looking current, so it is reported in the returned dict as well as logged."""
+    try:
+        with open(OUT, "w", encoding="utf-8") as fh:
+            json.dump(out, fh, indent=2, default=str)
+    except OSError as e:
+        log.error("ai_trader: could not write %s: %s", OUT, e)
+        out["write_error"] = f"{type(e).__name__}: {e}"
+    return out
 
 
 def _market_open():
@@ -115,60 +165,62 @@ def _market_open():
     try:
         import session
         return session.awake()
-    except Exception:
+    except Exception as e:
+        # The fallback below is the duplicate this docstring warns about. Kept so a broken import
+        # cannot leave the gate open, but reaching it is now logged instead of silent.
+        log.warning("ai_trader: session.py unavailable (%s: %s) — falling back to a local copy of the "
+                    "market hours, the duplication that caused this bug class before",
+                    type(e).__name__, e)
         from datetime import datetime as _d
         from zoneinfo import ZoneInfo as _Z
         n = _d.now(_Z("America/New_York"))
         return n.weekday() < 5 and 560 <= (n.hour * 60 + n.minute) < 960
 
+
+def _prompt_block(name, gaps):
+    """One module's contribution to the agent's prompt.
+
+    These blocks are the agent's RULES — the growth plan, the validated research, the risk gates, its
+    own track record, sizing, sleeves, lessons. Losing one used to be an `except Exception: pass`, so
+    the model decided without a constraint and nothing anywhere said so. Now the gap is logged and
+    carried into the snapshot."""
+    try:
+        mod = __import__(name)
+        text = mod.prompt_block()
+    except Exception as e:
+        log.warning("ai_trader: prompt block '%s' unavailable (%s: %s) — the agent is deciding "
+                    "without it", name, type(e).__name__, e)
+        gaps.append({"block": name, "error": f"{type(e).__name__}: {str(e)[:120]}"})
+        return ""
+    return ("\n\n== " + text) if text else ""
+
+
 def decide(force=False):
     if not force and not _market_open():
         return {'ok': False, 'skipped': 'market closed', 'decisions': []}
-    key = ai_desk._key()
-    try:
-        import growth_plan
-        plan = "\n\n== " + growth_plan.prompt_block()
-    except Exception:
-        plan = ""
+    key = keys.get("ANTHROPIC_API_KEY")
+    gaps = []
     # The validated research goes FIRST — it outranks every other block in the prompt.
+    plan = _prompt_block("growth_plan", gaps)
+    gates = "".join(_prompt_block(n, gaps)
+                    for n in ("rules", "risk_gates", "graduation", "sizing", "sleeves", "lessons"))
     try:
-        import rules
-        gates = "\n\n== " + rules.prompt_block()
-    except Exception:
-        gates = ""
-    try:
-        import risk_gates
-        gates += "\n\n== " + risk_gates.prompt_block()
-    except Exception:
-        pass
-    try:
-        import graduation
-        gates += "\n\n== " + graduation.prompt_block()
-    except Exception:
-        pass
-    try:
-        import sizing
-        gates += "\n\n== " + sizing.prompt_block()
-    except Exception:
-        pass
-    try:
-        import sleeves
-        gates += "\n\n== " + sleeves.prompt_block()
-    except Exception:
-        pass
-    try:
-        import lessons
-        lb = lessons.prompt_block()
-        if lb:
-            gates += "\n\n== " + lb
-    except Exception:
-        pass
-    board = (ai_desk._distill() + f"\n\n== CURRENT AGENT POSITIONS ==\n{_open_summary()}\n(max {MAX_OPEN} open)"
+        open_now = _open_summary()
+    except sqlite3.Error as e:
+        # Deciding without knowing what is already open is how the same position gets entered twice.
+        # Refuse the pass and say so in the snapshot the dashboard reads, rather than raising into
+        # scan_all, which catches everything and leaves yesterday's decision on screen.
+        log.error("ai_trader.decide: the trade book could not be read (%s) — no decision this pass", e)
+        return _write_snapshot({"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
+                                "error": f"trade book unreadable: {type(e).__name__}: {e}",
+                                "decisions": [], "prompt_gaps": gaps,
+                                "overall": "agent offline (the trade book could not be read)"})
+    board = (ai_desk._distill() + f"\n\n== CURRENT AGENT POSITIONS ==\n{open_now}\n(max {MAX_OPEN} open)"
              + plan + gates)
     if not key:
-        out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
-               "error": "no API key", "decisions": [], "overall": "agent offline (no API)"}
-        json.dump(out, open(OUT, "w"), indent=2); return out
+        return _write_snapshot({"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
+                                "error": "no API key", "decisions": [], "prompt_gaps": gaps,
+                                "overall": "agent offline (no API)"})
     try:
         from anthropic import Anthropic
         client = Anthropic(api_key=key)
@@ -186,22 +238,49 @@ def decide(force=False):
         data = json.loads(raw)
         model = resp.model
     except Exception as e:
-        out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
-               "error": f"{type(e).__name__}: {str(e)[:100]}", "decisions": [], "overall": "agent error"}
-        json.dump(out, open(OUT, "w"), indent=2); return out
+        log.warning("ai_trader.decide: no decision this pass (%s: %s)", type(e).__name__, str(e)[:120])
+        return _write_snapshot({"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
+                                "error": f"{type(e).__name__}: {str(e)[:100]}", "decisions": [],
+                                "prompt_gaps": gaps, "overall": "agent error"})
 
     decisions = data.get("decisions", [])
-    n_open = len(_con().execute("SELECT id FROM trades WHERE status='open'").fetchall())
+    try:
+        n_open = _count_open()
+    except sqlite3.Error as e:
+        log.error("ai_trader.decide: the trade book could not be read (%s) — the model's decisions "
+                  "are being discarded rather than acted on unchecked", e)
+        return _write_snapshot({"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": False,
+                                "error": f"trade book unreadable: {type(e).__name__}: {e}",
+                                "decisions": [], "prompt_gaps": gaps, "model": model,
+                                "overall": data.get("overall", "")})
     try:
         import risk_gates
-    except Exception:
+    except Exception as e:
+        # Fail closed. The deterministic gates are what make an LLM proposal safe to record; running
+        # without them used to be silent, and every ENTER went straight into the book.
+        log.error("ai_trader: risk_gates unavailable (%s: %s) — every ENTER this pass will be REFUSED",
+                  type(e).__name__, e)
         risk_gates = None
     g = _load_snap("gex_snapshot.json")
     acted = []
+    record_errors = []
     for d in decisions:
-        act = d.get("action"); conv = int(d.get("conviction", 0) or 0)
+        act = d.get("action")
+        try:
+            conv = int(d.get("conviction", 0) or 0)
+        except (TypeError, ValueError):
+            # A non-numeric conviction used to raise here and discard every remaining decision in the
+            # pass. Zero is the fail-closed reading: it is below CONV_MIN, so the trade is not taken.
+            log.warning("ai_trader: %s returned a non-numeric conviction %r — treated as 0, which "
+                        "refuses the trade", d.get("sym"), d.get("conviction"))
+            conv = 0
         # ── HARD GATE: the LLM proposes, the deterministic gates dispose ──────────────
-        if act == "ENTER" and risk_gates is not None:
+        if act == "ENTER":
+            if risk_gates is None:
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": ["risk gates unavailable, refusing to enter unchecked"],
+                              "thesis": d.get("thesis", "") + " — REFUSED: risk gates could not run"})
+                continue
             ok, blocks, shadow = risk_gates.check_entry(
                 d, {"regime": g.get("regime"), "n_open": n_open, "conv_min": CONV_MIN})
             if not ok:
@@ -213,112 +292,160 @@ def decide(force=False):
         if act == "ENTER" and conv >= CONV_MIN and n_open < MAX_OPEN:
             sym = d.get("sym", "SPX"); under = _spot(sym)
             # ── PRICE IT FOR REAL: strikes must exist on the live chain and be tradeable ──────────
-            prem = None
             try:
                 import option_pricer as OP
                 pr = OP.price_trade(d, under)
-                if pr is None or pr.get("net") is None:
-                    acted.append({**d, "action": "BLOCKED",
-                                  "blocked_by": [f"unpriceable: {(pr or {}).get('reject', 'strikes not on the live chain')}"],
-                                  "thesis": d.get("thesis", "") + " — REFUSED: strikes are not tradeable"})
-                    continue
-                if not pr.get("tradeable"):
-                    # record the measured spread so the provisional thresholds can be calibrated later
-                    try:
-                        import risk_gates
-                        risk_gates._log({"ts": datetime.now(ET).isoformat(timespec="seconds"),
-                                         "sym": d.get("sym"), "structure": d.get("structure"),
-                                         "strikes": d.get("strikes"), "net": pr.get("net"),
-                                         "pkg_spread_pct": pr.get("pkg_spread_pct"),
-                                         "allowed": False, "blocks": [pr.get("reject")]})
-                    except Exception:
-                        pass
-                    acted.append({**d, "action": "BLOCKED",
-                                  "blocked_by": [f"illiquid: {pr.get('reject')}"],
-                                  "thesis": d.get("thesis", "") + f" — REFUSED: {pr.get('reject')}"})
-                    continue
-                prem = pr.get("net")
-                d = {**d, "net_prem": prem, "max_loss": pr.get("max_loss"), "resolved_expiry": pr.get("expiry")}
-                # ── AFFORDABILITY: can this account actually hold one contract inside the cap? ──
+            except Exception as e:
+                # This module already refuses a trade it cannot price ("unpriceable" below); an
+                # exception is the same answer arriving differently, so it gets the same refusal
+                # rather than the old silent fall-through that logged the trade unpriced.
+                log.error("ai_trader: pricer unavailable for %s %s (%s: %s) — ENTER refused",
+                          sym, d.get("structure"), type(e).__name__, e)
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": [f"pricer unavailable: {type(e).__name__}: {str(e)[:80]}"],
+                              "thesis": d.get("thesis", "") + " — REFUSED: the trade could not be priced"})
+                continue
+            if pr is None or pr.get("net") is None:
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": [f"unpriceable: {(pr or {}).get('reject', 'strikes not on the live chain')}"],
+                              "thesis": d.get("thesis", "") + " — REFUSED: strikes are not tradeable"})
+                continue
+            if not pr.get("tradeable"):
+                # record the measured spread so the provisional thresholds can be calibrated later
                 try:
-                    import sizing, sleeves
-                    _sl = sleeves.sleeve_for(d)
-                    # sleeve-level concurrency cap (0DTE is 1 at a time per RULES.md)
-                    if sleeves.open_count(_sl) >= sleeves.get(_sl).get("max_open", 99):
-                        acted.append({**d, "action": "BLOCKED",
-                                      "blocked_by": [f"sleeve '{_sl}' already at its max open positions"],
-                                      "thesis": d.get("thesis", "") + f" — REFUSED: {_sl} sleeve full"})
-                        continue
-                    sz = sizing.size_trade(pr.get("max_loss"), conv, size_hint=d.get("size"), sleeve=_sl)
-                    d = {**d, "sleeve": _sl}
-                    if not sz.get("ok"):
-                        acted.append({**d, "action": "BLOCKED", "blocked_by": [f"sizing: {sz['reason']}"],
-                                      "thesis": d.get("thesis", "") + f" — REFUSED: {sz['reason']}"})
-                        continue
-                    d = {**d, "contracts": sz["contracts"], "total_risk": sz["total_risk"],
-                         "pct_of_account": sz["pct_of_account"]}
-                except Exception:
-                    pass
-                # ── ADVERSARIAL COMMITTEE: bear advocate + risk-officer veto. Only reached by
-                # proposals that already cleared the deterministic gates, so this is rare and cheap.
-                try:
-                    import committee
-                    cv = committee.review(d, board)
-                    if cv["verdict"] == "REJECT":
-                        acted.append({**d, "action": "BLOCKED",
-                                      "blocked_by": [f"risk officer: {cv['reason']}"],
-                                      "committee": cv,
-                                      "thesis": d.get("thesis", "") + f" — VETOED: {cv['reason']}"})
-                        continue
-                    if cv["verdict"] == "RESIZE" and cv.get("size_factor", 1.0) < 1.0:
-                        newc = max(1, int((d.get("contracts") or 1) * cv["size_factor"]))
-                        d = {**d, "contracts": newc, "committee": cv,
-                             "thesis": d.get("thesis", "") + f" [resized x{cv['size_factor']}: {cv['reason']}]"}
-                    else:
-                        d = {**d, "committee": cv}
-                except Exception:
-                    pass
-            except Exception:
-                pass                                  # pricer unavailable → fall back to logging unpriced
+                    risk_gates._log({"ts": datetime.now(ET).isoformat(timespec="seconds"),
+                                     "sym": d.get("sym"), "structure": d.get("structure"),
+                                     "strikes": d.get("strikes"), "net": pr.get("net"),
+                                     "pkg_spread_pct": pr.get("pkg_spread_pct"),
+                                     "allowed": False, "blocks": [pr.get("reject")]})
+                except Exception as e:
+                    log.warning("ai_trader: could not record the illiquid-package spread for %s (%s: %s) "
+                                "— the liquidity thresholds lose a calibration point", sym, type(e).__name__, e)
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": [f"illiquid: {pr.get('reject')}"],
+                              "thesis": d.get("thesis", "") + f" — REFUSED: {pr.get('reject')}"})
+                continue
+            prem = pr.get("net")
+            d = {**d, "net_prem": prem, "max_loss": pr.get("max_loss"), "resolved_expiry": pr.get("expiry")}
+            # ── AFFORDABILITY: can this account actually hold one contract inside the cap? ──
+            try:
+                import sizing, sleeves
+                _sl = sleeves.sleeve_for(d)
+                _sl_max = sleeves.get(_sl).get("max_open", 99)
+                _sl_open = sleeves.open_count(_sl)
+                sz = sizing.size_trade(pr.get("max_loss"), conv, size_hint=d.get("size"), sleeve=_sl)
+            except Exception as e:
+                # Fail closed: sizing is the hard per-trade risk cap. It used to be `except: pass`,
+                # which logged the trade with no size and no cap check at all.
+                log.error("ai_trader: sizing/sleeves unavailable for %s (%s: %s) — ENTER refused",
+                          sym, type(e).__name__, e)
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": [f"sizing unavailable: {type(e).__name__}: {str(e)[:80]}"],
+                              "thesis": d.get("thesis", "") + " — REFUSED: the trade could not be sized"})
+                continue
+            d = {**d, "sleeve": _sl}
+            # sleeve-level concurrency cap (0DTE is 1 at a time per RULES.md)
+            if _sl_open >= _sl_max:
+                acted.append({**d, "action": "BLOCKED",
+                              "blocked_by": [f"sleeve '{_sl}' already at its max open positions"],
+                              "thesis": d.get("thesis", "") + f" — REFUSED: {_sl} sleeve full"})
+                continue
+            if not sz.get("ok"):
+                acted.append({**d, "action": "BLOCKED", "blocked_by": [f"sizing: {sz['reason']}"],
+                              "thesis": d.get("thesis", "") + f" — REFUSED: {sz['reason']}"})
+                continue
+            d = {**d, "contracts": sz["contracts"], "total_risk": sz["total_risk"],
+                 "pct_of_account": sz["pct_of_account"]}
+            # ── ADVERSARIAL COMMITTEE: bear advocate + risk-officer veto. Only reached by
+            # proposals that already cleared the deterministic gates, so this is rare and cheap.
+            try:
+                import committee
+                cv = committee.review(d, board)
+            except Exception as e:
+                # The committee is an LLM call sitting AFTER the deterministic gates, so a transient
+                # API error does not block the trade. It must not read as a clean bill of health
+                # either, so the failure is written into the thesis and lands in the book itself.
+                log.warning("ai_trader: committee review did not run for %s (%s: %s)",
+                            sym, type(e).__name__, e)
+                d = {**d, "committee_error": f"{type(e).__name__}: {str(e)[:80]}",
+                     "thesis": d.get("thesis", "") + f" [committee review did not run: {type(e).__name__}]"}
+            else:
+                if cv["verdict"] == "REJECT":
+                    acted.append({**d, "action": "BLOCKED",
+                                  "blocked_by": [f"risk officer: {cv['reason']}"],
+                                  "committee": cv,
+                                  "thesis": d.get("thesis", "") + f" — VETOED: {cv['reason']}"})
+                    continue
+                if cv["verdict"] == "RESIZE" and cv.get("size_factor", 1.0) < 1.0:
+                    newc = max(1, int((d.get("contracts") or 1) * cv["size_factor"]))
+                    d = {**d, "contracts": newc, "committee": cv,
+                         "thesis": d.get("thesis", "") + f" [resized x{cv['size_factor']}: {cv['reason']}]"}
+                else:
+                    d = {**d, "committee": cv}
             c = _con()
-            c.execute("""INSERT INTO trades(ts,sym,action,structure,legs,size,conviction,expiry,thesis,
-                est_prem,entry_under,status) VALUES(?,?,?,?,?,?,?,?,?,?,?, 'open')""",
-                      (datetime.now(ET).isoformat(timespec="seconds"), sym, act, d.get("structure"),
-                       (d.get("legs") or "") + (f" | strikes {d.get('strikes')}" if d.get("strikes") else ""),
-                       d.get("size"), conv, d.get("expiry"), d.get("thesis"), prem, under))
-            c.commit(); c.close(); n_open += 1
+            try:
+                c.execute("""INSERT INTO trades(ts,sym,action,structure,legs,size,conviction,expiry,thesis,
+                    est_prem,entry_under,status) VALUES(?,?,?,?,?,?,?,?,?,?,?, 'open')""",
+                          (datetime.now(ET).isoformat(timespec="seconds"), sym, act, d.get("structure"),
+                           (d.get("legs") or "") + (f" | strikes {d.get('strikes')}" if d.get("strikes") else ""),
+                           d.get("size"), conv, d.get("expiry"), d.get("thesis"), prem, under))
+                c.commit()
+            except sqlite3.Error as e:
+                # An unrecorded ENTER is a corrupt track record, and it used to be indistinguishable
+                # from a recorded one. No ping either: you must not be told about a trade the book
+                # does not have.
+                log.error("ai_trader: ENTER %s %s NOT recorded: %s", sym, d.get("structure"), e)
+                record_errors.append({"action": "ENTER", "sym": sym, "error": f"{type(e).__name__}: {e}"})
+                acted.append({**d, "logged": False, "record_error": f"{type(e).__name__}: {e}"})
+                continue
+            finally:
+                c.close()
+            n_open += 1
             _notify(f"🤖 AGENT ENTER · {sym} {d.get('structure','')}",
                     f"{d.get('legs','')} — conv {conv}. {d.get('thesis','')[:90]}")
             acted.append({**d, "logged": True})
         elif act == "EXIT":
             c = _con()
-            r = c.execute("SELECT * FROM trades WHERE status='open' AND sym=? ORDER BY id DESC", (d.get("sym"),)).fetchone()
-            if r:
-                c.execute("UPDATE trades SET status='closed', exit_under=?, exit_ts=? WHERE id=?",
-                          (_spot(d.get("sym")), datetime.now(ET).isoformat(timespec="seconds"), r["id"]))
-                c.commit()
-                _notify(f"🤖 AGENT EXIT · {d.get('sym')} {r['structure']}", f"{d.get('thesis','')[:90]}")
-                acted.append({**d, "closed": r["id"]})
-            c.close()
+            try:
+                r = c.execute("SELECT * FROM trades WHERE status='open' AND sym=? ORDER BY id DESC",
+                              (d.get("sym"),)).fetchone()
+                if not r:
+                    # The agent asked to exit something the book does not have open. Silence here read
+                    # as a completed exit in the snapshot.
+                    log.warning("ai_trader: EXIT %s ignored — no open trade for that symbol", d.get("sym"))
+                    acted.append({**d, "closed": None, "note": "no open trade for that symbol"})
+                else:
+                    c.execute("UPDATE trades SET status='closed', exit_under=?, exit_ts=? WHERE id=?",
+                              (_spot(d.get("sym")), datetime.now(ET).isoformat(timespec="seconds"), r["id"]))
+                    c.commit()
+                    _notify(f"🤖 AGENT EXIT · {d.get('sym')} {r['structure']}", f"{d.get('thesis','')[:90]}")
+                    acted.append({**d, "closed": r["id"]})
+            except sqlite3.Error as e:
+                log.error("ai_trader: EXIT %s NOT recorded: %s", d.get("sym"), e)
+                record_errors.append({"action": "EXIT", "sym": d.get("sym"), "error": f"{type(e).__name__}: {e}"})
+                acted.append({**d, "closed": None, "record_error": f"{type(e).__name__}: {e}"})
+            finally:
+                c.close()
         else:
             acted.append(d)
-    out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": True, "model": model,
+    out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "ok": not record_errors, "model": model,
            "overall": data.get("overall", ""), "decisions": acted,
+           "prompt_gaps": gaps, "record_errors": record_errors,
            "usage": {"in": resp.usage.input_tokens, "out": resp.usage.output_tokens}}
-    json.dump(out, open(OUT, "w"), indent=2, default=str)
-    return out
+    return _write_snapshot(out)
 
 
 def open_trades():
-    c = _con(); r = c.execute("SELECT * FROM trades WHERE status='open' ORDER BY id DESC").fetchall(); c.close()
+    c = _con()
+    try:
+        r = c.execute("SELECT * FROM trades WHERE status='open' ORDER BY id DESC").fetchall()
+    finally:
+        c.close()
     return [dict(x) for x in r]
 
 
 def _peri(sym):
-    try:
-        return json.load(open(os.path.join(HERE, "data", f"periscope_{sym}.json")))
-    except Exception:
-        return {}
+    return _load_snap(f"periscope_{sym}.json")
 
 
 # Peak-trailing stop (milgar/alpaca-options-framework pattern): once a trade has run far enough to be
@@ -334,13 +461,30 @@ def manage_open():
     (scale at the wall, then TRAIL the peak, never cap the runner early). Uses the live gamma levels."""
     try:
         import risk_gates
-    except Exception:
+    except Exception as e:
+        # Not fatal here (these are already-open trades, and the rule-based exits below still run),
+        # but the settlement-aware time stop is what keeps a physically-settled position from being
+        # assigned. Losing it quietly is not acceptable.
+        log.error("ai_trader.manage_open: risk_gates unavailable (%s: %s) — the settlement time stop "
+                  "will NOT run this cycle", type(e).__name__, e)
         risk_gates = None
-    for t in open_trades():
+    try:
+        open_now = open_trades()
+    except sqlite3.Error as e:
+        # This is the exit engine. If it cannot read the book, no stop, no trail and no time stop runs
+        # this cycle, and the only thing standing between that and an unmanaged position is this line.
+        log.error("ai_trader.manage_open: the trade book could not be read (%s) — NO open trade was "
+                  "managed this cycle", e)
+        return {"managed": 0, "error": f"{type(e).__name__}: {e}"}
+    managed = 0
+    for t in open_now:
         sym = t["sym"]; struct = (t.get("structure") or "").upper()
         spot = _spot(sym)
         if spot is None or not t.get("entry_under"):
+            log.warning("ai_trader.manage_open: #%s %s not managed this cycle (%s)", t["id"], sym,
+                        "no live quote" if spot is None else "no entry level on the row")
             continue
+        managed += 1
         entry = t["entry_under"]; move = (spot / entry - 1) * 100
         is_0dte = (t.get("expiry") or "").upper() in ("0DTE", "WEEKLY", "")
         bull = "CALL" in struct and "CREDIT" not in struct or struct in ("PUT_CREDIT_SPREAD",)
@@ -353,7 +497,17 @@ def manage_open():
         # update peak favorable excursion (the trail rides this, not the current price)
         peak = max(float(t.get("peak_fav") or 0), fav)
         if peak > float(t.get("peak_fav") or 0):
-            c = _con(); c.execute("UPDATE trades SET peak_fav=? WHERE id=?", (round(peak, 3), t["id"])); c.commit(); c.close()
+            c = _con()
+            try:
+                c.execute("UPDATE trades SET peak_fav=? WHERE id=?", (round(peak, 3), t["id"]))
+                c.commit()
+            except sqlite3.Error as e:
+                # The trailing stop reads peak_fav off the row. If it does not persist, the trail
+                # silently resets every cycle and a won trade can be handed all the way back.
+                log.error("ai_trader.manage_open: #%s peak_fav not saved (%s) — the trailing stop is "
+                          "running on a stale peak", t["id"], e)
+            finally:
+                c.close()
         action = reason = None
         # tighter stops for 0DTE directional, wider for swing/stock
         idx0 = is_0dte and sym in ("SPX", "NDX")
@@ -401,30 +555,66 @@ def manage_open():
                         pnl_real = (exit_prem - ep) / ep * 100
                     elif ep < 0:                                 # credit: profit when it costs less to close
                         pnl_real = (abs(ep) - abs(exit_prem)) / abs(ep) * 100
-            except Exception:
-                pass
+                else:
+                    log.warning("ai_trader.manage_open: #%s closed WITHOUT a real exit price (%s) — it "
+                                "will count as modelled, not measured, in graduation.stats()",
+                                t["id"], (pr or {}).get("reject", "no net price"))
+            except Exception as e:
+                # This is the measured-vs-modelled boundary. Silence here quietly lowers
+                # measured_fraction and nobody can tell which trades lost their real P&L.
+                log.warning("ai_trader.manage_open: #%s could not be re-priced on exit (%s: %s) — it "
+                            "will count as modelled, not measured", t["id"], type(e).__name__, e)
         if action == "CUT_SIDE":
             c = _con()
-            c.execute("UPDATE trades SET thesis=thesis||' [one side closed]' WHERE id=?", (t["id"],))
-            c.commit(); c.close()
+            try:
+                c.execute("UPDATE trades SET thesis=thesis||' [one side closed]' WHERE id=?", (t["id"],))
+                c.commit()
+            except sqlite3.Error as e:
+                log.error("ai_trader.manage_open: #%s CUT_SIDE not recorded (%s) — no ping sent", t["id"], e)
+                continue
+            finally:
+                c.close()
             _notify(f"🤖 AGENT CUT SIDE · {sym}", reason)
         elif action == "CUT":
             c = _con()
-            c.execute("""UPDATE trades SET status='closed', exit_under=?, exit_ts=?, pnl_pct=?,
-                         exit_prem=?, pnl_real_pct=? WHERE id=?""",
-                      (round(spot, 2), datetime.now(ET).isoformat(timespec="seconds"), round(fav, 2),
-                       exit_prem, round(pnl_real, 2) if pnl_real is not None else None, t["id"]))
-            c.commit(); c.close()
+            try:
+                c.execute("""UPDATE trades SET status='closed', exit_under=?, exit_ts=?, pnl_pct=?,
+                             exit_prem=?, pnl_real_pct=? WHERE id=?""",
+                          (round(spot, 2), datetime.now(ET).isoformat(timespec="seconds"), round(fav, 2),
+                           exit_prem, round(pnl_real, 2) if pnl_real is not None else None, t["id"]))
+                c.commit()
+            except sqlite3.Error as e:
+                # Write first, ping second. A CUT ping on a trade the book still shows open is how a
+                # position gets managed twice, or not at all.
+                log.error("ai_trader.manage_open: #%s CUT NOT recorded (%s) — the trade is still open "
+                          "in the book and no ping was sent", t["id"], e)
+                continue
+            finally:
+                c.close()
             _pl = f" · P&L {pnl_real:+.1f}%" if pnl_real is not None else ""
             _notify(f"🤖 AGENT CUT · {sym} {struct.replace('_',' ')}",
                     f"{reason} (underlying {fav:+.2f}%){_pl}")
         elif action == "SCALE":
-            c = _con(); c.execute("UPDATE trades SET thesis=thesis||' [scaled half]' WHERE id=?", (t["id"],)); c.commit(); c.close()
+            c = _con()
+            try:
+                c.execute("UPDATE trades SET thesis=thesis||' [scaled half]' WHERE id=?", (t["id"],))
+                c.commit()
+            except sqlite3.Error as e:
+                log.error("ai_trader.manage_open: #%s SCALE not recorded (%s) — no ping sent", t["id"], e)
+                continue
+            finally:
+                c.close()
             _notify(f"🤖 AGENT SCALE · {sym}", reason)
+    return {"managed": managed, "open": len(open_now)}
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     o = decide(force=True)
     print("model:", o.get("model"), "| err:", o.get("error"), "| overall:", o.get("overall"))
     for d in o.get("decisions", []):
         print(f"  {d.get('action')} {d.get('sym')} {d.get('structure','')} conv{d.get('conviction')} — {d.get('thesis','')[:70]}")
+    if o.get("prompt_gaps"):
+        print("prompt blocks missing:", o["prompt_gaps"])
+    if o.get("record_errors"):
+        print("NOT RECORDED:", o["record_errors"])

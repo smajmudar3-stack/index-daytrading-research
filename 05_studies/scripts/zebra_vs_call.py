@@ -19,8 +19,10 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 COLS = ["date", "expiration", "strike", "type", "bid", "ask", "delta",
         "open_interest", "implied_volatility"]
 SHARE_HALF = 0.005
@@ -31,11 +33,11 @@ def bydelta(c, d):
 
 
 def main():
-    und = pd.read_parquet(UND)[["date", "close"]]
+    und = pd.read_parquet(paths.require_data(UND))[["date", "close"]]
     und["date"] = pd.to_datetime(und.date)
     und = und.set_index("date")["close"].sort_index()
 
-    df = pq.read_table(OPT, columns=COLS).to_pandas()
+    df = pq.read_table(paths.require_data(OPT), columns=COLS).to_pandas()
     df = df[(df.bid > 0) & (df.ask > df.bid) & (df.open_interest > 10)].copy()
     df["dte"] = (df.expiration - df.date).dt.days
     print(f"usable rows: {len(df):,}")
@@ -113,7 +115,7 @@ def main():
                              shares_pnl=sh_pnl))
 
     res = pd.DataFrame(rows)
-    res.to_parquet("/Users/sahilmajmudar/index-daytrading/data/zebra_vs_call.parquet")
+    res.to_parquet(paths.data("zebra_vs_call.parquet"))
     pd.set_option("display.width", 220)
 
     for bucket in ["35d", "90d"]:

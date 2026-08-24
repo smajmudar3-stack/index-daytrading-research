@@ -1,6 +1,6 @@
 # Studies and backtests
 
-The 113 harnesses that produced every number in the findings. All are standalone and read from `data/`. Anything here that reports a positive result should be re-checked against [../02_findings/METHODOLOGY_TRAPS.md](../02_findings/METHODOLOGY_TRAPS.md).
+The 117 harnesses that produced every number in the findings. All are standalone and read from `data/`. Anything here that reports a positive result should be re-checked against [../02_findings/METHODOLOGY_TRAPS.md](../02_findings/METHODOLOGY_TRAPS.md).
 
 | file | what it does |
 |---|---|
@@ -14,6 +14,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `condor_backtest.py` | condor_backtest.py — when does a 0DTE iron condor actually survive? (entry time × width × gamma regime) |
 | `dix_direction.py` | dix_direction.py — Can DIX give DIRECTION on negative-gamma days? (GEX can't — proven.) |
 | `dl_ensemble.py` | dl_ensemble.py — LSTM + GRU + Temporal-CNN + Transformer ensemble for next-session SPX direction. |
+| `final_system.py` | Final merged index system with CLEAN locked weights (rounded, not overfit to exact |
 | `fomc_research.py` | FOMC-day behavior + current QQQ options pricing, to ground tomorrow's play. |
 | `hunt_base_rate.py` | hunt_base_rate.py — STEP 1 of the direction hunt: how often does the target move even occur? |
 | `hunt_conditional.py` | hunt_conditional.py — push the FADE hit rate from ~53% toward 60%. |
@@ -30,10 +31,10 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `intraday_macro.py` | Does ANY intraday signal work inside a specific MACRO/regime pocket? Condition the core |
 | `intraday_patterns.py` | Exhaustive intraday pattern/indicator scan on 2y of 5-min bars (SPY/QQQ = 0DTE underlying). |
 | `intraday_puts.py` | intraday_puts.py — which INTRADAY short/put triggers actually work, split by gamma regime. |
+| `live_path.py` | Make 04_live_system/ importable from a study. One place, one explanation. |
 | `merge_optimize.py` | Merge the edges the RIGHT way (weight by quality, not equally) and test OUT-OF-SAMPLE. |
 | `mes_overnight.py` | MES/ES overnight strategy research — build the best HONEST S&P futures edge. |
 | `mes_refine.py` | Refine + robustness-check the overnight strategy: is the vol filter overfit? Does |
-| `mes_signals.py` | mes_signals.py — live signals for the merged MES/MNQ system -> data/mes_snapshot.json. |
 | `minute_edges.py` | Intraday day-trading strategies on 2 years of MINUTE bars (QQQ/SPY, regular session). |
 | `momentum_intraday.py` | momentum_intraday.py — the Zarattini "Beat the Market" intraday momentum breakout, tested on our |
 | `momentum_scan.py` | Scan liquid optionable names across NON-tech industries for the cleanest idiosyncratic |
@@ -113,6 +114,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/test_witching_drift.py` | Test the "derivative payoff bias" / third-Friday AM-settlement drift on our own SPX data. |
 | `scripts/uw_backtest_weights.py` | Backtest the UW inputs that HAVE history, so their weights are earned. |
 | `scripts/zebra_vs_call.py` | ZEBRA vs a plain 0.80-delta call vs ATM call vs 100 shares — head to head, |
+| `sizing_curve.py` | sizing_curve.py — how hard can this edge actually be sized before it destroys itself? |
 | `validate_condor_real.py` | validate_condor_real.py — the condor edge, priced on REAL SPXW quotes instead of a model. |
 | `validate_gapgo.py` | Stress-test the gap-and-go-with-volume edge before believing it. Kill it if it's fragile: |
 | `validate_newlo_delta1.py` | validate_newlo_delta1.py — express the new-low edge WITHOUT paying premium. |
@@ -120,4 +122,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**115 files.**
+**117 files.**

@@ -11,25 +11,10 @@ import pandas as pd
 import pyarrow.parquet as pq
 from scipy import stats as st
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
-und = pd.read_parquet(UND)
-und["date"] = pd.to_datetime(und["date"])
-close = und.set_index("date").sort_index()["close"]
+from idt import paths
 
-f = pq.ParquetFile(OPT)
-parts = []
-for i in range(f.metadata.num_row_groups):
-    t = f.read_row_group(i, columns=["expiration", "strike", "type", "bid", "ask", "delta", "date"]).to_pandas()
-    t["dte"] = (t.expiration - t.date).dt.days
-    parts.append(t[(t.dte >= 5) & (t.dte <= 45) & (t.bid > 0) & (t.ask > t.bid)])
-o = pd.concat(parts, ignore_index=True)
-del parts
-o["mid"] = .5 * (o.bid + o.ask); o["sp"] = o.ask - o.bid; o["ad"] = o.delta.abs()
-o["S"] = close.reindex(o.date).values
-o["ST"] = close.reindex(o.expiration).values
-o = o.dropna(subset=["S", "ST"])
-print("rows", len(o))
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 
 
 def run(lo, hi, short_d, long_d, atm=False):
@@ -76,17 +61,46 @@ def run(lo, hi, short_d, long_d, atm=False):
 
 
 pd.set_option("display.width", 230)
-rows = []
-for tag, lo, hi in [("weekly 5-10d", 5, 10), ("monthly 25-45d", 25, 45)]:
-    for lbl, sd, ld, atm in [("condor 30/16", 0.30, 0.16, False),
-                             ("condor 16/05", 0.16, 0.05, False),
-                             ("condor 10/05", 0.10, 0.05, False),
-                             ("IRON BUTTERFLY ATM/16", None, 0.16, True),
-                             ("IRON BUTTERFLY ATM/05", None, 0.05, True)]:
-        r = run(lo, hi, sd, ld, atm)
-        if r:
-            rows.append(dict(tenor=tag, structure=lbl, **r))
-print("\nSPY, real EOD bid/ask, DELTA-DEFINED WINGS (the coordinator's structures)")
-print("mid_r / half_r / FULL_r = mean % of capital at risk per trade under each fill convention")
-print("FULL_r = enter at ask, exit at bid -- overlapping trades, t-stats OPTIMISTIC\n")
-print(pd.DataFrame(rows).to_string(index=False))
+
+
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global o
+
+    und = pd.read_parquet(paths.require_data(UND))
+    und["date"] = pd.to_datetime(und["date"])
+    close = und.set_index("date").sort_index()["close"]
+
+    f = pq.ParquetFile(paths.require_data(OPT))
+    parts = []
+    for i in range(f.metadata.num_row_groups):
+        t = f.read_row_group(i, columns=["expiration", "strike", "type", "bid", "ask", "delta", "date"]).to_pandas()
+        t["dte"] = (t.expiration - t.date).dt.days
+        parts.append(t[(t.dte >= 5) & (t.dte <= 45) & (t.bid > 0) & (t.ask > t.bid)])
+    o = pd.concat(parts, ignore_index=True)
+    del parts
+    o["mid"] = .5 * (o.bid + o.ask); o["sp"] = o.ask - o.bid; o["ad"] = o.delta.abs()
+    o["S"] = close.reindex(o.date).values
+    o["ST"] = close.reindex(o.expiration).values
+    o = o.dropna(subset=["S", "ST"])
+    print("rows", len(o))
+
+    rows = []
+    for tag, lo, hi in [("weekly 5-10d", 5, 10), ("monthly 25-45d", 25, 45)]:
+        for lbl, sd, ld, atm in [("condor 30/16", 0.30, 0.16, False),
+                                 ("condor 16/05", 0.16, 0.05, False),
+                                 ("condor 10/05", 0.10, 0.05, False),
+                                 ("IRON BUTTERFLY ATM/16", None, 0.16, True),
+                                 ("IRON BUTTERFLY ATM/05", None, 0.05, True)]:
+            r = run(lo, hi, sd, ld, atm)
+            if r:
+                rows.append(dict(tenor=tag, structure=lbl, **r))
+    print("\nSPY, real EOD bid/ask, DELTA-DEFINED WINGS (the coordinator's structures)")
+    print("mid_r / half_r / FULL_r = mean % of capital at risk per trade under each fill convention")
+    print("FULL_r = enter at ask, exit at bid -- overlapping trades, t-stats OPTIMISTIC\n")
+    print(pd.DataFrame(rows).to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()

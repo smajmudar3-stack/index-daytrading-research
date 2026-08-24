@@ -24,12 +24,13 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
+SWING = paths.data("swing", "panel.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
 
 SPLITS = {"2008-2013": ("2008-01-01", "2013-12-31"),
           "2014-2019": ("2014-01-01", "2019-12-31"),
@@ -41,7 +42,7 @@ MIN_DTE, MAX_DTE = 30, 70
 
 
 def build():
-    p = pd.read_parquet(SWING)
+    p = pd.read_parquet(paths.require_data(SWING))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     spy = close["SPY"]
     golden = (spy.rolling(50).mean() > spy.rolling(200).mean()).astype(float)
@@ -55,7 +56,7 @@ def load_all():
             "open_interest"]
     frames = []
     for y in range(2008, 2026):
-        t = pq.read_table(OPT, columns=cols, filters=[
+        t = pq.read_table(paths.require_data(OPT), columns=cols, filters=[
             ("date", ">=", pd.Timestamp(f"{y}-01-01")),
             ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
         if t.empty:
@@ -142,7 +143,7 @@ def main():
             print()
 
     res = pd.DataFrame(rows)
-    res.to_parquet(os.path.join(ROOT, "data", "swing", "signal_vs_base.parquet"),
+    res.to_parquet(paths.data("swing", "signal_vs_base.parquet"),
                    index=False)
 
     print("=" * 100)

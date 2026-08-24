@@ -66,7 +66,10 @@
     "docs": "docs",
     "scripts": "scripts",
     "briefs": "docs/briefs",
-    "missions": "missions"
+    "missions": "missions",
+    "shared": "idt",
+    "tests": "test",
+    "superseded": "07_superseded"
   },
   "knownDirs": [
     "src",
@@ -116,7 +119,10 @@
     "04_live_system",
     "05_studies",
     "06_data_guide",
-    "venv"
+    "venv",
+    "idt",
+    "07_superseded",
+    "index_daytrading_research.egg-info"
   ],
   "note": "Every file category has a home. New category => add a home here AND document it in AGENTS.md, same change."
 }

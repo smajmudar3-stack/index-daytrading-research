@@ -1,5 +1,14 @@
 # Options / swing research — state of play as of 2026-08-06
 
+> **Pointer added 2026-08-24.** This document is **still current** and §3 is one of the
+> load-bearing results in the repo: the 147,350-trade premium-selling null. It is dated,
+> though, and two things have moved since. `RULES.md` has been superseded and now lives at
+> [`../07_superseded/RULES.md`](../07_superseded/RULES.md). The verdict on every claim in
+> this repo, including the ones cited here, is in
+> [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md). Consult it when two documents
+> disagree. One heading below needs care: §4 is titled "this is where the positive numbers
+> are", and §5 immediately takes most of it back. Read the two together, never §4 alone.
+
 Everything below is measured on **real quotes** (entries at ask, exits at bid) unless
 explicitly marked otherwise. Written so the next session can resume without
 re-deriving anything.
@@ -121,6 +130,14 @@ one of those at 50% size ends the account.
 ---
 
 ## 4. Directional side — this is where the positive numbers are
+
+> **⚠️ Do not read this section on its own. Noted 2026-08-24.** The heading promises more
+> than the section delivers, and the section says so twice: the win rates below are
+> **mechanical**, not edge, and §5 records that the signals driving them "were largely
+> base-rate artifacts". `RESEARCH_OPTIONS_EXPRESSION.md` later put the base rate exactly:
+> **SPY rises over 43 days 67.1% of the time**, so a 67-68% win rate on a call debit spread
+> is the base rate wearing a costume. Nothing here is a live signal. See
+> [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md).
 
 `strategy_eval.py`, real SPY chains, 21-day hold:
 
@@ -931,7 +948,8 @@ SQL (cadence check, two-sided-quote quality check, straddle join) is in the scra
 - Reports already on disk: `RESEARCH_SWING_REPOS.md`, `RESEARCH_SWING_ACADEMIC.md`,
   `RESEARCH_COSTS.md`, `RESEARCH_FEES.md`, `RESEARCH_RUIN_SIZING.md`,
   `RESEARCH_STRADDLE_STRANGLE.md`, plus `FINDINGS.md` / `RESEARCH_DIRECTION.md` /
-  `RESEARCH_0DTE_EDGE.md` / `RULES.md` from the prior session.
+  `RESEARCH_0DTE_EDGE.md` / `RULES.md` from the prior session. *(`RULES.md` is now
+  [`../07_superseded/RULES.md`](../07_superseded/RULES.md), superseded 2026-08-24.)*
 - **Untested and most promising**: (a) pre-earnings long straddle on single names
   (Gao/Xing/Zhang) — needs single-stock chains; (b) option-implied cross-sectional
   predictors (IV spread, skew, O/S ratio) — the family that predicts what options

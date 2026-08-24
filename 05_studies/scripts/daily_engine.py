@@ -24,13 +24,14 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRADES = os.path.join(ROOT, "data", "swing", "structure_trades.parquet")
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-GEX = os.path.join(ROOT, "data", "squeeze_dix_gex.csv")
+TRADES = paths.data("swing", "structure_trades.parquet")
+SWING = paths.data("swing", "panel.parquet")
+GEX = paths.data("squeeze_dix_gex.csv")
 
 SPLITS = {"2008-2013": ("2008-01-01", "2013-12-31"),
           "2014-2019": ("2014-01-01", "2019-12-31"),
@@ -38,7 +39,7 @@ SPLITS = {"2008-2013": ("2008-01-01", "2013-12-31"),
 
 
 def context():
-    p = pd.read_parquet(SWING)
+    p = pd.read_parquet(paths.require_data(SWING))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     spy = close["SPY"]
     c = pd.DataFrame(index=close.index)
@@ -64,7 +65,7 @@ def context():
     c["ivrv_pct"] = c["iv_minus_rv"].rolling(504, min_periods=252).apply(
         lambda w: (w[:-1] < w[-1]).mean(), raw=True)
 
-    if os.path.exists(GEX):
+    if os.path.exists(GEX):          # optional file; absence is a documented degrade
         g = pd.read_csv(GEX)
         dc = [x for x in g.columns if x.lower().startswith("date")][0]
         g[dc] = pd.to_datetime(g[dc])
@@ -123,7 +124,7 @@ def evaluate(r, days_available, trades_per_year, frac):
 
 
 def main():
-    d = pd.read_parquet(TRADES)
+    d = pd.read_parquet(paths.require_data(TRADES))
     # Kill the duplicate trades: two DTE targets can resolve to the same expiry
     # and the same structure on the same day, which double-counts.
     before = len(d)
@@ -196,7 +197,7 @@ def main():
     if res.empty:
         print("  no gate/structure cell met the minimum sample requirements")
         return
-    res.to_parquet(os.path.join(ROOT, "data", "swing", "daily_engine.parquet"),
+    res.to_parquet(paths.data("swing", "daily_engine.parquet"),
                    index=False)
 
     top = res.sort_values("avg", ascending=False).head(25)

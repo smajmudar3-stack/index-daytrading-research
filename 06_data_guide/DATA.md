@@ -2,8 +2,21 @@
 
 **The 16 GB of market data is deliberately not copied into this bundle.**
 Duplicating a 14 GB Dolt clone to make an archive would double disk use for no
-benefit. This file inventories what exists and how to query it, and everything
-lives at `~/index-daytrading/data/`.
+benefit. This file inventories what exists and how to query it.
+
+> **Where it lives, corrected 2026-08-24.** The paths below were written as
+> `~/index-daytrading/data/`, which is the original author's machine and exists
+> nowhere else. Resolve them through `idt.paths` instead: `DATA_ROOT` defaults to
+> `<repo>/data` and is overridden by the `IDT_DATA_ROOT` environment variable, so
+> pointing at an existing copy is one variable rather than 26 file edits. Run
+> `idt bootstrap` to see what is present and what is missing.
+>
+> **Nothing in git can reconstruct any of this.** `paths.require_data()` raises a
+> `FileNotFoundError` that names the fix rather than failing three frames deep
+> inside pandas, and `paths.have_data()` lets a caller print an honest "not
+> installed" instead. Use them. A silently-created empty directory reads downstream
+> as "no rows" rather than "not installed", which is why `paths.data()` deliberately
+> creates nothing.
 
 ## Inventory
 
@@ -34,7 +47,7 @@ lives at `~/index-daytrading/data/`.
 ## Querying Dolt
 
 ```bash
-cd ~/index-daytrading/data/dolt
+cd "$(venv/bin/python -c 'from idt import paths; print(paths.data("dolt"))')"
 dolt sql -q "select * from options.option_chain limit 5" -r csv
 ```
 

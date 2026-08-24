@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
+from idt import paths
+
 # scheduled FOMC decision dates (2nd meeting day), 2019-2026
 FOMC = [
     "2019-01-30","2019-03-20","2019-05-01","2019-06-19","2019-07-31","2019-09-18","2019-10-30","2019-12-11",
@@ -22,60 +24,66 @@ FOMC = [
 ]
 FOMC = pd.to_datetime(FOMC)
 
-print("=== FOMC decision-day behavior (2019-2026) ===")
-for tk in ["SPY", "QQQ"]:
-    d = yf.download(tk, start="2018-06-01", interval="1d", progress=False, auto_adjust=False,
-                    multi_level_index=False).rename(columns=str.lower)
-    d["prev_close"] = d["close"].shift(1)
-    d["day_ret"] = d["close"] / d["prev_close"] - 1        # prev close -> FOMC close
-    d["intra"] = d["close"] / d["open"] - 1
-    fd = d[d.index.isin(FOMC)]
-    dbefore = d[d.index.isin(FOMC - pd.Timedelta(days=1))]
-    print(f"  {tk}: FOMC-day (prevclose->close) mean {fd['day_ret'].mean()*100:+.3f}%  "
-          f"win% {(fd['day_ret']>0).mean()*100:.0f}  median {fd['day_ret'].median()*100:+.2f}%  n={len(fd)}")
-    print(f"       |move| median {fd['day_ret'].abs().median()*100:.2f}%  90th {fd['day_ret'].abs().quantile(.9)*100:.2f}%  "
-          f"(vol on the day)")
-    print(f"       day-BEFORE-FOMC mean {dbefore['day_ret'].mean()*100:+.3f}%  win% {(dbefore['day_ret']>0).mean()*100:.0f}")
 
-# pre-2pm drift vs post from minute data (2024-2026 FOMC days)
-print("\n=== intraday pre-2pm drift vs post-2pm reaction on FOMC days (minute data 2024-26) ===")
-for tk in ["SPY", "QQQ"]:
-    files = sorted(glob.glob(f"data/minute/{tk}/*.parquet"))
-    df = pd.concat([pd.read_parquet(f) for f in files])
-    df = df[~df.index.duplicated(keep="first")].sort_index()
-    df.index = df.index.tz_convert("America/New_York")
-    df = df.between_time("09:30", "16:00")
-    pre, post = [], []
-    for fd in FOMC:
-        g = df[df.index.date == fd.date()]
-        if len(g) < 100:
-            continue
-        o = g["close"].iloc[0]
-        at2 = g.between_time("13:55", "14:05")["close"]
-        c = g["close"].iloc[-1]
-        if len(at2) == 0:
-            continue
-        p2 = at2.iloc[0]
-        pre.append(p2 / o - 1)          # open -> 2pm (pre-announcement drift)
-        post.append(c / p2 - 1)         # 2pm -> close (reaction)
-    if pre:
-        pre, post = np.array(pre), np.array(post)
-        print(f"  {tk}: pre-2pm (open->2pm) mean {pre.mean()*100:+.3f}% win {(pre>0).mean()*100:.0f}%  |  "
-              f"post-2pm (2pm->close) mean {post.mean()*100:+.3f}% win {(post>0).mean()*100:.0f}%  |move| {np.abs(post).mean()*100:.2f}%  n={len(pre)}")
+def main():
+    print("=== FOMC decision-day behavior (2019-2026) ===")
+    for tk in ["SPY", "QQQ"]:
+        d = yf.download(tk, start="2018-06-01", interval="1d", progress=False, auto_adjust=False,
+                        multi_level_index=False).rename(columns=str.lower)
+        d["prev_close"] = d["close"].shift(1)
+        d["day_ret"] = d["close"] / d["prev_close"] - 1        # prev close -> FOMC close
+        d["intra"] = d["close"] / d["open"] - 1
+        fd = d[d.index.isin(FOMC)]
+        dbefore = d[d.index.isin(FOMC - pd.Timedelta(days=1))]
+        print(f"  {tk}: FOMC-day (prevclose->close) mean {fd['day_ret'].mean()*100:+.3f}%  "
+              f"win% {(fd['day_ret']>0).mean()*100:.0f}  median {fd['day_ret'].median()*100:+.2f}%  n={len(fd)}")
+        print(f"       |move| median {fd['day_ret'].abs().median()*100:.2f}%  90th {fd['day_ret'].abs().quantile(.9)*100:.2f}%  "
+              f"(vol on the day)")
+        print(f"       day-BEFORE-FOMC mean {dbefore['day_ret'].mean()*100:+.3f}%  win% {(dbefore['day_ret']>0).mean()*100:.0f}")
 
-# live QQQ implied move
-print("\n=== live QQQ options implied move ===")
-t = yf.Ticker("QQQ")
-spot = float(t.history(period="1d")["Close"].iloc[-1])
-for exp in [e for e in t.options if e >= "2026-07-29"][:3]:
-    try:
-        ch = t.option_chain(exp)
-        calls, puts = ch.calls, ch.puts
-        calls = calls.iloc[(calls.strike - spot).abs().argsort()[:1]]
-        puts = puts.iloc[(puts.strike - spot).abs().argsort()[:1]]
-        cp = float(calls.lastPrice.iloc[0]); pp = float(puts.lastPrice.iloc[0])
-        straddle = cp + pp
-        iv = float(np.nanmean([calls.impliedVolatility.iloc[0], puts.impliedVolatility.iloc[0]]))
-        print(f"  {exp}: straddle ${straddle:.2f} -> implied move {straddle/spot*100:.2f}%  (IV {iv*100:.0f}%, spot {spot:.2f})")
-    except Exception as e:
-        print(f"  {exp}: err {str(e)[:50]}")
+    # pre-2pm drift vs post from minute data (2024-2026 FOMC days)
+    print("\n=== intraday pre-2pm drift vs post-2pm reaction on FOMC days (minute data 2024-26) ===")
+    for tk in ["SPY", "QQQ"]:
+        files = sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))
+        df = pd.concat([pd.read_parquet(f) for f in files])
+        df = df[~df.index.duplicated(keep="first")].sort_index()
+        df.index = df.index.tz_convert("America/New_York")
+        df = df.between_time("09:30", "16:00")
+        pre, post = [], []
+        for fd in FOMC:
+            g = df[df.index.date == fd.date()]
+            if len(g) < 100:
+                continue
+            o = g["close"].iloc[0]
+            at2 = g.between_time("13:55", "14:05")["close"]
+            c = g["close"].iloc[-1]
+            if len(at2) == 0:
+                continue
+            p2 = at2.iloc[0]
+            pre.append(p2 / o - 1)          # open -> 2pm (pre-announcement drift)
+            post.append(c / p2 - 1)         # 2pm -> close (reaction)
+        if pre:
+            pre, post = np.array(pre), np.array(post)
+            print(f"  {tk}: pre-2pm (open->2pm) mean {pre.mean()*100:+.3f}% win {(pre>0).mean()*100:.0f}%  |  "
+                  f"post-2pm (2pm->close) mean {post.mean()*100:+.3f}% win {(post>0).mean()*100:.0f}%  |move| {np.abs(post).mean()*100:.2f}%  n={len(pre)}")
+
+    # live QQQ implied move
+    print("\n=== live QQQ options implied move ===")
+    t = yf.Ticker("QQQ")
+    spot = float(t.history(period="1d")["Close"].iloc[-1])
+    for exp in [e for e in t.options if e >= "2026-07-29"][:3]:
+        try:
+            ch = t.option_chain(exp)
+            calls, puts = ch.calls, ch.puts
+            calls = calls.iloc[(calls.strike - spot).abs().argsort()[:1]]
+            puts = puts.iloc[(puts.strike - spot).abs().argsort()[:1]]
+            cp = float(calls.lastPrice.iloc[0]); pp = float(puts.lastPrice.iloc[0])
+            straddle = cp + pp
+            iv = float(np.nanmean([calls.impliedVolatility.iloc[0], puts.impliedVolatility.iloc[0]]))
+            print(f"  {exp}: straddle ${straddle:.2f} -> implied move {straddle/spot*100:.2f}%  (IV {iv*100:.0f}%, spot {spot:.2f})")
+        except Exception as e:
+            print(f"  {exp}: err {str(e)[:50]}")
+
+
+if __name__ == "__main__":
+    main()

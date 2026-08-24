@@ -20,8 +20,10 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 COLS = ["date", "expiration", "strike", "type", "bid", "ask", "delta",
         "implied_volatility", "open_interest"]
 
@@ -30,11 +32,11 @@ RF = 0.02                   # flat financing assumption; sensitivity checked bel
 
 
 def main():
-    und = pd.read_parquet(UND)[["date", "close"]]
+    und = pd.read_parquet(paths.require_data(UND))[["date", "close"]]
     und["date"] = pd.to_datetime(und.date)
     und = und.set_index("date")["close"].sort_index()
 
-    tbl = pq.read_table(OPT, columns=COLS)
+    tbl = pq.read_table(paths.require_data(OPT), columns=COLS)
     df = tbl.to_pandas()
     df = df[(df.bid > 0) & (df.ask > df.bid) & (df.open_interest > 10)].copy()
     df["mid"] = (df.bid + df.ask) / 2
@@ -116,7 +118,7 @@ def main():
                                 pi_over_S=pi_mid / S0))
 
     res = pd.DataFrame(records)
-    res.to_parquet("/Users/sahilmajmudar/index-daytrading/data/delta_hedged_gains.parquet")
+    res.to_parquet(paths.data("delta_hedged_gains.parquet"))
     pd.set_option("display.width", 200)
 
     def block(r, title):

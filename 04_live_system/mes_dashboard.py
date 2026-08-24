@@ -4,9 +4,14 @@ Design: token-based, high-signal, responsive, a11y-reviewed. Purpose unchanged."
 import json
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import mes_signals
 
-SNAP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "mes_snapshot.json")
+import mes_signals
+from idt import paths
+
+# Must be the same file mes_signals.OUT writes. It was not, for as long as
+# mes_signals lived in 05_studies/: this page read an empty directory and said
+# "Data unavailable" forever. Resolve it in one place instead of twice.
+SNAP = os.path.join(paths.STATE_ROOT, "mes_snapshot.json")
 PORT = 8093
 PH_ACT = {"pre_close": "overnight", "post_close": "overnight", "weekend": "overnight",
           "open": "gap", "pre_open": "gap", "session": "dip"}

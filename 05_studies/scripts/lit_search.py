@@ -1,5 +1,7 @@
 """Rate-limited Semantic Scholar lookups for the spinoff / event-driven literature."""
-import json, time, urllib.parse, urllib.request, sys
+import json, os, sys, time, urllib.parse, urllib.request
+
+from idt import paths
 
 BASE = "https://api.semanticscholar.org/graph/v1/paper/search"
 FIELDS = "title,year,abstract,venue,citationCount,authors,externalIds,openAccessPdf"
@@ -48,7 +50,9 @@ def main():
             if ab:
                 print(f"    ABSTRACT: {ab[:1600]}")
         time.sleep(4)
-    with open("/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad/lit.json", "w") as f:
+    out_dir = paths.data("scratch")   # was a /private/tmp dir that no longer exists
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "lit.json"), "w") as f:
         json.dump(out, f, indent=1)
 
 if __name__ == "__main__":

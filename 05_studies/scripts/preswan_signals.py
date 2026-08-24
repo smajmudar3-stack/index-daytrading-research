@@ -24,9 +24,10 @@ import os, subprocess, warnings
 from io import StringIO
 import numpy as np, pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOLT = os.path.join(ROOT, "data", "dolt")
+DOLT = paths.data("dolt")
 
 
 def q(sql, timeout=1800):

@@ -24,7 +24,8 @@ def _load(name):
         return {}
 
 def _notify(title, msg):
-    """Fire a macOS notification (best-effort) so a setup/flip-break reaches the user off-screen."""
+    """Fire a macOS notification (best-effort) so a regime change or flip break reaches the user
+    off-screen. Facts only: nothing sent from here may tell you to place a trade."""
     try:
         import subprocess
         subprocess.run(["osascript", "-e",
@@ -32,6 +33,13 @@ def _notify(title, msg):
                        timeout=5, check=False)
     except Exception:
         pass
+
+def _regime_label(snap):
+    """The gamma regime with its quintile/`(live)` suffix stripped. 'LOW GAMMA (Q2/5)' and
+    'LOW GAMMA (Q1/5)' are the same regime, and firing an alert on that difference would train
+    you to ignore the alert."""
+    import re
+    return re.sub(r"\s*\(.*?\)\s*$", "", str((snap or {}).get("regime") or "")).strip()
 
 def _mkt_open():
     """09:20 boot -> 16:00 close. See session.py."""
@@ -52,13 +60,18 @@ if _stale("gex_snapshot.json", 600):
         gex_signal.run()
     except Exception:
         pass
-    # ALERT on a NEW high-conviction directional setup (so you don't have to keep checking)
+    # ALERT on a change of GAMMA REGIME, which is a fact about the day's expected RANGE.
+    # This used to fire on a directional conviction crossing 58 and push "buy calls" / "buy puts"
+    # to the desktop. Out-of-sample testing measured that read at -10% to -11% per trade, and an
+    # unprompted notification is the worst place to put a losing strategy: you did not ask for it
+    # and it arrives with the authority of an alarm. The regime change is real and still worth an
+    # interruption. The trade verb is gone. See docs/VERDICT_LOG.md.
     _now = _load("gex_snapshot.json")
-    if _mkt_open() and _now.get("master_dir") in ("bullish", "bearish") and _now.get("conviction", 0) >= 58:
-        if _prev.get("master_dir") != _now.get("master_dir"):     # only on a fresh transition
-            _side = "BUY CALLS" if _now["master_dir"] == "bullish" else "BUY PUTS"
-            _notify(f"🎯 SPX setup: {_side} ({_now['conviction']}/100)",
-                    f"{_now.get('regime','')} · {_now.get('thesis','')[:120]}")
+    _reg_now, _reg_prev = _regime_label(_now), _regime_label(_prev)
+    if _mkt_open() and _reg_now and _reg_now != _reg_prev:
+        _notify(f"SPX regime: {_reg_now}",
+                f"was {_reg_prev or 'unknown'} · expected range ~{_now.get('exp_range_pct','?')}% · "
+                f"dealer gamma sets how far the day travels, not which way.")
 
 # live per-strike gamma periscope for the indexes traded (SPX + NDX 0DTE) — refresh every 5-min cycle
 if _stale("periscope_SPX.json", 240):
@@ -70,11 +83,18 @@ if _stale("periscope_SPX.json", 240):
             if brk and _mkt_open():                      # only alert on live intraday breaks
                 _nm = _sym.replace("^", "")
                 if brk == "broke_down":
-                    _notify(f"⚠️ {_nm} BROKE the gamma flip",
-                            f"{_nm} {_snap['spot']} < flip {_snap['gamma_flip']} → SHORT GAMMA. RECOMMENDED: BUY PUTS (downside amplifies).")
+                    # This alert used to end with a RECOMMENDED line telling you to buy puts on the
+                    # break. That is the most clearly refuted trade in the repo: taken below the
+                    # flip it lost 7.2% per trade as a straddle and 19.1% as a strangle on real
+                    # option quotes, and it was pushed to the desktop unasked. The regime change is
+                    # a fact and stays; the recommendation is deleted.
+                    _notify(f"{_nm} broke below the gamma flip",
+                            f"{_nm} {_snap['spot']} < flip {_snap['gamma_flip']} → short-gamma regime. "
+                            f"Dealer hedging now goes with the move, so the day's range tends to widen.")
                 else:
                     _notify(f"{_nm} reclaimed the gamma flip",
-                            f"{_nm} back above flip {_snap['gamma_flip']} → pin regime restored. Put trade invalidated.")
+                            f"{_nm} back above flip {_snap['gamma_flip']} → long-gamma pin regime. "
+                            f"Ranges tend to compress.")
     except Exception:
         pass
 

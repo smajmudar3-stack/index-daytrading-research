@@ -19,11 +19,13 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 
-PATH = "data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 
 
 def build():
-    df = pd.read_parquet(PATH, columns=[
+    df = pd.read_parquet(paths.require_data(PATH), columns=[
         "quote_date", "quote_time", "option_type", "mnes_rel", "implied_volatility",
         "bas", "mid", "active_underlying_price", "open_interest", "trade_volume", "oi_gamma_usd"])
     df["tmin"] = pd.to_datetime(df.quote_time.astype(str)).dt.hour * 60 + \

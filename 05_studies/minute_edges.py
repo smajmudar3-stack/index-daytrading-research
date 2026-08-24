@@ -17,11 +17,13 @@ import os
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 RT = 0.0003  # 3 bps round trip
 
 
 def load_minute(tk):
-    files = sorted(glob.glob(f"data/minute/{tk}/*.parquet"))
+    files = sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))
     df = pd.concat([pd.read_parquet(f) for f in files])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df.index = df.index.tz_convert("America/New_York")
@@ -77,14 +79,19 @@ def report(name, r):
           f"Sharpe {sharpe:+4.2f}  t {tstat:+4.1f}  n={len(r)}")
 
 
-for tk in ["QQQ", "SPY"]:
-    df = load_minute(tk)
-    ndays = df["day"].nunique()
-    print(f"\n===== {tk}  minute bars: {ndays} sessions "
-          f"({min(df['day'])}..{max(df['day'])}) =====")
-    print("  --- Opening Range Breakout, stop at opposite range side, exit EOD ---")
-    for om in (5, 15, 30, 60):
-        report(f"ORB {om}min both", orb(df, om, "both"))
-    for om in (15, 30):
-        report(f"ORB {om}min LONG-only", orb(df, om, "long"))
-        report(f"ORB {om}min SHORT-only", orb(df, om, "short"))
+def main():
+    for tk in ["QQQ", "SPY"]:
+        df = load_minute(tk)
+        ndays = df["day"].nunique()
+        print(f"\n===== {tk}  minute bars: {ndays} sessions "
+              f"({min(df['day'])}..{max(df['day'])}) =====")
+        print("  --- Opening Range Breakout, stop at opposite range side, exit EOD ---")
+        for om in (5, 15, 30, 60):
+            report(f"ORB {om}min both", orb(df, om, "both"))
+        for om in (15, 30):
+            report(f"ORB {om}min LONG-only", orb(df, om, "long"))
+            report(f"ORB {om}min SHORT-only", orb(df, om, "short"))
+
+
+if __name__ == "__main__":
+    main()

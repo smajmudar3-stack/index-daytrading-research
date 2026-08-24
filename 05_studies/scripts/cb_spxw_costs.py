@@ -15,32 +15,19 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 
-PATH = "/Users/sahilmajmudar/index-daytrading/data/spxw/data_opt.parquet"
+import os
+
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 TIMES = ["10:00:00", "10:30:00", "11:00:00", "11:30:00", "12:00:00", "13:00:00", "14:00:00"]
 
-print("loading...")
-df = pd.read_parquet(PATH, columns=[
-    "quote_date", "quote_time", "option_type", "mnes_rel", "mid", "bas", "delta",
-    "implied_volatility", "sret", "active_underlying_price", "open_interest"])
-df["t"] = df.quote_time.astype(str)
-df = df[df.t.isin(TIMES)]
-df = df[(df.mid > 0) & (df.bas > 0)]
-print("rows", len(df), "sessions", df.quote_date.nunique())
 
 # ---- wide tables: index (date,time) x moneyness, one per (field, type) -------------------
 def wide(field, typ):
     d = df[df.option_type == typ]
     return d.pivot_table(index=["quote_date", "t"], columns="mnes_rel", values=field)
 
-MID_C, MID_P = wide("mid", "C"), wide("mid", "P")
-BAS_C, BAS_P = wide("bas", "C"), wide("bas", "P")
-DLT_C, DLT_P = wide("delta", "C"), wide("delta", "P")
-SRET = df.groupby(["quote_date", "t"]).sret.first()
-IVATM = df[np.isclose(df.mnes_rel, 1.0) & (df.option_type == "C")].set_index(["quote_date", "t"]).implied_volatility
-
-GRID = np.array(MID_C.columns, dtype=float)
-idx = MID_C.index
-print("panel", MID_C.shape)
 
 
 def col(tbl, m):
@@ -62,34 +49,6 @@ def gather(tbl, j):
     return v[np.arange(len(v)), j]
 
 
-# =============================================================================
-# 1. RAW LIQUIDITY: half-spread per leg as % of that leg's mid, by moneyness
-# =============================================================================
-print("\n" + "=" * 78)
-print("1. QUOTED SPREAD BY MONEYNESS (real SPXW 0DTE, all sessions, all listed times)")
-print("=" * 78)
-liq = df.copy()
-liq["half_pct_of_mid"] = 100 * 0.5 * liq.bas / liq.mid
-liq["half_bp_of_spot"] = 1e4 * 0.5 * liq.bas
-liq["otm"] = np.where(liq.option_type == "C", liq.mnes_rel - 1, 1 - liq.mnes_rel)
-liq["bucket"] = pd.cut(liq.otm, [-0.021, -0.005, -0.001, 0.001, 0.005, 0.010, 0.021],
-                       labels=["ITM>0.5%", "ITM 0.1-0.5%", "ATM +-0.1%", "OTM 0.1-0.5%",
-                               "OTM 0.5-1.0%", "OTM 1.0-2.0%"])
-g = liq.groupby("bucket", observed=True).agg(
-    n=("mid", "size"), mid_bp_spot=("mid", lambda x: 1e4 * x.mean()),
-    half_bp_spot=("half_bp_of_spot", "mean"),
-    half_pct_of_mid_mean=("half_pct_of_mid", "mean"),
-    half_pct_of_mid_med=("half_pct_of_mid", "median"))
-print(g.round(2).to_string())
-
-print("\nhalf-spread in bp of SPOT by entry time (ATM +-0.1% only):")
-atmliq = liq[liq.bucket == "ATM +-0.1%"]
-print(atmliq.groupby("t").agg(n=("mid", "size"), half_bp_spot=("half_bp_of_spot", "mean"),
-                              half_pct_mid=("half_pct_of_mid", "mean")).round(2).to_string())
-print("\nsame, by year (ATM):")
-atmliq = atmliq.assign(yr=atmliq.quote_date.dt.year)
-print(atmliq.groupby("yr").agg(n=("mid", "size"), half_bp_spot=("half_bp_of_spot", "mean"),
-                               half_pct_mid=("half_pct_of_mid", "mean")).round(2).to_string())
 
 
 # =============================================================================
@@ -182,69 +141,147 @@ def summarise(o):
     return d
 
 
-print("\n" + "=" * 78)
-print("2. IRON BUTTERFLY (short ATM straddle + wings), REAL quotes, hold to cash settlement")
-print("=" * 78)
-print("cr_pct_w = credit as % of wing width | ENTRY_pct_credit = 4 half-spreads as % of mid credit")
-print("RT_pct_credit = 8 half-spreads (open+close) as % of credit | returns are % of capital at risk\n")
 rows = []
-for t in TIMES:
-    for w in [0.003, 0.005, 0.008, 0.010, 0.015, 0.020]:
-        o = run_structure("fly", t, w)
-        s = summarise(o)
-        if s:
-            rows.append(dict(t=t, wing=f"{w*100:.1f}%", **s))
-fly = pd.DataFrame(rows)
 pd.set_option("display.width", 250)
-print(fly.to_string(index=False))
-
-print("\n" + "=" * 78)
-print("3. IRON CONDOR by short-strike DELTA, REAL quotes, hold to cash settlement")
-print("=" * 78)
 rows = []
-for t in ["10:00:00", "10:30:00", "11:00:00", "12:00:00", "13:00:00"]:
-    for sd in [0.10, 0.16, 0.30]:
-        for w in [0.005, 0.010]:
-            o = run_structure("condor", t, w, short_delta=sd)
+rows = []
+
+
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global BAS_C
+    global BAS_P
+    global DLT_C
+    global DLT_P
+    global GRID
+    global IVATM
+    global MID_C
+    global MID_P
+    global SRET
+    global df
+    global idx
+
+    print("loading...")
+    df = pd.read_parquet(paths.require_data(PATH), columns=[
+        "quote_date", "quote_time", "option_type", "mnes_rel", "mid", "bas", "delta",
+        "implied_volatility", "sret", "active_underlying_price", "open_interest"])
+    df["t"] = df.quote_time.astype(str)
+    df = df[df.t.isin(TIMES)]
+    df = df[(df.mid > 0) & (df.bas > 0)]
+    print("rows", len(df), "sessions", df.quote_date.nunique())
+
+    MID_C, MID_P = wide("mid", "C"), wide("mid", "P")
+    BAS_C, BAS_P = wide("bas", "C"), wide("bas", "P")
+    DLT_C, DLT_P = wide("delta", "C"), wide("delta", "P")
+    SRET = df.groupby(["quote_date", "t"]).sret.first()
+    IVATM = df[np.isclose(df.mnes_rel, 1.0) & (df.option_type == "C")].set_index(["quote_date", "t"]).implied_volatility
+
+    GRID = np.array(MID_C.columns, dtype=float)
+    idx = MID_C.index
+    print("panel", MID_C.shape)
+
+    # =============================================================================
+    # 1. RAW LIQUIDITY: half-spread per leg as % of that leg's mid, by moneyness
+    # =============================================================================
+    print("\n" + "=" * 78)
+    print("1. QUOTED SPREAD BY MONEYNESS (real SPXW 0DTE, all sessions, all listed times)")
+    print("=" * 78)
+    liq = df.copy()
+    liq["half_pct_of_mid"] = 100 * 0.5 * liq.bas / liq.mid
+    liq["half_bp_of_spot"] = 1e4 * 0.5 * liq.bas
+    liq["otm"] = np.where(liq.option_type == "C", liq.mnes_rel - 1, 1 - liq.mnes_rel)
+    liq["bucket"] = pd.cut(liq.otm, [-0.021, -0.005, -0.001, 0.001, 0.005, 0.010, 0.021],
+                           labels=["ITM>0.5%", "ITM 0.1-0.5%", "ATM +-0.1%", "OTM 0.1-0.5%",
+                                   "OTM 0.5-1.0%", "OTM 1.0-2.0%"])
+    g = liq.groupby("bucket", observed=True).agg(
+        n=("mid", "size"), mid_bp_spot=("mid", lambda x: 1e4 * x.mean()),
+        half_bp_spot=("half_bp_of_spot", "mean"),
+        half_pct_of_mid_mean=("half_pct_of_mid", "mean"),
+        half_pct_of_mid_med=("half_pct_of_mid", "median"))
+    print(g.round(2).to_string())
+
+    print("\nhalf-spread in bp of SPOT by entry time (ATM +-0.1% only):")
+    atmliq = liq[liq.bucket == "ATM +-0.1%"]
+    print(atmliq.groupby("t").agg(n=("mid", "size"), half_bp_spot=("half_bp_of_spot", "mean"),
+                                  half_pct_mid=("half_pct_of_mid", "mean")).round(2).to_string())
+    print("\nsame, by year (ATM):")
+    atmliq = atmliq.assign(yr=atmliq.quote_date.dt.year)
+    print(atmliq.groupby("yr").agg(n=("mid", "size"), half_bp_spot=("half_bp_of_spot", "mean"),
+                                   half_pct_mid=("half_pct_of_mid", "mean")).round(2).to_string())
+
+    print("\n" + "=" * 78)
+    print("2. IRON BUTTERFLY (short ATM straddle + wings), REAL quotes, hold to cash settlement")
+    print("=" * 78)
+    print("cr_pct_w = credit as % of wing width | ENTRY_pct_credit = 4 half-spreads as % of mid credit")
+    print("RT_pct_credit = 8 half-spreads (open+close) as % of credit | returns are % of capital at risk\n")
+
+    for t in TIMES:
+        for w in [0.003, 0.005, 0.008, 0.010, 0.015, 0.020]:
+            o = run_structure("fly", t, w)
             s = summarise(o)
             if s:
-                rows.append(dict(t=t, delta=sd, wing=f"{w*100:.1f}%", **s))
-cnd = pd.DataFrame(rows)
-print(cnd.to_string(index=False))
+                rows.append(dict(t=t, wing=f"{w*100:.1f}%", **s))
+    fly = pd.DataFrame(rows)
 
-# =============================================================================
-# 4. THE 0DTE ATM STRADDLE VRP ON REAL QUOTES
-# =============================================================================
-print("\n" + "=" * 78)
-print("4. 0DTE ATM STRADDLE: mid premium vs realised move (the raw VRP, real quotes)")
-print("=" * 78)
-rows = []
-for t in TIMES:
-    m = idx.get_level_values("t") == t
-    sub = np.where(m)[0]
-    j = int(np.argmin(np.abs(GRID - 1.0)))
-    prem = MID_C.values[sub, j] + MID_P.values[sub, j]
-    half = 0.5 * (BAS_C.values[sub, j] + BAS_P.values[sub, j])
-    sret = SRET.iloc[sub].values
-    real = np.abs(sret - 1.0)
-    ok = np.isfinite(prem) & np.isfinite(real) & (prem > 0)
-    prem, real, half = prem[ok], real[ok], half[ok]
-    edge = prem - real                       # short straddle P&L at mid
-    edge_net = prem - half - real            # after crossing 2 legs on entry
-    rows.append(dict(t=t, n=len(prem), straddle_bp=round(1e4 * prem.mean(), 1),
-                     realised_bp=round(1e4 * real.mean(), 1),
-                     ratio_real_over_imp=round(real.mean() / prem.mean(), 3),
-                     short_mid_bp=round(1e4 * edge.mean(), 1),
-                     t_mid=round(st.ttest_1samp(edge, 0).statistic, 2),
-                     half_spread_bp=round(1e4 * half.mean(), 2),
-                     short_net_bp=round(1e4 * edge_net.mean(), 1),
-                     t_net=round(st.ttest_1samp(edge_net, 0).statistic, 2),
-                     pct_of_prem_eaten=round(100 * half.mean() / prem.mean(), 1)))
-print(pd.DataFrame(rows).to_string(index=False))
+    print(fly.to_string(index=False))
 
-# save the 11:00 butterfly + condor trade tapes for the tail / regime section
-o1 = run_structure("fly", "11:00:00", 0.010)
-o2 = run_structure("condor", "11:00:00", 0.010, short_delta=0.16)
-o1.to_parquet("/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad/fly1100.parquet")
-o2.to_parquet("/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad/cnd1100.parquet")
-print("\nsaved trade tapes.")
+    print("\n" + "=" * 78)
+    print("3. IRON CONDOR by short-strike DELTA, REAL quotes, hold to cash settlement")
+    print("=" * 78)
+
+    for t in ["10:00:00", "10:30:00", "11:00:00", "12:00:00", "13:00:00"]:
+        for sd in [0.10, 0.16, 0.30]:
+            for w in [0.005, 0.010]:
+                o = run_structure("condor", t, w, short_delta=sd)
+                s = summarise(o)
+                if s:
+                    rows.append(dict(t=t, delta=sd, wing=f"{w*100:.1f}%", **s))
+    cnd = pd.DataFrame(rows)
+    print(cnd.to_string(index=False))
+
+    # =============================================================================
+    # 4. THE 0DTE ATM STRADDLE VRP ON REAL QUOTES
+    # =============================================================================
+    print("\n" + "=" * 78)
+    print("4. 0DTE ATM STRADDLE: mid premium vs realised move (the raw VRP, real quotes)")
+    print("=" * 78)
+
+    for t in TIMES:
+        m = idx.get_level_values("t") == t
+        sub = np.where(m)[0]
+        j = int(np.argmin(np.abs(GRID - 1.0)))
+        prem = MID_C.values[sub, j] + MID_P.values[sub, j]
+        half = 0.5 * (BAS_C.values[sub, j] + BAS_P.values[sub, j])
+        sret = SRET.iloc[sub].values
+        real = np.abs(sret - 1.0)
+        ok = np.isfinite(prem) & np.isfinite(real) & (prem > 0)
+        prem, real, half = prem[ok], real[ok], half[ok]
+        edge = prem - real                       # short straddle P&L at mid
+        edge_net = prem - half - real            # after crossing 2 legs on entry
+        rows.append(dict(t=t, n=len(prem), straddle_bp=round(1e4 * prem.mean(), 1),
+                         realised_bp=round(1e4 * real.mean(), 1),
+                         ratio_real_over_imp=round(real.mean() / prem.mean(), 3),
+                         short_mid_bp=round(1e4 * edge.mean(), 1),
+                         t_mid=round(st.ttest_1samp(edge, 0).statistic, 2),
+                         half_spread_bp=round(1e4 * half.mean(), 2),
+                         short_net_bp=round(1e4 * edge_net.mean(), 1),
+                         t_net=round(st.ttest_1samp(edge_net, 0).statistic, 2),
+                         pct_of_prem_eaten=round(100 * half.mean() / prem.mean(), 1)))
+    print(pd.DataFrame(rows).to_string(index=False))
+
+    # save the 11:00 butterfly + condor trade tapes for the tail / regime section
+    o1 = run_structure("fly", "11:00:00", 0.010)
+    o2 = run_structure("condor", "11:00:00", 0.010, short_delta=0.16)
+    # These tapes went to the /private/tmp scratchpad of the session that wrote this
+    # file. That directory is long gone, so the script did twenty minutes of work and
+    # then died on its last two lines. Keep them beside the data they came from.
+    tape = paths.data("scratch")
+    os.makedirs(tape, exist_ok=True)
+    o1.to_parquet(os.path.join(tape, "fly1100.parquet"))
+    o2.to_parquet(os.path.join(tape, "cnd1100.parquet"))
+    print("\nsaved trade tapes.")
+
+
+if __name__ == "__main__":
+    main()

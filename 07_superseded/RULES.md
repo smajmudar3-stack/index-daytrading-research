@@ -1,4 +1,34 @@
+# 🛑 SUPERSEDED. Do not trade anything in this document
+
+**Retired 2026-08-24. Nothing below is an instruction.**
+
+| | |
+|---|---|
+| **What replaced it** | [`../02_findings/FINDINGS.md`](../02_findings/FINDINGS.md) §1 for the condor, [`../02_findings/WHAT_WORKS.md`](../02_findings/WHAT_WORKS.md) for what survived, [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md) for the verdict on every claim |
+| **Why** | §1.2's headline, filed under "VALIDATED & ROBUST", was **+3.7% per trade, 91% win, t = +7.4**. Every one of those numbers came from Black-Scholes with a linear skew approximation, not from a price. Re-run on **1,919 sessions of real SPXW bid/ask** the strategy is approximately break-even, and the **11:00 entry the live system actually used measured −1.70%**. |
+| **What is still true here** | §1.1, the model-free range finding, quoting **t = −13.2** against VIX9D. Also §0 (how to test honestly), §3 (everything rejected), §5 (the growth arithmetic) and §7 (the risks). Those were right and are still right. |
+
+This document is a record of how the conclusion moved, and it is a good one: it
+states its own weakest assumption in §0 ("option prices are **modelled**"), and
+that assumption is exactly what turned out to be wrong. **That is what makes it
+worth keeping and what makes it dangerous to read as advice.** Every claim in the
+body that was later refuted is struck through and labelled where it appears.
+
+If a paragraph here disagrees with [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md),
+the verdict log wins.
+
+**A note on the sections that survived.** Much of the live code and several of the
+research sweeps cite this file by section number (`risk_gates.py`, `rules.py`,
+`sleeves.py`, `graduation.py`, `RESEARCH_CONDOR_BUTTERFLY.md` and others). Most of
+those point at §1.1, §0 or §3, which were never overturned. Citing a surviving
+section of a superseded document is fine. Trading its §1.2 is not.
+
+---
+
 # Rule Sets — 0DTE and Swing Options
+
+> **SUPERSEDED.** Everything from here down is the 2026-08-05 document, unchanged except that
+> retired claims are struck through and labelled inline. Nothing was deleted.
 
 **Built:** 2026-08-05 · **Scripts:** `backtest_0dte_rules.py`, `backtest_swing_rules.py`, `bt_options.py`
 **Data:** 15y daily SPY/VIX/VIX9D + SqueezeMetrics DIX/GEX (2011-07 → 2026-07, 3,765 days);
@@ -35,9 +65,20 @@ every result below would be inflated. It isn't.
 
 ---
 
-## 1. VALIDATED & ROBUST
+## 1. ~~VALIDATED & ROBUST~~ / ONE HALF SURVIVED, ONE HALF WAS REFUTED
+
+> **🛑 The heading is the problem.** §1.1 (the range finding) is model-free and still stands.
+> §1.2 (the condor that trades it) is refuted: its P&L came from a pricing model, and on real
+> SPXW bid/ask it is approximately break-even. "VALIDATED & ROBUST" was true of the measurement
+> and false of the trade, and filing them under one heading is how the wrong one got traded.
+> See `../02_findings/FINDINGS.md` §1 and `../docs/VERDICT_LOG.md`.
 
 ### 1.1 Dealer gamma predicts the intraday RANGE — and the market does not fully price it
+
+> **STILL CURRENT.** Model-free, and the only headline in this document that survived contact
+> with real option quotes. Quote **t = −13.2** (Q5 vs Q1 against VIX9D), not the t = −16 that
+> `STRATEGY_0DTE.md` carried. The limit that must travel with it: it does **not** convert into
+> profit at real option prices, which is itself the finding.
 
 This is the single strongest finding in the study and it is **model-free**.
 
@@ -67,10 +108,29 @@ Downstream, model-free: iron-condor survival with strikes at ±1.25 forecast SD 
 Model-free breakeven credit for a 1.25SD/1SD-wide condor: **9.6% of width on low-gamma days vs 4.2% on
 high-gamma days** — you need less than half the credit to break even.
 
-### 1.2 THE 0DTE RULE SET
+### 1.2 ~~THE 0DTE RULE SET~~ / 🛑 REFUTED
 
-> **Trade only the range, never the direction. Sell premium only when dealer gamma says the range will
-> be small relative to what the option market is charging. Stand down otherwise.**
+> **🛑 EVERYTHING IN §1.2 IS RETIRED. Do not trade it, do not size it, do not quote its numbers.**
+>
+> The gate, the structure, the strikes, the entry window, the stop and the sizing were all fitted to
+> P&L that came out of Black-Scholes with a linear skew approximation. The linear skew prices the
+> call wing at roughly zero when the market pays for it, so the model overstated the condor credit by
+> about **1.6×**, and that inflation was the entire edge.
+>
+> Re-run on **1,919 sessions of real SPXW bid/ask** (2016-09 to 2024-05, no pricing model anywhere),
+> the same structure is approximately break-even. The **11:00 entry named below measured −1.70% per
+> trade** at t = −0.99. The best cell anywhere in the grid was +0.95% at t = +0.82, which is not
+> significant, with no year-over-year consistency. See `../02_findings/FINDINGS.md` §1.
+>
+> **What would bring it back:** §6.1 of this document, which is still the right test. Log 60 sessions
+> of real SPX 0DTE condor credits at 10:30-13:00 and compare them against the model-free breakevens in
+> §1.1 (4.2% of width on high-gamma days, 9.6% on low). The counter reads **0 of 60**. Until it
+> finishes, this is unproven, not validated.
+
+> ~~**Trade only the range, never the direction. Sell premium only when dealer gamma says the range will
+> be small relative to what the option market is charging. Stand down otherwise.**~~
+>
+> **[RETIRED. "Never the direction" and "stand down otherwise" survive. "Sell premium" does not.]**
 
 **Universe:** SPX (or XSP; SPY is the backtest proxy). Cash-settled index only.
 
@@ -98,7 +158,22 @@ fraction, so 20% risk implies ~−35%.
 **Stand-down rule:** if GEX z ≤ +0.5, **do not trade 0DTE at all that day.** In 2022 this rule fired
 only 6 times all year — that is the feature, not a bug.
 
-#### Honest out-of-sample performance (2016-01 → 2026-07, 853 trades, never tuned on)
+#### ~~Honest out-of-sample performance (2016-01 → 2026-07, 853 trades, never tuned on)~~
+
+> **🛑 REFUTED. Every number in the tables below is modelled, not measured. Do not quote any of them.**
+> The real-quote replacement, on 1,919 sessions of SPXW bid/ask:
+>
+> | entry | shorts | n | win % | avg / trade | credit as % of width | t |
+> |---|---|---:|---:|---:|---:|---:|
+> | 10:30 | 0.5% | 859 | 72% | −0.71% | 21.7% | −0.39 |
+> | **11:00** | 0.5% | 853 | 73% | **−1.70%** | 19.8% | −0.99 |
+> | 12:00 | 0.7% | 796 | 86% | +0.95% | 11.0% | +0.82 |
+> | 13:00 | 0.5% | 832 | 79% | −0.60% | 13.7% | −0.45 |
+>
+> Note what did *not* go wrong: the win rate held up. 91% modelled against 73% measured is a real gap,
+> but the strategy still wins most days. It loses anyway, because the credit was overstated. **A high
+> win rate is not evidence of an edge**, which this document already says at §7 and which the
+> 147,350-trade result in `../01_START_HERE/HANDOFF.md` §3 demonstrates at scale.
 
 At the **evidence-based** assumption cell (`AWARE = 0.35`, `vrp = 1.10`, stop −0.5R):
 
@@ -149,7 +224,14 @@ Every cell is positive. There is no spike to overfit to — it is a plateau.
 
 No losing year, because the gate stands the strategy down in bad-gamma regimes (2022: 6 trades).
 
-**Independent confirmation on 494 days of real minute bars** (marked to the minute, real intraday path):
+~~**Independent confirmation on 494 days of real minute bars**~~ (marked to the minute, real intraday path):
+
+> **🛑 REFUTED, and this table is worth understanding rather than just deleting.** "Real minute bars"
+> means a real *underlying* path. The option prices marked against that path were still modelled by
+> the same Black-Scholes-with-linear-skew that overstated the credit by ~1.6×. So this was never
+> independent confirmation of the P&L; it confirmed only that the gamma contrast survives on real
+> paths, which §1.1 already established model-free. **A second test that reuses the first test's
+> broken assumption is not a second test.**
 
 | Entry | Stop | gz > +0.5 | gz < −0.5 | max DD @10% risk |
 |---|---|---|---|---|
@@ -178,9 +260,15 @@ On 494 minute-bar days, requiring price above the 30-minute VWAP **and** an up o
 **triples** the conditional move on confluence days (+13.9 bp → +36.1 bp). But n = 34 and t = 1.42.
 Suggestive only; two years cannot validate a filter.
 
-### 2.3 Condor entry timing
-11:00 entry edged 09:35 and 13:00 on 494 days. A three-way choice on a small sample — treat
+### 2.3 ~~Condor entry timing~~ / 🛑 REFUTED, and it picked the worst hour
+~~11:00 entry edged 09:35 and 13:00 on 494 days.~~ A three-way choice on a small sample — treat
 "midday, don't force the open" as the takeaway, not "11:00 exactly."
+
+> **This one cost the most.** On real SPXW quotes, 11:00 is the **worst** of the four entries tested:
+> −1.70% per trade, against −0.71% at 10:30, −0.60% at 13:00 and +0.95% at 12:00
+> (`../02_findings/FINDINGS.md` §1). The modelled comparison chose the losing hour and the live
+> system was pointed at it. The caution in the original sentence ("a three-way choice on a small
+> sample") was correct and was not enough.
 
 ---
 
@@ -320,23 +408,40 @@ recklessness)** — i.e. **+4% to +55%**, not +1,900%.
 
 Anything that claims otherwise is either taking bets where one loss is terminal, or is a curve-fit.
 
-### What IS achievable
-The 0DTE premium sleeve is a genuine, statistically real, ~81-trades-a-year machine with a
+### ~~What IS achievable~~ / 🛑 REFUTED
+
+> **The last clause of the paragraph below is the one that came true.** It says the whole thing holds
+> "only if the modelled option pricing holds up against live quotes." It did not. Read the paragraph
+> as a conditional whose condition failed.
+
+~~The 0DTE premium sleeve is a genuine, statistically real, ~81-trades-a-year machine with a
 **+1.5% to +4.5% per-trade expectancy and a Sharpe near 2**. Run at 5-10% risk per trade it compounds
 at roughly **16-35% a year with single-digit-to-teens drawdowns**. Run at an aggressive 25-50% it can
-plausibly do **2-4× a year** — but with 40-80% drawdowns and real ruin risk, and only if the modelled
-option pricing holds up against live quotes.
+plausibly do **2-4× a year**~~ — but with 40-80% drawdowns and real ruin risk, and **only if the modelled
+option pricing holds up against live quotes**.
 
-That is the honest ceiling. It is a good business. It is not a 20×-in-15-weeks business.
+~~That is the honest ceiling. It is a good business.~~ It is not a 20×-in-15-weeks business.
+
+> **The measured ceiling, as it stands today:** approximately break-even at real prices, with no
+> surviving options sleeve at any horizon. The three signals in
+> [`../02_findings/WHAT_WORKS.md`](../02_findings/WHAT_WORKS.md) are what the repo actually has, and
+> none of them is an options strategy.
 
 ---
 
 ## 6. What must be validated before any real money
 
+> **This section was right, and item 1 was the one that mattered.** It named the exact test that would
+> decide the strategy, and it was run: 1,919 sessions of real SPXW bid/ask, reported in
+> `../02_findings/FINDINGS.md` §1. The answer was "not confirmed". The 60-session live credit log in
+> item 1 is still the open validation, and its counter reads **0 of 60**.
+
 1. **Live option quotes.** Every P&L number here comes from a *model*. The single highest-value next
    step is to log real SPX 0DTE condor credits at 10:30-13:00 for 60 sessions and compare the actual
    credit-as-%-of-width against the model-free breakevens in §1.1 (4.2% high-gamma / 9.6% low-gamma).
    If real credits clear those, the edge is confirmed; if not, it is dead.
+   **[STILL OPEN, and still the right test. The historical version of it has already been run on
+   1,919 sessions and came back negative, so the prior on the live log is now bad.]**
 2. **Is same-day IV gamma-aware?** The VIX9D evidence says the market prices only ~a third of the
    gamma effect at the 9-day tenor. The 0DTE surface could be smarter. Measure directly: regress
    observed 0DTE ATM IV on prior-close GEX z, controlling for VIX. If β is strongly negative, the

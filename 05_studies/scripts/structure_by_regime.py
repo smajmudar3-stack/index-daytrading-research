@@ -29,12 +29,13 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRADES = os.path.join(ROOT, "data", "swing", "structure_trades.parquet")
-GEX = os.path.join(ROOT, "data", "squeeze_dix_gex.csv")
+TRADES = paths.data("swing", "structure_trades.parquet")
+GEX = paths.data("squeeze_dix_gex.csv")
 
 DIRECTIONAL = ["long call 0.80d", "long call 0.70d", "long call 0.50d",
                "long call 0.30d", "call debit 70/30", "call debit 50/30",
@@ -42,7 +43,7 @@ DIRECTIONAL = ["long call 0.80d", "long call 0.70d", "long call 0.50d",
 
 
 def gamma_z():
-    g = pd.read_csv(GEX)
+    g = pd.read_csv(paths.require_data(GEX))
     dc = [c for c in g.columns if c.lower().startswith("date")][0]
     g[dc] = pd.to_datetime(g[dc]); g = g.set_index(dc).sort_index()
     col = [c for c in g.columns if c.lower() == "gex"][0]
@@ -69,7 +70,7 @@ def stat(r):
 
 
 def main():
-    d = pd.read_parquet(TRADES).drop_duplicates(
+    d = pd.read_parquet(paths.require_data(TRADES)).drop_duplicates(
         subset=["date", "structure", "dte", "hold_frac"])
     d["gz"] = d.date.map(gamma_z())
     d = d.dropna(subset=["gz"])

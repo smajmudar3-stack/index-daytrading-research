@@ -11,18 +11,11 @@ import sys
 import urllib.parse
 import urllib.request
 
-ENV = os.path.expanduser("~/quant-factory/.env")
+from idt import keys
 
-
-def load_env():
-    keys = {}
-    with open(ENV) as f:
-        for line in f:
-            line = line.strip()
-            if "=" in line and not line.startswith("#"):
-                k, v = line.split("=", 1)
-                keys[k.strip()] = v.strip().strip('"').strip("'")
-    return keys
+# Keys came from the original author's ~/quant-factory/.env, which no other
+# machine has, so this probe reported "MISSING" for keys that were in fact set
+# in the environment. idt.keys checks the environment first, then the repo .env.
 
 
 def get(url, timeout=25):
@@ -40,9 +33,8 @@ def get(url, timeout=25):
 
 
 def main():
-    env = load_env()
-    pk = env.get("POLYGON_API_KEY", "")
-    tk = env.get("TIINGO_API_KEY", "")
+    pk = keys.get("POLYGON_API_KEY") or ""
+    tk = keys.get("TIINGO_API_KEY") or ""
     print(f"polygon key: {'set (' + str(len(pk)) + ' chars)' if pk else 'MISSING'}")
     print(f"tiingo  key: {'set (' + str(len(tk)) + ' chars)' if tk else 'MISSING'}")
     print()

@@ -27,15 +27,16 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
 from swing_lab import SPLITS, pch, slice_dates  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
-OUT = os.path.join(ROOT, "data", "swing")
+SWING = paths.data("swing", "panel.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
+OUT = paths.data("swing")
 
 HOLD = 21          # trading days -- the horizon the signal was validated at
 MIN_DTE = 35       # option must outlive the hold with time value left
@@ -47,7 +48,7 @@ TRADING_DAYS = 252
 # signals
 # --------------------------------------------------------------------------
 def build_signals():
-    p = pd.read_parquet(SWING)
+    p = pd.read_parquet(paths.require_data(SWING))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     spy = close["SPY"]
 
@@ -105,7 +106,7 @@ def load_chain(dates_needed):
     cols = ["date", "expiration", "strike", "type", "bid", "ask",
             "delta", "implied_volatility", "open_interest", "volume"]
     want = pd.to_datetime(sorted(set(dates_needed)))
-    tbl = pq.read_table(OPT, columns=cols,
+    tbl = pq.read_table(paths.require_data(OPT), columns=cols,
                         filters=[("date", "in", list(want))])
     d = tbl.to_pandas()
     d["date"] = pd.to_datetime(d["date"])

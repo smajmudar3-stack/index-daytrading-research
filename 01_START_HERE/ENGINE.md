@@ -1,5 +1,22 @@
 # The Agentic Trading Engine
 
+> ### ⚠️ Read this before the rest. Updated 2026-08-24
+>
+> **The "one validated edge" this document is built around is refuted.** The +3.7%/trade,
+> 91%-win, t = +7.4 iron condor below came from a pricing model, not from prices. Re-run on
+> 1,919 sessions of real SPXW bid/ask it is approximately break-even, and the 11:00 entry this
+> engine used measured **−1.70%** per trade.
+>
+> The section **"What the agent is actually allowed to trade"** is therefore describing a
+> strategy that has since been measured as unproven. The *architecture* below is unaffected and
+> is the good part: the gate stack, the pricer, the sizing cap, the committee veto and the
+> exits are all sound, and they are what stopped the refuted strategy reaching a book.
+>
+> **Current verdicts:** [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md).
+> **The measurement that changed it:** [`../02_findings/FINDINGS.md`](../02_findings/FINDINGS.md) §1.
+> **`RULES.md` has moved** to [`../07_superseded/RULES.md`](../07_superseded/RULES.md) and is
+> superseded; every reference to it below points there.
+
 Autonomous options-trading agent wired to the funded Anthropic Platform account. The agent reads a live
 market board, proposes trades, and a stack of deterministic gates decides whether any of them reach the
 book. It is **paper-tracked**: no real orders are placed, by design.
@@ -49,17 +66,33 @@ settlement-aware time stop → per-side stop for condors → gamma-flip invalida
 
 ## What the agent is actually allowed to trade
 
-Out-of-sample testing (`RULES.md`) left exactly **one** validated edge, and killed most of what the
-system was previously doing. `rules.py` encodes it and `risk_gates.py` enforces it.
+> **⚠️ Superseded 2026-08-24.** The rule below is no longer a validated edge. Keep reading for what
+> the gates enforce; do not read the +3.7% figure as current. See
+> [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md).
 
-**The edge:** prior-close dealer gamma predicts the intraday **range**, and the option market does not
-fully price it — realised/implied range is 0.843× on high-gamma days vs 1.139× on low-gamma
-(t = −13.2, measured against VIX9D, stable across all four sub-periods of 15 years). It is a *range*
-forecast, never a direction forecast.
+Out-of-sample testing ([`../07_superseded/RULES.md`](../07_superseded/RULES.md)) left exactly **one**
+~~validated~~ candidate edge, and killed most of what the system was previously doing. `rules.py`
+encodes it and `risk_gates.py` enforces it.
 
-**The rule:** prior-close GEX z > +0.5 → sell a 0DTE iron condor, shorts ≈1.25 SD of the
-remaining-session move, wings ≈1 SD, enter 10:30–13:00 ET, stop at −0.5× max risk, one at a time,
-5% risk. Otherwise stand down. OOS 2016–2026: 853 trades, +3.7%/trade, 91% win, PF 2.04, t = +7.4.
+**The range finding, and this half is still CURRENT:** prior-close dealer gamma predicts the intraday
+**range**, and the option market does not fully price it — realised/implied range is 0.843× on
+high-gamma days vs 1.139× on low-gamma (t = −13.2, measured against VIX9D, stable across all four
+sub-periods of 15 years). It is a *range* forecast, never a direction forecast. **It also does not
+convert into profit at real option prices**, which is itself the finding.
+
+**The rule, and this half is REFUTED:** prior-close GEX z > +0.5 → sell a 0DTE iron condor, shorts
+≈1.25 SD of the remaining-session move, wings ≈1 SD, enter 10:30–13:00 ET, stop at −0.5× max risk, one
+at a time, 5% risk. Otherwise stand down. ~~OOS 2016–2026: 853 trades, +3.7%/trade, 91% win, PF 2.04,
+t = +7.4.~~
+
+> **🛑 Those four numbers are modelled, not measured. Do not quote them.** On 1,919 sessions of real
+> SPXW bid/ask the same structure is approximately break-even: −0.71% at 10:30, **−1.70% at the 11:00
+> entry this engine uses**, +0.95% at 12:00 (t = +0.82, not significant), −0.60% at 13:00. The
+> pricing model overstated the condor credit by about 1.6× and that inflation was the entire edge.
+> `../02_findings/FINDINGS.md` §1.
+>
+> **The stand-down half of the rule survives.** GEX z ≤ +0.5 means no 0DTE trade, and that is still
+> right. What is retired is treating GEX z > +0.5 as a licence to sell.
 
 **Rejected and now hard-blocked in `risk_gates.py`:**
 
@@ -72,12 +105,20 @@ remaining-session move, wings ≈1 SD, enter 10:30–13:00 ET, stop at −0.5× 
 | All swing option overlays | beaten by owning SPY on return, Sharpe **and** drawdown |
 
 The retired "below the flip = buy premium" rule was the central claim of `STRATEGY_0DTE.md`; that
-document now carries a correction notice at the top.
+document has been moved to [`../07_superseded/STRATEGY_0DTE.md`](../07_superseded/STRATEGY_0DTE.md)
+and every restatement of the rule inside it is struck through.
 
-**Every backtest P&L is modelled** — there are no historical option chains in the repo. So
+**Every backtest P&L in `RULES.md` is modelled** — there were no historical option chains in the repo
+when it was written. There are now: `data/spxw/data_opt.parquet` holds 1.37M rows of real SPXW quotes
+across 1,919 sessions, and running the condor against it is what refuted the edge
+(`../02_findings/FINDINGS.md` §1 and §5).
+
 `rules.log_credit()` records what the market actually pays for this exact structure, one row per
 session in the entry window, into `data/credit_log.jsonl`. After ~60 sessions that confirms or kills
-the edge against real quotes. This is the single highest-value open validation step (`RULES.md` §6.1).
+the edge against **live** quotes, which is the one remaining open question. This is the single
+highest-value open validation step ([`../07_superseded/RULES.md`](../07_superseded/RULES.md) §6.1).
+**The counter currently reads 0 of 60**, and the historical version of the same test has already come
+back negative, so the prior on it is bad.
 
 ## Files
 
@@ -87,7 +128,8 @@ the edge against real quotes. This is the single highest-value open validation s
 | `ai_trader.py` | The agent. `decide()` proposes (LLM); `manage_open()` runs exits (rules only, no LLM). |
 | `rules.py` | The validated edge as executable code: gamma gate, condor construction, credit logging. |
 | `risk_gates.py` | Hard pre-trade gate stack + shadow-filter mode + settlement-aware force-close. |
-| `RULES.md` | The out-of-sample research: validated / suggestive / rejected, and the growth arithmetic. |
+| [`../07_superseded/RULES.md`](../07_superseded/RULES.md) | **SUPERSEDED.** The out-of-sample research: validated / suggestive / rejected, and the growth arithmetic. Its §1.2 condor is refuted; §1.1, §0, §3, §5 and §7 still stand. |
+| [`../docs/VERDICT_LOG.md`](../docs/VERDICT_LOG.md) | The verdict on every claim, newest first. Consult this when two documents disagree. |
 | `option_pricer.py` | Live option quotes, multi-leg pricing, liquidity guardrails. |
 | `sizing.py` | Contracts from account + max loss, inside the hard cap. Affordability report. |
 | `committee.py` | Bear advocate + risk-officer veto. |

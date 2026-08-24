@@ -13,9 +13,13 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from idt import paths
+
 ET = ZoneInfo("America/New_York")
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "data", "scalp_snapshot.json")
+# This writes a LIVE snapshot the dashboard reads, but it was writing it into
+# 05_studies/data/ while gap_dashboard.py read 04_live_system/data/. Same file
+# name, two directories, so the scalp panel never once saw a fresh read.
+OUT = paths.state("scalp_snapshot.json")
 
 
 def _window_open():
@@ -25,7 +29,7 @@ def _window_open():
 
 def _peri(sym):
     try:
-        return json.load(open(os.path.join(HERE, "data", f"periscope_{sym}.json")))
+        return json.load(open(paths.state(f"periscope_{sym}.json")))
     except Exception:
         return {}
 

@@ -30,10 +30,11 @@ import datetime as dt
 import requests
 import pandas as pd
 
+from idt import paths
+
 UA = os.environ.get("SEC_UA", "Sahil Majmudar smajmudar886@gmail.com")
 HEADERS = {"User-Agent": UA, "Accept-Encoding": "gzip, deflate"}
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "spinoffs")
-os.makedirs(OUT, exist_ok=True)
+OUT = paths.data("spinoffs")   # was 05_studies/data/spinoffs, which never existed
 
 _last = [0.0]
 
@@ -42,7 +43,14 @@ _last = [0.0]
 IDX_RE = re.compile(r"^(\S+)\s+(.*?)\s+(\d{3,10})\s+(\d{4}-\d{2}-\d{2})\s+(\S+)$")
 
 CACHE = os.path.join(OUT, "_idx_cache")
-os.makedirs(CACHE, exist_ok=True)
+
+
+def _ensure_dirs():
+    """Create the output dirs when the script RUNS, not when it is imported.
+    A directory created by a bare `import` turns "not installed" into "installed
+    but empty" for everything that reads it afterwards."""
+    os.makedirs(OUT, exist_ok=True)
+    os.makedirs(CACHE, exist_ok=True)
 
 
 def get(url, tries=3):
@@ -352,6 +360,7 @@ def census():
 
 
 if __name__ == "__main__":
+    _ensure_dirs()
     cmd = sys.argv[1] if len(sys.argv) > 1 else "index"
     if cmd == "index":
         harvest_index()

@@ -11,28 +11,12 @@ import sys
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 SYM = sys.argv[1] if len(sys.argv) > 1 else "SPY"
-SLICE = f"/Users/sahilmajmudar/index-daytrading/data/opt_eod/{SYM}_monthly_slice.parquet"
-UND = f"/Users/sahilmajmudar/index-daytrading/data/opt_eod/{SYM}_underlying.parquet"
+SLICE = f"opt_eod/{SYM}_monthly_slice.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = f"opt_eod/{SYM}_underlying.parquet"
 
-df = pd.read_parquet(SLICE)
-df = df[(df["bid"] > 0) & (df["ask"] >= df["bid"])].copy()
-df["mid"] = (df["bid"] + df["ask"]) / 2
-df["adelta"] = df["delta"].abs()
-
-und = pd.read_parquet(UND).copy()
-und["date"] = pd.to_datetime(und["date"])
-und = und.sort_values("date").reset_index(drop=True)
-spot = und.set_index("date")["close"]
-df["spot"] = df["date"].map(spot)
-df = df.dropna(subset=["spot"])
-
-# realized vol of the underlying (close-to-close), for the VRP diagnostic
-und["ret"] = np.log(und["close"]).diff()
-
-# settlement spot for each expiration = close on last trading day <= expiration
-dates = und["date"].values
-closes = und["close"].values
 
 
 def settle(exp):
@@ -42,8 +26,6 @@ def settle(exp):
     return closes[i], pd.Timestamp(dates[i])
 
 
-calls = df[df["type"] == "call"]
-puts = df[df["type"] == "put"]
 
 
 def nearest(g, col, target):
@@ -76,32 +58,6 @@ def legs_for(target_delta, atm=False):
     return m
 
 
-STRUCTS = {
-    "ATM straddle": legs_for(None, atm=True),
-    "30d strangle": legs_for(0.30),
-    "16d strangle": legs_for(0.16),
-}
-
-settle_cache = {}
-for name, m in STRUCTS.items():
-    m["bid_t"] = m["bid_c"] + m["bid_p"]
-    m["ask_t"] = m["ask_c"] + m["ask_p"]
-    m["mid_t"] = m["mid_c"] + m["mid_p"]
-    st = []
-    sd = []
-    for e in m["expiration"]:
-        if e not in settle_cache:
-            settle_cache[e] = settle(e)
-        a, b = settle_cache[e]
-        st.append(a)
-        sd.append(b)
-    m["S_T"] = st
-    m["settle_date"] = sd
-    m["payoff"] = (np.maximum(m["S_T"] - m["strike_c"], 0) +
-                   np.maximum(m["strike_p"] - m["S_T"], 0))
-
-# realized vol between entry and settle, annualised
-und_idx = und.set_index("date")
 
 
 def rvol(d0, d1):
@@ -159,32 +115,98 @@ def report(m, label, target_dte, tol=5):
 
 
 pd.set_option("display.width", 220)
-print(f"================ {SYM}: REAL-QUOTE MONTHLY STRADDLE/STRANGLE, HELD TO EXPIRY ================")
-print("All prices are actual EOD NBBO. long_ask = bought at the offer (realistic).")
-print("short_bid = sold at the bid (realistic). *_mid = midpoint, i.e. zero-cost fantasy.")
-print("Returns are per-trade on the premium, except short_bid_on_margin (on 20%-of-notional margin).")
-
-allsel = {}
-for name, m in STRUCTS.items():
-    for tdte in (45, 30, 21):
-        s = report(m, name, tdte)
-        if s is not None:
-            allsel[(name, tdte)] = s
 
 # yearly breakdown for the headline cell
 key = ("ATM straddle", 30)
-if key in allsel:
-    s = allsel[key].copy()
-    s["yr"] = s["date"].dt.year
-    print("\n### ATM straddle 30DTE: per-year mean short_bid return on premium (%)")
-    yb = s.groupby("yr").agg(n=("short_bid", "size"),
-                             short_bid=("short_bid", lambda x: 100 * x.mean()),
-                             long_ask=("long_ask", lambda x: 100 * x.mean()),
-                             worst_short=("short_bid", lambda x: 100 * x.min())).round(1)
-    print(yb.to_string())
 
 # save for later scripts
 import pickle
-with open(f"/Users/sahilmajmudar/index-daytrading/data/opt_eod/{SYM}_straddle_sel.pkl", "wb") as fh:
-    pickle.dump({k: v for k, v in allsel.items()}, fh)
-print("\nsaved selections")
+
+
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global calls
+    global closes
+    global dates
+    global puts
+    global und_idx
+
+    df = pd.read_parquet(paths.require_data(SLICE))
+    df = df[(df["bid"] > 0) & (df["ask"] >= df["bid"])].copy()
+    df["mid"] = (df["bid"] + df["ask"]) / 2
+    df["adelta"] = df["delta"].abs()
+
+    und = pd.read_parquet(paths.require_data(UND)).copy()
+    und["date"] = pd.to_datetime(und["date"])
+    und = und.sort_values("date").reset_index(drop=True)
+    spot = und.set_index("date")["close"]
+    df["spot"] = df["date"].map(spot)
+    df = df.dropna(subset=["spot"])
+
+    # realized vol of the underlying (close-to-close), for the VRP diagnostic
+    und["ret"] = np.log(und["close"]).diff()
+
+    # settlement spot for each expiration = close on last trading day <= expiration
+    dates = und["date"].values
+    closes = und["close"].values
+
+    calls = df[df["type"] == "call"]
+    puts = df[df["type"] == "put"]
+
+    STRUCTS = {
+        "ATM straddle": legs_for(None, atm=True),
+        "30d strangle": legs_for(0.30),
+        "16d strangle": legs_for(0.16),
+    }
+
+    settle_cache = {}
+    for name, m in STRUCTS.items():
+        m["bid_t"] = m["bid_c"] + m["bid_p"]
+        m["ask_t"] = m["ask_c"] + m["ask_p"]
+        m["mid_t"] = m["mid_c"] + m["mid_p"]
+        st = []
+        sd = []
+        for e in m["expiration"]:
+            if e not in settle_cache:
+                settle_cache[e] = settle(e)
+            a, b = settle_cache[e]
+            st.append(a)
+            sd.append(b)
+        m["S_T"] = st
+        m["settle_date"] = sd
+        m["payoff"] = (np.maximum(m["S_T"] - m["strike_c"], 0) +
+                       np.maximum(m["strike_p"] - m["S_T"], 0))
+
+    # realized vol between entry and settle, annualised
+    und_idx = und.set_index("date")
+
+    print(f"================ {SYM}: REAL-QUOTE MONTHLY STRADDLE/STRANGLE, HELD TO EXPIRY ================")
+    print("All prices are actual EOD NBBO. long_ask = bought at the offer (realistic).")
+    print("short_bid = sold at the bid (realistic). *_mid = midpoint, i.e. zero-cost fantasy.")
+    print("Returns are per-trade on the premium, except short_bid_on_margin (on 20%-of-notional margin).")
+
+    allsel = {}
+    for name, m in STRUCTS.items():
+        for tdte in (45, 30, 21):
+            s = report(m, name, tdte)
+            if s is not None:
+                allsel[(name, tdte)] = s
+
+    if key in allsel:
+        s = allsel[key].copy()
+        s["yr"] = s["date"].dt.year
+        print("\n### ATM straddle 30DTE: per-year mean short_bid return on premium (%)")
+        yb = s.groupby("yr").agg(n=("short_bid", "size"),
+                                 short_bid=("short_bid", lambda x: 100 * x.mean()),
+                                 long_ask=("long_ask", lambda x: 100 * x.mean()),
+                                 worst_short=("short_bid", lambda x: 100 * x.min())).round(1)
+        print(yb.to_string())
+
+    with open(paths.data("opt_eod", f"{SYM}_straddle_sel.pkl"), "wb") as fh:
+        pickle.dump({k: v for k, v in allsel.items()}, fh)
+    print("\nsaved selections")
+
+
+if __name__ == "__main__":
+    main()

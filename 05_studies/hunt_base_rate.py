@@ -13,13 +13,15 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 SPY_MULT = 10.0        # SPY ~ SPX/10
 QQQ_MULT = 41.0        # QQQ ~ NDX/41
 SPX_TICKS, NDX_TICKS = 25.0, 80.0
 
 
 def load(sym):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     if not fs:
         return None
     df = pd.concat([pd.read_parquet(f) for f in fs])

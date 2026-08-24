@@ -27,9 +27,10 @@ from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PANEL = os.path.join(ROOT, "data", "swing", "panel.parquet")
+PANEL = paths.data("swing", "panel.parquet")
 
 
 def first_business_day(y, m):
@@ -80,7 +81,7 @@ def fomc_dates(index):
 
 
 def run():
-    p = pd.read_parquet(PANEL)
+    p = pd.read_parquet(paths.require_data(PANEL))
     spy = p[p.ticker == "SPY"].set_index("date").sort_index()
     # The overnight window: previous close -> today's open.
     on = (spy["open"] / spy["close"].shift(1) - 1.0).dropna() * 1e4   # in bps

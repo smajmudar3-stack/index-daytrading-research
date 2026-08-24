@@ -9,22 +9,24 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 COLS = ["date", "expiration", "strike", "type", "bid", "ask", "open_interest"]
 
 
 def main():
-    und = pd.read_parquet(UND)[["date", "close"]]
+    und = pd.read_parquet(paths.require_data(UND))[["date", "close"]]
     und["date"] = pd.to_datetime(und.date)
     und = und.set_index("date")["close"]
 
     alld = pd.to_datetime(pd.Series(sorted(
-        pq.read_table(OPT, columns=["date"]).column("date").to_pandas().unique())))
+        pq.read_table(paths.require_data(OPT), columns=["date"]).column("date").to_pandas().unique())))
     alld = alld[alld >= "2018-01-01"]
     sample = alld.groupby([alld.dt.year, alld.dt.month]).min().to_list()
 
-    df = pq.read_table(OPT, columns=COLS, filters=[("date", "in", sample)]).to_pandas()
+    df = pq.read_table(paths.require_data(OPT), columns=COLS, filters=[("date", "in", sample)]).to_pandas()
     df = df[(df.bid > 0) & (df.ask > df.bid) & (df.open_interest > 10)].copy()
     df["mid"] = (df.bid + df.ask) / 2
     df["spread"] = df.ask - df.bid
@@ -154,8 +156,8 @@ def main():
     print("\nReference: the ENTIRE documented edge in box financing (Treasury convenience yield,")
     print("van Binsbergen-Diamond-Grotteria JFE 2022) is ~0.40%/yr, ~0.65%/yr under 3 months.")
 
-    b.to_parquet("/Users/sahilmajmudar/index-daytrading/data/bwb_credit.parquet")
-    bx.to_parquet("/Users/sahilmajmudar/index-daytrading/data/box_rates.parquet")
+    b.to_parquet(paths.data("bwb_credit.parquet"))
+    bx.to_parquet(paths.data("box_rates.parquet"))
 
 
 if __name__ == "__main__":
