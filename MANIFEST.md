@@ -204,6 +204,8 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `macro_test.py` | 167 | 6 KB |
 | `mirror_drift_control.py` | 122 | 5 KB |
 | `mirror_test.py` | 108 | 5 KB |
+| `nge_proper.py` | 148 | 6 KB |
+| `nge_validate.py` | 131 | 5 KB |
 | `openalex_gap.py` | 66 | 3 KB |
 | `openalex_lit.py` | 76 | 3 KB |
 | `option_drag.py` | 63 | 3 KB |
@@ -247,4 +249,4 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**213 files total.**
+**215 files total.**

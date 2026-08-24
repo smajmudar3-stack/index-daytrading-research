@@ -84,6 +84,8 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/macro_test.py` | Does the macro/rates narrative actually predict sector returns at swing horizon? |
 | `scripts/mirror_drift_control.py` | Is QQQ's breakout asymmetry a signal, or is it just drift? |
 | `scripts/mirror_test.py` | The mirror test: is a breakout "hit rate" directional, or just volatility? |
+| `scripts/nge_proper.py` | The Baltussen test done properly: full-surface NGE + the true 09:30 open. |
+| `scripts/nge_validate.py` | Validate the Baltussen dealer-gamma split on our own SPXW chains. |
 | `scripts/openalex_gap.py` | Fill remaining gaps: recent works citing Cusatis-Miles-Woolridge, plus targeted title searches. |
 | `scripts/openalex_lit.py` | OpenAlex lookups for the spinoff / event-driven anomaly literature. |
 | `scripts/option_drag.py` | Measure the true hurdle for expressing a 90-minute directional view in a 0DTE option, |
@@ -132,4 +134,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**127 files.**
+**129 files.**

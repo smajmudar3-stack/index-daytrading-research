@@ -225,6 +225,62 @@ pattern, test it against a **random-entry control using the identical exit**.
 
 ---
 
+## 5b. We tested the dealer-gamma signal ourselves. It does not replicate.
+
+Section 3 called this the one signal worth building. Built it; it fails.
+
+**Test 1 — SPXW chains, 862 days, 2016-2024.** NGE from same-day options at
+10:00, r_ROD = 10:00→15:30, traded 15:30→16:00.
+
+| regime | beta | t | R² |
+|---|---:|---:|---:|
+| dealers long gamma | 0.03 | 1.36 | 0.37% |
+| dealers short gamma | 0.00 | 0.09 | 0.00% |
+
+Interaction term `NGE × r_ROD`: **+0.005, t = +0.19** — insignificant and the
+*wrong sign*; Baltussen predict negative. But this test deviates from the paper
+twice: a ±2% same-day slice is not the full surface, and r_ROD started at 10:00
+rather than the open. A null from a different test is not a refutation.
+
+**Test 2 — the proper version.** Full-surface daily net gamma from Unusual
+Whales (`call_gamma + put_gamma`, whole surface), lagged one day, against the
+true 09:30 open. 219 sessions each on SPY/QQQ/IWM, Aug 2025 – Jul 2026.
+
+| regime | n | beta | signPnL | hit rate |
+|---|---:|---:|---:|---:|
+| dealers long gamma | 184 | −0.05 | −1.77 bp | 45.7% ± 3.7 |
+| dealers short gamma | 488 | −0.02 | −2.86 bp | 45.3% ± 2.3 |
+
+Baltussen report short-gamma beta **+6.63**. We get **−0.02**.
+
+**The finding that matters is not the failure, it is the indistinguishability.**
+Long-gamma and short-gamma days produce the same hit rate (45.7% vs 45.3%) and
+the same sign. The regimes are not different, so NGE carries no conditioning
+information here — and that conclusion is robust to sign convention, because
+flipping the sign merely relabels two rows that are already the same.
+
+Intraday momentum is now mildly **negative** in both regimes: following the
+rest-of-day move into the close loses about 2–3 bp and wins under 46% of the
+time. That direction is consistent with Dim/Eraker/Vilkov — 0DTE growth pushing
+dealers long gamma converts end-of-day momentum into mean reversion.
+
+### Three caveats, stated because they cut against the conclusion
+
+1. **11 months is not a verdict.** 219 sessions cannot distinguish "dead" from
+   "dormant." Baltussen have 45 years across four asset classes.
+2. **Pooling inflated the t-stat.** SPY/QQQ/IWM are ~0.85+ correlated, so the
+   pooled n = 488 is nowhere near 488 independent observations. Per instrument
+   only SPY reaches significance (t −2.48); QQQ −1.59 and IWM −1.37 do not.
+   This is trap #9 and it applies to our own table.
+3. **Sign convention is unverified.** We read dealers as short gamma on 62–88%
+   of days; Baltussen report NGE positive on most days. Either UW's convention
+   differs from ours or the modern regime genuinely inverted. Unresolved.
+
+**Do not trade the fade.** The inverse of a failed rule, discovered by watching
+it fail, is the textbook overfit. It would need its own out-of-sample test.
+
+---
+
 ## 6. What this rules out
 
 | claim | verdict |
