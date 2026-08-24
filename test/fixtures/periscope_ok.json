@@ -1,0 +1,14 @@
+{
+  "as_of": "2026-08-24 11:02 ET",
+  "ok": true,
+  "symbol": "^SPX",
+  "spot": 6012.4,
+  "net_gex_musd": 812.5,
+  "gamma_flip": 5960.0,
+  "call_wall": 6050.0,
+  "put_wall": 5950.0,
+  "signal": "LONG GAMMA · RANGE COMPRESSES",
+  "signal_why": "Price is above the gamma flip, so dealers hedge against the move.",
+  "position": {"at_wall": null, "note": "Between the walls.", "note_col": "mut"},
+  "flip_side": "above"
+}

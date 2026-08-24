@@ -24,6 +24,8 @@ import pandas as pd
 import yfinance as yf
 from scipy.stats import norm
 
+from idt import bs
+
 ET = ZoneInfo("America/New_York")
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,10 +34,10 @@ def _outpath(sym):
     return os.path.join(HERE, "data", f"periscope_{sym.replace('^', '')}.json")
 
 
-def bs_gamma(S, K, T, iv, r=0.04):
-    T = np.maximum(T, 1e-6); iv = np.maximum(iv, 1e-4)
-    d1 = (np.log(S / K) + (r + 0.5 * iv * iv) * T) / (iv * np.sqrt(T))
-    return norm.pdf(d1) / (S * iv * np.sqrt(T))
+# Delegated to idt.bs so the periscope and the condor pricer cannot drift apart on
+# the risk-free rate, which they had already done (0.04 here, 0.045 in the studies).
+def bs_gamma(S, K, T, iv, r=bs.RISK_FREE):
+    return bs.gamma(S, K, T, iv, r=r)
 
 
 _DAY = [None]        # scratch: (day_high, day_low, open) from the last chain() call

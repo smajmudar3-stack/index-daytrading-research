@@ -11,6 +11,7 @@
     "summary": "python"
   },
   "verify": {
-    "verify": "venv/bin/python scripts/verify.py"
+    "verify": "venv/bin/python scripts/verify.py",
+    "test": "venv/bin/python -m pytest test/ -q"
   }
 }
