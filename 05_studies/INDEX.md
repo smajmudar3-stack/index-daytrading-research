@@ -127,6 +127,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/test_witching_drift.py` | Test the "derivative payoff bias" / third-Friday AM-settlement drift on our own SPX data. |
 | `scripts/theta_hurdle.py` | The spread is not the binding cost on 0DTE direction -- theta is. |
 | `scripts/ticket_decay.py` | How much of each ticket's premium is time value that decays to zero? |
+| `scripts/ticket_edge.py` | What is the actual expected edge on the ticket basket, over time? |
 | `scripts/uw_backtest_weights.py` | Backtest the UW inputs that HAVE history, so their weights are earned. |
 | `scripts/vehicle_choice.py` | At a 53% hit rate, which vehicle actually pays: stock, ATM call, OTM, or deep ITM? |
 | `scripts/vol_gate.py` | The payoff of the volatility work: can a forecast pick the tradeable days? |
@@ -141,4 +142,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**136 files.**
+**137 files.**

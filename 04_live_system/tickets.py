@@ -196,14 +196,52 @@ def log_calls(tk):
             continue
 
 
+IC = 0.107
+BORROW_ANNUAL = 0.05
+
+
+def net_edge(t, vol):
+    """Expected edge minus theta minus spread, per unit of DELTA EXPOSURE.
+
+    Comparing an option to a stock per unit of premium is meaningless -- a
+    deep-ITM put with delta -0.85 on an $18.75 stock controls $1,594 of short
+    exposure, and that is what both the edge and the costs must be measured
+    against.
+
+    Measured on the live basket: edge averages +2.11% per 63-day cycle while
+    theta averages 4.96%. Theta is 2.4x the edge, so the option expression of
+    this signal is NEGATIVE even though the signal itself is real. That is why
+    tickets are gated on this number rather than on the signal alone.
+    """
+    import math
+    s_ = t.get("spot")
+    if not s_ or not vol:
+        return None
+    p_hit = 0.5 + math.asin(IC) / math.pi
+    sig_h = vol * math.sqrt(TARGET_DTE / 252)
+    e_move = 0.798 * sig_h                       # E|N(0,s)| = s*sqrt(2/pi)
+    edge = (2 * p_hit - 1) * e_move
+    expo = abs(t["delta"]) * 100 * s_
+    theta = (t.get("extrinsic") or 0) * 100 / expo
+    half_sp = (t["ask"] - t["bid"]) / 2 * 100 / expo
+    t["edge_pct"] = round(edge * 100, 2)
+    t["theta_cost_pct"] = round(theta * 100, 2)
+    t["net_pct"] = round((edge - theta - half_sp) * 100, 2)
+    t["net_stock_pct"] = round((edge - BORROW_ANNUAL * TARGET_DTE / 252 - 0.001) * 100, 2)
+    return t["net_pct"]
+
+
 def add_decay(tk):
-    """Attach intrinsic/extrinsic per ticket using the real underlying price."""
+    """Attach intrinsic/extrinsic and the net expected edge for each ticket."""
     if not tk:
         return tk
+    import numpy as np
     try:
+        import numpy as np
         import yfinance as yf
-        px = yf.download([t["ticker"] for t in tk], period="5d", progress=False,
-                         auto_adjust=False, threads=False)["Close"]
+        raw = yf.download([t["ticker"] for t in tk], period="1y", progress=False,
+                          auto_adjust=True, threads=False)
+        px = raw["Close"] if "Close" in raw.columns.get_level_values(0) else raw
     except Exception:
         return tk
     for t in tk:
@@ -218,6 +256,11 @@ def add_decay(tk):
         t["extrinsic"] = round(ext, 2)
         t["theta_pct"] = round(ext / t["ask"] * 100, 1) if t["ask"] else None
         t["breakeven"] = round(t["strike"] - t["ask"], 2)
+        try:
+            r = np.log(px[t["ticker"]].dropna()).diff().dropna()
+            net_edge(t, float(r.std() * np.sqrt(252)) if len(r) > 20 else None)
+        except Exception:
+            pass
     return tk
 
 
@@ -245,8 +288,24 @@ def build(limit=10):
                 f"{int(MAX_SPREAD*100)}% spread and ${COST_LO}-{COST_HI} gates — "
                 f"too few to run as a basket"}
     out = add_decay(out)
-    log_calls(out)
-    return {"tickets": out, "blocked": None}
+    # FINAL GATE: net expected edge must be positive. The signal being real is
+    # not sufficient -- theta on a 63-day deep-ITM put averages 4.96% of delta
+    # exposure per cycle against an edge of 2.11%, so most option expressions of
+    # this signal LOSE. Showing them would violate the rule that this dashboard
+    # never recommends a trade the numbers say loses.
+    priced = [t for t in out if t.get("net_pct") is not None]
+    winners = [t for t in priced if t["net_pct"] > 0]
+    stock_net = [t.get("net_stock_pct") for t in priced
+                 if t.get("net_stock_pct") is not None]
+    alt = round(sum(stock_net) / len(stock_net), 2) if stock_net else None
+
+    if len(winners) < BASKET_MIN:
+        return {"tickets": [], "rejected": priced, "stock_alt": alt,
+                "blocked": f"{len(winners)} of {len(priced)} contracts have a "
+                           f"positive net edge after theta and spread — too few "
+                           f"to run as a basket"}
+    log_calls(winners)
+    return {"tickets": winners, "rejected": [], "stock_alt": alt, "blocked": None}
 
 
 _REFRESHING = threading.Lock()
@@ -312,11 +371,34 @@ def panel():
             "<span class='pill mut'>PAPER</span></div>")
 
     if not tk:
+        rej = res.get("rejected") or []
+        alt = res.get("stock_alt")
+        rows = "".join(
+            f"<tr><td><b>{t['ticker']}</b></td><td class=num>{t.get('edge_pct')}%</td>"
+            f"<td class=num r>{t.get('theta_cost_pct')}%</td>"
+            f"<td class='num {'g' if (t.get('net_pct') or 0) > 0 else 'r'}'>"
+            f"{t.get('net_pct')}%</td>"
+            f"<td class=num>{t.get('net_stock_pct')}%</td></tr>"
+            for t in sorted(rej, key=lambda x: -(x.get("net_pct") or -99)))
+        tbl = (f"<div class=txscroll><table class=txtable>"
+               f"<tr><th>ticker</th><th>edge</th><th>theta cost</th>"
+               f"<th>net (option)</th><th>net (stock)</th></tr>{rows}</table></div>"
+               if rej else "")
+        altline = ("" if alt is None else
+                   f"<div class=txexit><b>The signal is real; the option is the wrong "
+                   f"vehicle.</b> Shorting the same names nets <b>{alt:+.2f}% per "
+                   f"63-day cycle</b> ({alt*4:+.1f}%/yr) because it pays no theta. "
+                   f"The option version pays {abs(sum((t.get('theta_cost_pct') or 0) for t in rej)/max(len(rej),1)):.2f}% "
+                   f"in time value against a {sum((t.get('edge_pct') or 0) for t in rej)/max(len(rej),1):.2f}% "
+                   f"edge — roughly twice the edge, every cycle.</div>")
         return (f"<div class='card tix'>{head}"
-                f"<div class=txblock><b>No tickets.</b> {blocked or 'nothing qualifies'}."
-                f"</div>"
-                f"<div class=txwhy>A quiet signal must not manufacture a trade. "
-                f"This panel stays empty until the gates pass.</div></div>")
+                f"<div class=txblock><b>No tickets — and that is the finding.</b> "
+                f"{blocked or 'nothing qualifies'}.</div>{tbl}{altline}"
+                f"<div class=txwhy>Edge is (2p−1)×E|move| at the measured IC of "
+                f"−0.107, per unit of delta exposure. Theta is extrinsic over the "
+                f"same exposure. A signal being real does not make every vehicle "
+                f"for it profitable, and this panel stays empty rather than show "
+                f"a trade the arithmetic says loses.</div></div>")
 
     total = sum(t["cost"] for t in tk)
     exp = max(t["exp"] for t in tk)

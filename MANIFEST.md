@@ -103,7 +103,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `spx_ndx_advisor.py` | 474 | 22 KB |
 | `swing_signals.py` | 442 | 23 KB |
 | `ticket.py` | 154 | 8 KB |
-| `tickets.py` | 413 | 18 KB |
+| `tickets.py` | 495 | 22 KB |
 | `uw_archive.py` | 157 | 6 KB |
 | `uw_calibrate.py` | 218 | 8 KB |
 | `uw_client.py` | 346 | 15 KB |
@@ -249,6 +249,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `test_witching_drift.py` | 85 | 4 KB |
 | `theta_hurdle.py` | 108 | 5 KB |
 | `ticket_decay.py` | 72 | 3 KB |
+| `ticket_edge.py` | 123 | 5 KB |
 | `uw_backtest_weights.py` | 165 | 7 KB |
 | `vehicle_choice.py` | 123 | 5 KB |
 | `vol_gate.py` | 118 | 4 KB |
@@ -258,4 +259,4 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**224 files total.**
+**225 files total.**

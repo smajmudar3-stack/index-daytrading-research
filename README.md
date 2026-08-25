@@ -43,6 +43,10 @@ that exceeds it, and the one dealer-gamma signal that clears it.
 the signal in direction (OOS R² 39.8%), and the market prices it better than we
 forecast it. Why an 88.5% win rate still loses money.
 
+**[02_findings/VEHICLE_CHOICE.md](02_findings/VEHICLE_CHOICE.md)** — the same
+signal is +3%/yr as stock and −15%/yr as options. A real edge does not make
+every vehicle for it profitable.
+
 **[02_findings/WING_ECONOMICS.md](02_findings/WING_ECONOMICS.md)** — can a tail
 hedge rescue premium selling? The wing costs more than it pays, and the naked
 version is a 150×-your-average-gain ruin machine.
