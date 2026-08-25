@@ -26,7 +26,10 @@ VIEWS = [
         "slug": "evidence",
         "label": "Evidence",
         "question": "How much of what this system tells me is measured, and how much is a guess?",
-        "panels": [evidence.meters, evidence.verdicts, evidence.weights, evidence.scorecard],
+        # Order is layout: the grid places panels two-up, so the two half-width
+        # panels (meters, scorecard) sit side by side and the two full-width lists
+        # (verdicts, weights) follow.
+        "panels": [evidence.meters, evidence.scorecard, evidence.verdicts, evidence.weights],
     },
     {
         "slug": "markets",

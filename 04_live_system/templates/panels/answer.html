@@ -1,25 +1,28 @@
-{# THE one decision. Nothing else on the page may render an action verb. #}
+{# The decision, set like a broadsheet lead: kicker, a huge serif verb, the
+   standfirst under it, then the ticket and the gates as ruled lists. #}
 <section class="answer {{ p.severity or '' }}" id="panel-{{ p.key }}">
-  <div class=overline>{{ p.body.label }}</div>
+  <div class=kicker>{{ p.body.label }}</div>
   <h2 class=verb>{{ p.body.verb }}</h2>
   <p class=because>{{ p.body.because }}</p>
 
-  {% if p.body.rows %}
-  <dl class=ticket>
-    {% for r in p.body.rows %}
-    <div class="trow {{ r.severity or '' }}"><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div>
-    {% endfor %}
-  </dl>
-  {% endif %}
+  <div class=answercols>
+    {% if p.body.rows %}
+    <dl class=ticket>
+      {% for r in p.body.rows %}
+      <div class="trow {{ r.severity or '' }}"><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div>
+      {% endfor %}
+    </dl>
+    {% endif %}
 
-  {% if p.body.blockers %}
-  <div class=blockers>
-    <div class=bhead>{{ p.body.blockers|length }} gate{{ '' if p.body.blockers|length == 1 else 's' }} standing this down</div>
-    {% for b in p.body.blockers %}
-    <div class=block><span class=bgate>{{ b.gate }}</span><span class=breason>{{ b.reason }}</span></div>
-    {% endfor %}
+    {% if p.body.blockers %}
+    <div class=blockers>
+      <div class=bhead>{{ p.body.blockers|length }} gate{{ '' if p.body.blockers|length == 1 else 's' }} standing this down</div>
+      {% for b in p.body.blockers %}
+      <div class=block><span class=bgate>{{ b.gate }}</span><span class=breason>{{ b.reason }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
 
   <p class=trust>{{ p.body.trust }}</p>
 </section>

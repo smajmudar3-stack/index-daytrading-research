@@ -8,38 +8,62 @@
 </head>
 <body data-view="{{ view }}">
 
-{# Masthead: identity on the left, the four views as quiet tabs on the right.
-   One row, one hairline. The nav lives here rather than in its own band because
-   a single-user console does not need a second chrome layer. #}
-<header class=masthead>
-  <div class=brand>
-    <span class=mark aria-hidden=true></span>
-    <span class=wordmark>{{ title }}</span>
-    <span class=session>
-      <span class="dot {{ 'live' if market_open else '' }}" aria-hidden=true></span>
-      {{ 'market open' if market_open else 'market closed' }} · {{ now_et }} ET
-    </span>
+{# The dossier layout: a fixed left rail carrying identity, navigation and the
+   system's vital signs, and a paper page on the right. This replaced the
+   dark-theme masthead-and-stacked-cards shape entirely: the product is a research
+   dossier, and it now reads like one. #}
+<aside class=rail>
+  <div class=railtop>
+    <a class=nameplate href="/today">
+      <span class=np1>The Index</span>
+      <span class=np2>Desk</span>
+    </a>
+
+    <div class=railsession>
+      <span class="sdot {{ 'live' if market_open else '' }}" aria-hidden=true></span>
+      <span>{{ 'Market open' if market_open else 'Market closed' }}</span>
+      <span class=sclock>{{ now_et }} ET</span>
+    </div>
+
+    <nav class=railnav aria-label="Views">
+      {% for v in views %}
+      <a href="/{{ v.slug }}" class="{{ 'on' if v.slug == view else '' }}">
+        <span class=num>{{ "%02d"|format(loop.index) }}</span>{{ v.label }}
+      </a>
+      {% endfor %}
+      <a href="/docs" class="{{ 'on' if view == 'docs' else '' }}">
+        <span class=num>05</span>Findings
+      </a>
+    </nav>
   </div>
-  <nav class=nav aria-label="Views">
-    {% for v in views %}<a href="/{{ v.slug }}" class="{{ 'on' if v.slug == view else '' }}">{{ v.label }}</a>{% endfor %}
-    <a href="/docs" class="{{ 'on' if view == 'docs' else '' }}">Findings</a>
-  </nav>
-</header>
 
-{% include "status.html" %}
+  <div class=railfoot>
+    <div class="vitals {{ status.severity or '' }}">
+      <div class=vhead>{{ status.headline }}</div>
+      {% for c in status.chips %}
+      <div class="vital {{ c.severity or '' }}"><span class=vsq aria-hidden=true></span>{{ c.label }}</div>
+      {% endfor %}
+      {% if status.detail %}<div class=vdetail>{{ status.detail }}</div>{% endif %}
+    </div>
+    <a class=refresh href="/refresh?view={{ view }}">Refresh the desk</a>
+    <div class=railnote>Paper only. Nothing here places an order.</div>
+  </div>
+</aside>
 
-<div class=viewhead>
-  <p class=viewq>{{ view_question }}</p>
-  <a class=refresh href="/refresh?view={{ view }}">Refresh now</a>
-</div>
+<div class=page>
+  <header class=pagehead>
+    <h1 class=pagetitle>{{ view_label }}</h1>
+    <p class=standfirst>{{ view_question }}</p>
+  </header>
 
-<main id=view>
+  <main id=view>
 {% block content %}{% endblock %}
-</main>
+  </main>
 
-<footer>
+  <footer>
 {{ footer }}
-</footer>
+  </footer>
+</div>
 
 <script src="/static/app.js?v={{ asset_version }}"></script>
 </body>

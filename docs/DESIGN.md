@@ -1,86 +1,56 @@
-# The dashboard's visual system
+# The dashboard's visual system: the dossier
 
-Written 2026-08-25, after a four-track research sweep of 27 reference products:
-professional trading terminals (Bloomberg, TradingView, LSEG Workspace, Unusual
-Whales, Kraken Pro, Robinhood Legend, SpotGamma), modern SaaS consoles (Linear,
-Vercel, Stripe, Grafana, Resend, Plausible, Railway), dark-theme design systems
-(GitHub Primer, Radix Colors, Material, Apple HIG, Vercel Geist, Tailwind), and
-editorial data design (FT, NYT, The Pudding, Our World in Data, Tufte, Observable,
-Bloomberg UX). The stylesheet is `04_live_system/static/app.css`; this file records
-the rules it follows so the next edit does not undo them by accident.
+Third identity, and the first true redesign. The first two passes were both the same
+object with better finish: a dark page, one centered column, stacked rounded cards.
+The operator's judgment was that it "looks literally exactly the same", and he was
+right — polish is not design. So this pass changed the paradigm, not the values:
+
+| | the dark passes | the dossier |
+|---|---|---|
+| layout | one centered column | fixed left rail + asymmetric two-column grid |
+| surface | dark cards on darker page | warm paper, ink, printed rules; no boxes |
+| chrome | top masthead + status strip | rail: nameplate, numbered nav, vitals, refresh |
+| type | one sans voice | serif display / sans text / mono figures |
+| verdict | 52px sans in a card | 84px serif under a kicker, set like a broadsheet lead |
+
+The research sweep behind the palette-and-hierarchy rules is docs/DESIGN-BRIEF.md
+(27 products); the editorial direction leans on the FT/NYT/Tufte category of that
+research rather than the terminal category.
 
 ## The rules
 
-1. **Colour means severity and nothing else.** Four levels: none, info (`#4c9ffe`),
-   watch (`#fab219`), stop (`#f2685f`), each as a text/border/background ladder of
-   the same hue (the Vercel badge pattern). Signed numbers use a deliberately
-   desaturated up/down pair (`#6fae81`/`#c97b74`) so a green P&L never competes
-   with a red gate. This is also Bloomberg's rule: green/amber/red pixels may only
-   ever mean state, never decoration. The set was run through the data-viz palette
-   validator against the card surface: CVD separation, normal-vision floor and 3:1
-   contrast all pass.
-
-2. **Elevation is lightness, never shadow.** Background `#0a0c10` (blue-tinted
-   near-black, the TradingView/Railway move; never pure `#000`), card `#10141b`,
-   raised `#151a23`. Shadows vanish on near-black, so they are not used.
-
-3. **Borders are white at low alpha, in three tiers.** 8% for hairlines, 13% for
-   emphasis, 20% for interactive edges (Grafana's 0.12/0.20, GitHub `#30363d`).
-   No ad-hoc border colours.
-
-4. **Three ink tiers.** `#e8ecf3` primary (never pure white), `#98a2b3` secondary,
-   `#5c6675` faint. Hierarchy beyond that comes from size and weight, not more greys
-   (the FT/NYT two-ink law, loosened by one tier for a dense console).
-
-5. **Numbers wear the mono face; `tnum` is global.** `font-feature-settings:
-   "tnum" 1` on body (The Pudding's trick) so every row, table and meter
-   column-aligns. Display-size figures opt out locally: tabular sets a big number
-   loose, so the hero verb uses proportional figures (the dataviz skill's rule).
-
-6. **Exactly one hero per view, and it states the verdict.** The decision verb at
-   52px/750 with negative tracking, headline-states-the-conclusion (NYT), and it is
-   the only element on the site allowed to carry an action verb — enforced by
-   `test_only_the_answer_panel_may_issue_an_action`.
-
-7. **Severity keys a thin top accent on the decision card, not a full border.**
-   The card should feel weighted, not alarmed.
-
-8. **Badge the degraded state.** Service rows badge `no-key`/`outage`; healthy is
-   quiet (TradingView badges delayed data, never live). Deliberate exception: the
-   Evidence view badges `measured` too, because teaching provenance is that view's
-   whole purpose — an unbadged number there would be ambiguous, not calm.
-
-9. **A sentence is never right-aligned mono.** Values right-align in mono;
-   explanatory text is a wrapped, muted, left-aligned sub-line. Six amber
-   right-aligned sentences in the service panel taught this one.
-
-10. **Focus is geometry, not glow**: 2px accent outline, 3px offset (Vercel Geist).
-    Tables are typography: hairlines at header only, no zebra, no vertical rules
-    (Tufte/Pudding). Provenance notes sit at ~0.8x body in the mono face.
+1. **Colour means severity and nothing else** — the product's law, and it survived
+   the reskin untouched. Printed inks: stop `#a8271d`, watch `#8a5a00`, info
+   `#1d4f9e`, live `#1e6b45` on paper `#f7f4ed`. Signed numbers use a desaturated
+   up/down pair that never competes with a severity.
+2. **Sections, not cards.** A panel is a 2px ink rule + a small-caps mono title +
+   content. Elevation does not exist on paper; hierarchy is rule weight (3px the
+   decision, 2px sections, hairlines inside) and type.
+3. **Three voices, one job each.** Serif for verdicts, titles and standfirsts; sans
+   for running text; mono for every figure, label and source line. `tnum` global,
+   proportional figures at display sizes.
+4. **Provenance is printed, not coloured.** `measured` is a solid ink chip,
+   `prior` an outline, `null` struck through. None of them depends on hue.
+5. **Degraded states are marked, healthy ones are quiet.** An unavailable section
+   gets a red rule and a wash; an empty one a dashed rule and an italic note naming
+   the command that fills it; stale gets an ochre rule and its age.
+6. **The vitals live in the rail**, bottom-left: freshness squares per source, the
+   last cycle's outcome, and the one refresh action. The page itself carries only
+   content.
+7. **The grid is asymmetric on purpose.** The decision and list-heavy panels
+   (verdicts, weights, the gate stack) span both columns; everything else sits
+   two-up. Panel order in `panels/views.py` is layout.
+8. **A sentence is never right-aligned mono**; values right-align, explanations
+   wrap as muted sub-lines. And a rule never stops short of its section: a
+   max-width on text must not cut the border above it (this read as a mistake
+   twice before it became a rule).
 
 ## Known constraints
 
-- Chrome's CLI headless mode has a ~500px minimum window width; a `--window-size=390`
-  screenshot is a clipped 500px viewport, not a layout bug. The real breakpoint is
-  700px and holds at 500.
-- Snapshot JSONs written by an older engine version are refused by the panels
-  (`idt.snapshots`), so a redesign never resurrects retired wording from stale state.
-
-## Where this build deviates from the distilled brief, and why
-
-The research distillation (docs/DESIGN-BRIEF.md) votes for a terminal-machined
-identity: 0-3px radii, a 28px mono verdict figure, zebra-free 20px rows. This build
-keeps a softer console identity instead, and the deviations are deliberate:
-
-- **Radius 14px, not 3px.** This is a single-user research console read a few times a
-  day, not an eight-hour terminal. The soft-card identity tested better against the
-  actual content (long explanatory notes, verdict prose).
-- **The hero verb is 52px sans, not a 28px mono figure.** The decision here is a WORD
-  (STAND DOWN), not a number; the dataviz hero-figure rule (>=48px, same sans) fits it
-  better than the terminal stat pattern.
-- **`measured` keeps its badge on the Evidence view.** The brief's "healthy is silent"
-  rule is right in general and applied to service health; Evidence exists to teach
-  provenance, so silence there would be ambiguous rather than calm.
-- **Adopted from the brief after the fact:** the sticky blurred masthead (Linear),
-  and pure `#ffffff` reserved for the verdict alone (LSEG/Bloomberg: brightest =
-  the thing under judgment).
+- Chrome's CLI headless mode has a ~500px minimum window; narrower screenshots are
+  clipped viewports, not layout bugs. The single breakpoint is 980px, where the rail
+  becomes a top band and the grid a single column.
+- Snapshots from an older engine are refused by the panels (`idt.snapshots`), so a
+  reskin can never resurrect retired wording from stale state.
+- The serif stack is system (`Iowan Old Style` → `Palatino` → Georgia): no webfont,
+  no build step, nothing to load.
