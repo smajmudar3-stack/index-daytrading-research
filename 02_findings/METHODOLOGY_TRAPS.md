@@ -1,11 +1,11 @@
-# Fifteen ways a backtest lies
+# Sixteen ways a backtest lies
 
-Seven of these produced *fake winning strategies* in this repo before being
+Eight of these produced *fake winning strategies* in this repo before being
 caught. Check every new backtest against this list before believing it.
 
 ---
 
-## The seven that actually faked a win here
+## The eight that actually faked a win here
 
 ### 1. Capital-at-risk that ignores naked legs
 A jade lizard showed **+800%/year** and a **−1.8-billion%** drawdown in the same
@@ -112,32 +112,60 @@ so the unconditional base rate is not a valid control for a breakout.
 
 ---
 
+## 8. A payoff sign flip that only shows up in aggregate
+
+Found 2026-08-25 while testing wing economics. One line:
+
+```python
+lc_pay = max(0.0, lc.strike - spot_T)   # WRONG: that is the PUT payoff
+lc_pay = max(0.0, spot_T - lc.strike)   # a long CALL pays S - K
+```
+
+The long call is struck far above spot, so the flipped formula paid out on
+**95% of trades** instead of 6%, turning a −$0.39 wing cost into a +$19.46
+"profit" and an iron condor Sharpe of **1.01 at t = 35.6**.
+
+It survived a read-through because the *short* call two lines above was correct,
+so the file contained both the right and wrong form and looked internally
+consistent.
+
+**What caught it was not the code, it was the arithmetic:** a 5-delta wing must
+pay out about 5% of the time, and a condor's best case cannot exceed its credit.
+Both were violated in the output.
+
+**Fix:** before trusting any options backtest, check the mechanical invariants —
+payout frequency against the leg's delta, and max profit/loss against the
+structure's definition. Per-trade printouts looked perfectly normal; only the
+aggregate revealed it.
+
+---
+
 ## The other eight
 
-**8. Conditional accuracy ≠ expected return.** "Right 70% of the time" says
+**9. Conditional accuracy ≠ expected return.** "Right 70% of the time" says
 nothing about profit if the 30% are larger. Always measure expectancy.
 
-**9. Whole-group transforms are look-ahead.** Normalizing, ranking or
+**10. Whole-group transforms are look-ahead.** Normalizing, ranking or
 winsorizing across the full sample uses future data. Transform within the
 training window only.
 
-**10. Calendar annualization.** Annualizing by elapsed time a signal that fires
+**11. Calendar annualization.** Annualizing by elapsed time a signal that fires
 ~5×/year inflated CAGR by more than 2×. Annualize by exposure, not wall clock.
 
-**11. Duplicate trades.** Two DTE targets resolving to the same expiry
+**12. Duplicate trades.** Two DTE targets resolving to the same expiry
 double-counted: 153,340 → 147,350 after dedup.
 
-**12. Mid-price fills.** The single largest source of fake edge in options
+**13. Mid-price fills.** The single largest source of fake edge in options
 backtesting. Enter at ask, exit at bid, or the result is fiction.
 
-**13. Multiple testing.** Expected best |t| under the null is ≈ √(2·ln N). Test
+**14. Multiple testing.** Expected best |t| under the null is ≈ √(2·ln N). Test
 200 variants and a |t| of 3.2 is the *expected* maximum from noise alone. Use
 Deflated Sharpe (Bailey & López de Prado).
 
-**14. Bin-width sensitivity.** If a result changes when you change bucket
+**15. Bin-width sensitivity.** If a result changes when you change bucket
 boundaries, it is a binning artifact, not a signal.
 
-**15. Fixed strike vs delta-based selection.** A fixed % moneyness is a
+**16. Fixed strike vs delta-based selection.** A fixed % moneyness is a
 different amount of risk in different volatility regimes. Select by delta.
 
 ---

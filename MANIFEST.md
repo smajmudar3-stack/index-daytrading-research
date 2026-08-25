@@ -250,7 +250,8 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `vol_gate.py` | 118 | 4 KB |
 | `vol_har.py` | 154 | 6 KB |
 | `vol_vs_implied.py` | 136 | 5 KB |
+| `wing_economics.py` | 173 | 8 KB |
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**219 files total.**
+**220 files total.**

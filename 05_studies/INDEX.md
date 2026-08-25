@@ -130,6 +130,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/vol_gate.py` | The payoff of the volatility work: can a forecast pick the tradeable days? |
 | `scripts/vol_har.py` | Is volatility actually predictable on our data, and can anything beat HAR? |
 | `scripts/vol_vs_implied.py` | HAR predicts volatility. Does it predict anything the OPTION MARKET does not? |
+| `scripts/wing_economics.py` | Does a long wing cost less than the tail it removes? |
 | `scripts/zebra_vs_call.py` | ZEBRA vs a plain 0.80-delta call vs ATM call vs 100 shares — head to head, |
 | `validate_condor_real.py` | validate_condor_real.py — the condor edge, priced on REAL SPXW quotes instead of a model. |
 | `validate_gapgo.py` | Stress-test the gap-and-go-with-volume edge before believing it. Kill it if it's fragile: |
@@ -138,4 +139,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**133 files.**
+**134 files.**
