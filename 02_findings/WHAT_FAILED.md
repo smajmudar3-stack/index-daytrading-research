@@ -44,9 +44,38 @@ million actual purchases. What partially rescues it is moving closer to the mone
 
 ## Earnings straddles
 
-**−35.03% per trade, t = −95.7.** Implied volatility into earnings exceeds
-realized post-earnings moves by a wide and extremely consistent margin. This is
-one of the cleanest negative results in the repo.
+**−35.03% per trade, t = −95.7** across 12,035 ATM straddles, bought at the ask
+and sold at the bid.
+
+**CORRECTED 2026-08-25 — the number is right, the label was wrong.** This was
+presented as evidence that implied volatility overprices earnings moves. It is
+mostly evidence about **single-stock option spreads**.
+
+Three things force that reading:
+
+| check | result |
+|---|---|
+| return when IV **rose** into the exit | **−29.65%** (n = 3,545) |
+| return when IV fell | −37.28% (n = 8,490) |
+| Milian (2023, *JRFM*), same trade at **mid** | mean +0.48% (n.s.), **median −17.69%** |
+
+A straddle buyer whose implied vol *rose* over a two-day hold with 15 DTE
+remaining should not lose 30%. Theta over that window is worth roughly 6%. The
+rest is the bid-ask, paid on **four legs** — call and put, in and out.
+
+Against Milian's mid-price median of −17.69%, our −39.55% median implies roughly
+**22 points of round-trip spread**. That is the finding: the IV-crush component
+is real but is about half the size, and the other half is execution on
+single-stock options.
+
+**And the study tests the opposite trade from the paper it cites.** Its own
+docstring quotes Gao, Xing & Zhang for a straddle held *"from one day BEFORE an
+earnings announcement **to the announcement date**"* — then specifies *"EXIT the
+first snapshot **after**."* GXZ exit **before** the release and capture the IV
+ramp (+3.34%, *JFQA* 2018). We held through it and captured the crush.
+
+**GXZ's actual trade — enter T−3, exit before the release — has never been
+tested here.** See `07_research_bank/reports/04_event_driven.md`.
 
 ## Intraday direction
 
