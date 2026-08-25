@@ -22,7 +22,7 @@ strategies differently.
 | 2 | GitHub repos with high-return claims | ✅ `reports/02_github_repos.md` |
 | 3 | Verified track records & base rates | 🔁 relaunched (API error) |
 | 4 | Small-account capacity-constrained edges | ⏳ running |
-| 5 | Forums & practitioner communities | ⏳ running |
+| 5 | Forums & practitioner communities | ✅ `reports/03_forums_communities.md` |
 | 6 | Vol arb, dispersion, Section 1256 | 🔁 relaunched (died mid-response) |
 | 7 | Event-driven: where IV underprices | ⏳ running |
 | 8 | Blow-up forensics | 🔁 relaunched (API error) |
