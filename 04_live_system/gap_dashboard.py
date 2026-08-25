@@ -8,6 +8,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import edge_panel
+import edge_rules
 import blackswan_panel
 import scorecard
 
@@ -1038,6 +1039,8 @@ def _flow_html(f):
 
 
 def render():
+    # Substituted, not parsed -- the raw CSS braces are safe inside the f-string.
+    EDGE_CSS = edge_rules.CSS
     g = load(GAP); sw = load(SWING); gx = load(GEX)
     peri_spx = load(PERI_SPX); peri_ndx = load(PERI_NDX)
     ai = (g or {}).get("ai") or {}
@@ -1127,6 +1130,7 @@ def render():
  .phase.info{{background:rgba(88,166,255,.08);border-color:rgba(88,166,255,.3)}}
  .phase.warn{{background:rgba(227,179,65,.08);border-color:rgba(227,179,65,.35)}}
  .phase.mut{{background:var(--surface)}}
+{EDGE_CSS}
  .btn{{background:var(--go);color:#04130a;border:none;border-radius:10px;padding:10px 18px;font-weight:700;text-decoration:none;font-size:14px}}
  .btn:focus-visible{{outline:3px solid var(--info);outline-offset:2px}}
  .btn2{{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 15px;font-weight:600;text-decoration:none;font-size:13px}}
@@ -1315,6 +1319,7 @@ def render():
 {master_panel()}
 {edge_panel.desk_panel()}
 {scorecard.panel()}
+{edge_rules.panel()}
 
 <input type=radio name=tb id=tb0 class=tabin checked>
 <input type=radio name=tb id=tb1 class=tabin>

@@ -17,6 +17,7 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `dashboard.py` | dashboard.py — SPX/NDX day-trading dashboard (stdlib http, no deps). Port 8091. |
 | `direction_signals.py` | direction_signals.py — hunt for MORE high-conviction BULLISH and BEARISH day signals. |
 | `edge_panel.py` | Structure Edge panel — every structure's REAL backtested evidence, on the board. |
+| `edge_rules.py` | edge_rules.py — the four things that survived testing, with live state. |
 | `fetch_minutes.py` | fetch_minutes.py — pull 1-minute bars from Polygon for additional symbols. |
 | `final_system.py` | Final merged index system with CLEAN locked weights (rounded, not overfit to exact |
 | `gap_dashboard.py` | gap_dashboard.py — unified Day + Swing signal-giver. Port 8094. |
@@ -58,4 +59,4 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `watch_ndx.py` | watch_ndx.py — one-off close watcher for the user's NDX condor short call at 29825. |
 | `zero_dte.py` | 0DTE research — the intraday excursion distribution that drives every 0DTE P&L. |
 
-**53 files.**
+**54 files.**

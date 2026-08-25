@@ -68,9 +68,10 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `dashboard.py` | 167 | 10 KB |
 | `direction_signals.py` | 70 | 4 KB |
 | `edge_panel.py` | 306 | 14 KB |
+| `edge_rules.py` | 195 | 9 KB |
 | `fetch_minutes.py` | 85 | 3 KB |
 | `final_system.py` | 27 | 1 KB |
-| `gap_dashboard.py` | 1,533 | 96 KB |
+| `gap_dashboard.py` | 1,538 | 96 KB |
 | `gap_gamma.py` | 53 | 3 KB |
 | `gap_scanner.py` | 145 | 7 KB |
 | `gex_directional.py` | 93 | 4 KB |
@@ -254,4 +255,4 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**220 files total.**
+**221 files total.**
