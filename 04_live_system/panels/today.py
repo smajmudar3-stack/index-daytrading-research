@@ -72,10 +72,11 @@ def answer():
             body={
                 "label": "DECISION",
                 "verb": "STAND DOWN",
-                "because": ("The deterministic gates are not all open, so no position may be "
-                            "entered. This is the expected answer on most days: the validated "
-                            "entry window fires on roughly 81 sessions a year."),
+                "because": "Deterministic gates are closed. Standing down is the expected state.",
+                "detail": ("The validated entry window fires on roughly 81 sessions a year; "
+                           "every other day this page should say exactly this."),
                 "blockers": gates,
+                "tiles": _decision_tiles(gates),
                 "trust": _trust_sentence(),
             })
 
@@ -85,9 +86,8 @@ def answer():
             body={
                 "label": "DECISION",
                 "verb": "STAND DOWN",
-                "because": ("Every gate is open, but no proposal has been produced this cycle. "
-                            "Run a cycle to get one."),
-                "rows": [{"k": "why", "v": "no master_call.json yet"}],
+                "because": "Every gate is open, but no proposal has been produced this cycle.",
+                "tiles": _decision_tiles([]),
                 "trust": _trust_sentence(),
             },
             fix="idt refresh")
@@ -105,8 +105,9 @@ def answer():
             body={
                 "label": f"DECISION · {d.get('as_of', '')}",
                 "verb": "STAND DOWN",
-                "because": d.get("thesis") or d.get("headline") or
-                           "No setup that clears the gates and the sizing rules.",
+                "because": d.get("headline") or "No setup clears the gates and sizing rules.",
+                "detail": d.get("thesis") or "",
+                "tiles": _decision_tiles([], d.get("conviction")),
                 "trust": _trust_sentence(),
             })
 
@@ -127,8 +128,10 @@ def answer():
         body={
             "label": f"DECISION · {d.get('as_of', '')}",
             "verb": f"{d.get('symbol', '')} {struct}".strip(),
-            "because": d.get("thesis") or d.get("headline") or "",
+            "because": d.get("headline") or "",
+            "detail": d.get("thesis") or "",
             "rows": rows,
+            "tiles": _decision_tiles([], d.get("conviction")),
             "trust": _trust_sentence(),
         })
 
@@ -167,12 +170,11 @@ def _gate_blockers():
     return out
 
 
-def _trust_sentence():
-    """How much of the track record behind this decision is real money-shaped.
+def _trust():
+    """(pct, n, sentence): how much of the track record is real money-shaped.
 
-    This is the number the whole redesign exists to surface. It was computed and then
-    buried in a footnote; a 0%-measured track record and a 90%-measured one should not
-    read the same, and until now they did.
+    The number rides in a tile on the decision strip; the sentence folds behind it.
+    A 0%-measured record and a 90%-measured one must not read the same.
     """
     try:
         import graduation
@@ -182,13 +184,31 @@ def _trust_sentence():
             pct = round(s["measured_fraction"] * 100)
         n = s.get("n") or 0
         if not n:
-            return ("No closed trades yet, so there is no track record behind this. "
-                    "Every expectancy on this page is modelled.")
-        return (f"{pct}% of the {n} closed trades behind this were priced from real option "
-                f"premium; the rest are estimates from the underlying's move. "
-                f"Treat the modelled share as unproven.")
+            return 0, 0, ("No closed trades yet, so there is no track record behind this. "
+                          "Every expectancy on this page is modelled.")
+        return pct or 0, n, (f"{pct}% of the {n} closed trades were priced from real option "
+                             f"premium; the rest are estimates from the underlying's move. "
+                             f"Treat the modelled share as unproven.")
     except Exception as e:                          # noqa: BLE001
-        return f"Track record unavailable ({type(e).__name__}), so trust nothing on this page yet."
+        return None, None, f"Track record unavailable ({type(e).__name__})."
+
+
+def _trust_sentence():
+    return _trust()[2]
+
+
+def _decision_tiles(blockers, conviction=None):
+    """The strip of instruments beside the verb: gates, trust, conviction."""
+    pct, n, _ = _trust()
+    tiles = [{"n": str(len(blockers)) if blockers else "0",
+              "l": "gates blocking", "severity": "stop" if blockers else "live"}]
+    if conviction is not None:
+        tiles.append({"n": f"{conviction}", "l": "conviction /100",
+                      "severity": "watch" if conviction < 66 else None})
+    tiles.append({"n": f"{pct if pct is not None else '—'}%",
+                  "l": f"of {n or 0} trades measured",
+                  "severity": "watch" if not pct else None})
+    return tiles
 
 
 # ---------------------------------------------------------------------- gates ---
@@ -219,7 +239,19 @@ def gates():
     # Drawn, not listed: each enforced gate is a chip, the two master switches are
     # switches. A wall of "enforced / enforced / enforced" rows said nothing the
     # chips do not say at a glance.
-    tags = [{"k": g.replace("_", " "), "state": "armed"} for g in enforced]
+    blocked = set()
+    for b in blockers.values():
+        r = (b.get("reason") or "").lower()
+        if "calendar" in r or "fomc" in r or "event" in r:
+            blocked.add("event_blackout")
+        if "et" in r.split() or "window" in r or ":" in r:
+            blocked.add("time_window")
+        if "gex" in r or "z-score" in r or "regime" in r:
+            blocked.add("regime_gate")
+    tags = [{"k": g.replace("_", " "),
+             "state": "armed",
+             "severity": "stop" if g in blocked else None}
+            for g in enforced]
     tags += [{"k": g.replace("_", " "), "state": "shadow", "severity": "watch"}
              for g in shadow]
     switches = [

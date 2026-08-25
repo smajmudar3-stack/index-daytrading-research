@@ -1,7 +1,6 @@
 {% import "panels/_viz.html" as viz %}
 <section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
-  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
   <div class=bars>
     {% for r in p.body.rows %}
     <div class="barrow {{ r.severity or '' }}">
@@ -11,5 +10,6 @@
     </div>
     {% endfor %}
   </div>
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

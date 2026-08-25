@@ -1,6 +1,5 @@
 <section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
-  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
   <div class=chips2>
     {% for r in p.body.rows %}
     <span class="chip2 {{ r.severity or 'ok' }}" title="{{ r.sub }}"><span class=cs></span><b>{{ r.k }}</b>&nbsp;{{ r.v }}</span>
@@ -15,5 +14,6 @@
     </div>
   </details>
   {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

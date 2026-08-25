@@ -9,7 +9,7 @@
   <div class=meter style="margin-top:12px"><span style="width:{{ p.body.runout }}%"></span></div>
   <p class=mwhy>{{ p.body.runout_note }}</p>
   {% endif %}
-  {% if p.note %}<p class=note style="margin-top:12px">{{ p.note }}</p>{% endif %}
   {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

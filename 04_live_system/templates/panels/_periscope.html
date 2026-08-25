@@ -1,6 +1,5 @@
 <section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}{% if p.state == "stale" %} <span style="color:var(--watch)">· {{ p.age_min|round|int }}m old</span>{% endif %}</h3>
-  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
 
   {% if p.body.ladder %}{% include "panels/_ladder.html" %}{% endif %}
 
@@ -12,6 +11,7 @@
   </div>
   {% endif %}
 
-  {% if p.body.text %}<p class=note style="margin-top:12px">{{ p.body.text }}</p>{% endif %}
+  {% if p.body.text %}<details class=about><summary>Read</summary><p>{{ p.body.text }}</p></details>{% endif %}
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

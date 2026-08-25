@@ -1,4 +1,28 @@
-# The dashboard's visual system: the dark dossier, drawn
+# The dashboard's visual system: the fintech desk
+
+Sixth pass, and the direction is now explicit from the operator: "high tech
+finance fintech dashboard feel... like robinhood", visuals over text. The
+editorial dossier (serif, printed rules) is gone. The language:
+
+- Near-black canvas, floating rounded cards (16px), pill chips, one signature
+  green (#00c805) for live/positive/action, big bold sans numbers.
+- Green/red are the DIRECTIONAL pair, fintech's native dialect: up/open/live
+  green, down/blocked/stop red. Amber = watch (stale, prior, unproven), blue =
+  info. Provenance stays printed (solid/outline/struck pills), never hue-only.
+- PROSE FOLDS. Every healthy panel's explanation sits behind an "About this
+  panel" disclosure at the bottom of the card; empty and unavailable states keep
+  their note visible because the note is the fix. The footer is a disclosure.
+  The default render is instruments: the decision cluster (verb + tiles +
+  blocker pills), the gamma gauge, the wall-to-wall ladders, diverging verdict
+  bars, weight bars, rings, stat tiles, chip grids, switches.
+- The hero is an instrument cluster: verb left, live tiles right (gates
+  blocking / conviction / % measured), blockers as red pills naming the gate.
+
+The section below records the previous (dark dossier) identity for the record.
+
+---
+
+## The previous identity: the dark dossier, drawn
 
 Fifth pass. The dossier's layout survived (rail + grid, ruled sections, three type
 voices); two things changed on operator feedback ("dark mode, visuals over text —

@@ -2,7 +2,6 @@
    switches, blockers already live in the decision card above. #}
 <section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
-  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
   <div class=chips2>
     {% for t in p.body.tags %}
     <span class="chip2 {{ t.severity or ('ok' if t.state == 'armed' else '') }}"><span class=cs></span>{{ t.k }}{% if t.state == 'shadow' %} <span class=sub>shadow</span>{% endif %}</span>
@@ -13,5 +12,6 @@
     <span class="switch {{ 'safe' if s.safe else 'danger' }}"><span class=lab>{{ s.k }}</span><span class=st>{{ s.v }}</span></span>
     {% endfor %}
   </div>
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

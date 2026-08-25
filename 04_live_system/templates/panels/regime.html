@@ -24,6 +24,6 @@
   </div>
   {% endif %}
 
-  {% if p.note %}<p class=note style="margin-top:12px">{{ p.note }}</p>{% endif %}
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

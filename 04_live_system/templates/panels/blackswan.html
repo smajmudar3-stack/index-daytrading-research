@@ -2,7 +2,6 @@
 {# Far-OTM returns by bucket, drawn diverging: losses left in red, gains right. #}
 <section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
-  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
   <div class=bars>
     {% for r in p.body.findings %}
     <div class="barrow {{ r.severity or '' }}">
@@ -17,5 +16,6 @@
     {% for r in p.body.rows %}<span class=chip2><span class=cs></span><b>{{ r.k }}</b>&nbsp;{{ r.v }}</span>{% endfor %}
   </div>
   {% endif %}
+  {% include "panels/_note.html" %}
   {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

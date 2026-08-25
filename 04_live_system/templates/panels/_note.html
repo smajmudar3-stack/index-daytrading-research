@@ -1,0 +1,9 @@
+{# Prose folds away on healthy panels; empty and unavailable states keep their
+   note visible because the note IS the fix. #}
+{% if p.note %}
+{% if p.state == 'ok' %}
+<details class=about><summary>About this panel</summary><p>{{ p.note }}</p></details>
+{% else %}
+<p class=note>{{ p.note }}</p>
+{% endif %}
+{% endif %}
