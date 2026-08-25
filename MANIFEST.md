@@ -71,7 +71,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `edge_rules.py` | 195 | 9 KB |
 | `fetch_minutes.py` | 85 | 3 KB |
 | `final_system.py` | 27 | 1 KB |
-| `gap_dashboard.py` | 1,538 | 96 KB |
+| `gap_dashboard.py` | 1,540 | 96 KB |
 | `gap_gamma.py` | 53 | 3 KB |
 | `gap_scanner.py` | 145 | 7 KB |
 | `gex_directional.py` | 93 | 4 KB |
@@ -103,6 +103,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `spx_ndx_advisor.py` | 474 | 22 KB |
 | `swing_signals.py` | 442 | 23 KB |
 | `ticket.py` | 154 | 8 KB |
+| `tickets.py` | 330 | 13 KB |
 | `uw_archive.py` | 157 | 6 KB |
 | `uw_calibrate.py` | 218 | 8 KB |
 | `uw_client.py` | 346 | 15 KB |
@@ -248,6 +249,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `test_witching_drift.py` | 85 | 4 KB |
 | `theta_hurdle.py` | 108 | 5 KB |
 | `uw_backtest_weights.py` | 165 | 7 KB |
+| `vehicle_choice.py` | 123 | 5 KB |
 | `vol_gate.py` | 118 | 4 KB |
 | `vol_har.py` | 154 | 6 KB |
 | `vol_vs_implied.py` | 136 | 5 KB |
@@ -255,4 +257,4 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**221 files total.**
+**223 files total.**

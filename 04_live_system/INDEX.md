@@ -52,6 +52,7 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `spx_ndx_advisor.py` | SPX / NDX strategy advisor — what to trade, when, at which strikes, and why. |
 | `swing_signals.py` | swing_signals.py — swing-trade signal-giver (days-to-weeks). The honest research chain: |
 | `ticket.py` | ticket.py — turn the validated setup into an exact, ready-to-place order ticket, and record the fill. |
+| `tickets.py` | tickets.py — concrete, executable orders from the signals that survived testing. |
 | `uw_archive.py` | uw_archive.py — capture Unusual Whales order flow every scan cycle so it becomes BACKTESTABLE. |
 | `uw_calibrate.py` | Let each endpoint EARN its weight from realised accuracy. |
 | `uw_client.py` | uw_client.py — Unusual Whales integration (READY TO ACTIVATE — just add your API key). |
@@ -59,4 +60,4 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `watch_ndx.py` | watch_ndx.py — one-off close watcher for the user's NDX condor short call at 29825. |
 | `zero_dte.py` | 0DTE research — the intraday excursion distribution that drives every 0DTE P&L. |
 
-**54 files.**
+**55 files.**

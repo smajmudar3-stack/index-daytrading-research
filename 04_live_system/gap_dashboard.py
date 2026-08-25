@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import edge_panel
 import edge_rules
+import tickets
 import blackswan_panel
 import scorecard
 
@@ -1040,7 +1041,7 @@ def _flow_html(f):
 
 def render():
     # Substituted, not parsed -- the raw CSS braces are safe inside the f-string.
-    EDGE_CSS = edge_rules.CSS
+    EDGE_CSS = edge_rules.CSS + tickets.CSS
     g = load(GAP); sw = load(SWING); gx = load(GEX)
     peri_spx = load(PERI_SPX); peri_ndx = load(PERI_NDX)
     ai = (g or {}).get("ai") or {}
@@ -1320,6 +1321,7 @@ def render():
 {edge_panel.desk_panel()}
 {scorecard.panel()}
 {edge_rules.panel()}
+{tickets.panel()}
 
 <input type=radio name=tb id=tb0 class=tabin checked>
 <input type=radio name=tb id=tb1 class=tabin>
