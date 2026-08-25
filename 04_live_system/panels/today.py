@@ -215,15 +215,26 @@ def gates():
 
     dry = getattr(risk_gates, "DRY_RUN", True)
     live = getattr(risk_gates, "LIVE_AGENT", False)
-    rows.append({"k": "DRY_RUN", "v": str(dry), "severity": None if dry else "stop"})
-    rows.append({"k": "LIVE_AGENT", "v": str(live), "severity": None if not live else "stop"})
 
-    note = ("Both switches must flip for a real order, and no order-placement code exists "
-            "in this repo regardless. Everything here is paper.")
+    # Drawn, not listed: each enforced gate is a chip, the two master switches are
+    # switches. A wall of "enforced / enforced / enforced" rows said nothing the
+    # chips do not say at a glance.
+    tags = [{"k": g.replace("_", " "), "state": "armed"} for g in enforced]
+    tags += [{"k": g.replace("_", " "), "state": "shadow", "severity": "watch"}
+             for g in shadow]
+    switches = [
+        {"k": "dry run", "v": "ON" if dry else "OFF", "safe": bool(dry)},
+        {"k": "live agent", "v": "OFF" if not live else "ON", "safe": not live},
+    ]
+
+    note = ("Every chip is a deterministic veto the model cannot talk past. Both switches "
+            "must flip for a real order, and no order-placement code exists in this repo "
+            "regardless.")
     if blockers:
-        note = f"{len(blockers)} reason(s) currently blocking entry. " + note
+        note = f"{len(blockers)} gate(s) currently blocking entry. " + note
 
-    return panel("gates", "The gate stack", state=OK, body={"rows": rows}, note=note,
+    return panel("gates", "The gate stack", state=OK,
+                 body={"rows": rows, "tags": tags, "switches": switches}, note=note,
                  source="risk_gates.ENFORCED, rules.gate_state()")
 
 
@@ -250,12 +261,40 @@ def regime():
     if x.get("gex_z") is not None:
         rows.append({"k": "prior-close GEX z", "v": f"{x['gex_z']:+.2f}"})
 
+    # The gauge: prior-close GEX z on a −2.5..+2.5 band, the marker at today's
+    # value, the condor gate line at +0.5. One glance answers "which regime, and
+    # how deep into it" — the thing four rows of text made the reader assemble.
+    gauge = None
+    z = x.get("gex_z")
+    if z is not None:
+        lo, hi = -2.5, 2.5
+        clamped = max(lo, min(hi, float(z)))
+        pct = (clamped - lo) / (hi - lo) * 100
+        gauge = {
+            "pct": round(pct, 1),
+            "readout": f"{z:+.2f}",
+            "caption": "prior-close GEX z",
+            "left": "short gamma · range expands",
+            "right": "long gamma · pins",
+            "severity": None,
+            "ticks": [{"pct": round((v - lo) / (hi - lo) * 100, 1), "label": f"{v:+g}"}
+                      for v in (-2, -1, 0, 0.5, 1, 2)],
+        }
+
+    stats = []
+    if x.get("exp_oc") is not None:
+        stats.append({"n": f"±{x['exp_oc']}%", "l": "expected open→close"})
+    if x.get("exp_range") is not None:
+        stats.append({"n": f"{x['exp_range']}%", "l": "expected range"})
+    if x.get("quintile"):
+        stats.append({"n": f"Q{x['quintile']}/5", "l": "gamma quintile"})
+
     return panel(
         "regime", "Dealer gamma — the range read",
         state=STALE if stale else OK,
         severity="watch" if stale else None,
         age_min=age,
-        body={"rows": rows, "text": x.get("note", "")},
+        body={"rows": rows, "text": x.get("note", ""), "gauge": gauge, "stats": stats},
         note=("Dealer gamma predicts how BIG the day is, never which way. Realised range "
               "comes in at 0.843x the VIX9D-implied move on high-gamma days against 1.139x "
               "on low, t = -13.2 over fifteen years. It does not convert into a profitable "

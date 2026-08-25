@@ -1,0 +1,25 @@
+{# The wall-to-wall price ladder: put wall, gamma flip, spot, call wall on one
+   axis. The single most useful drawing in the product: the levels ARE the panel. #}
+{% set L = p.body.ladder %}
+<div class=ladder>
+  {% for lv in L.levels %}
+  {% if lv.kind == 'spot' %}
+  <div class="lv spot" style="left:{{ lv.pct }}%">
+    <span class="px above">{{ lv.px }}</span>
+    <span class=dot></span>
+  </div>
+  {% elif lv.kind == 'flip' %}
+  <div class="lv flip" style="left:{{ lv.pct }}%">
+    <span class=stem></span>
+    <span class=fliplab>{{ lv.label }} {{ lv.px }}</span>
+  </div>
+  {% else %}
+  <div class="lv wall" style="left:{{ lv.pct }}%">
+    <span class="cap above">{{ lv.label }}</span>
+    <span class=stem></span>
+    <span class="px below">{{ lv.px }}</span>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+<div class=ladderfoot><span>{{ L.left }}</span><span>{{ L.right }}</span></div>

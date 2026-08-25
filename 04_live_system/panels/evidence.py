@@ -98,9 +98,11 @@ def weights():
         # inverts the single strongest finding in the repo (IC -0.107, and the sign being
         # negative is the whole point). An unknown sign says so instead.
         sign = r.get("sign") or "?"
+        w = float(r.get("weight", 0) or 0)
         rows.append({
             "k": f"{r.get('input')} ({sign})",
-            "v": f"{r.get('weight', 0):.2f}",
+            "v": f"{w:.2f}",
+            "wpct": round(w / 0.35 * 100),      # 0.35 is the registry's largest weight
             "tier": tier,
             "severity": "watch" if tier == "prior" else None,
             "evidence": r.get("evidence") or "",
@@ -129,23 +131,31 @@ def verdicts():
     silently stop showing them. docs/VERDICT_LOG.md is the authority; this is the
     summary an operator sees without leaving the dashboard.
     """
+    # `mag` (0..50, half-track) and `dir` draw each verdict as a diverging bar:
+    # survivors extend right, the refuted extend left, length is evidence strength
+    # for survivors and loss size for the refuted. The numbers stay printed beside
+    # the bar; the bar is the glance, the number is the record.
     rows = [
-        {"k": "Short interest (63d)", "v": "IC −0.107, sign NEGATIVE", "tier": "measured"},
-        {"k": "VIX backwardation", "v": "t +3.9 / +2.8 / +2.1, all splits", "tier": "measured"},
-        {"k": "Low dealer gamma as a filter", "v": "8 of 8 structures", "tier": "measured"},
-        {"k": "Dealer gamma → day's range", "v": "t −13.2 vs VIX9D", "tier": "measured"},
+        {"k": "Short interest (63d)", "v": "IC −0.107, sign NEGATIVE", "tier": "measured",
+         "dir": "+", "mag": 34},
+        {"k": "VIX backwardation", "v": "t +3.9 / +2.8 / +2.1, all splits", "tier": "measured",
+         "dir": "+", "mag": 30},
+        {"k": "Low dealer gamma as a filter", "v": "8 of 8 structures", "tier": "measured",
+         "dir": "+", "mag": 40},
+        {"k": "Dealer gamma → day's range", "v": "t −13.2 vs VIX9D", "tier": "measured",
+         "dir": "+", "mag": 50},
         {"k": "0DTE condor on high gamma", "v": "≈ break-even on real quotes", "tier": "modelled",
-         "severity": "watch"},
+         "severity": "watch", "dir": "+", "mag": 3},
         {"k": "Buying 0DTE premium on a signal", "v": "−10% to −11% per trade", "tier": "null",
-         "severity": "stop"},
+         "severity": "stop", "dir": "-", "mag": 22},
         {"k": "Below the flip = buy premium", "v": "−7.2% to −19.1% per trade", "tier": "null",
-         "severity": "stop"},
+         "severity": "stop", "dir": "-", "mag": 28},
         {"k": "Premium selling, 147,350 trades", "v": "every structure negative", "tier": "null",
-         "severity": "stop"},
+         "severity": "stop", "dir": "-", "mag": 36},
         {"k": "Sector-rotation swing picks", "v": "worse than random, p = 0.87", "tier": "null",
-         "severity": "stop"},
+         "severity": "stop", "dir": "-", "mag": 30},
         {"k": "Swing option overlays", "v": "all beaten by owning SPY", "tier": "null",
-         "severity": "stop"},
+         "severity": "stop", "dir": "-", "mag": 26},
     ]
     return panel("verdicts", "What survived, and what did not", state=OK,
                  body={"rows": rows},
@@ -173,16 +183,23 @@ def scorecard():
                      fix="Runs accumulate as cycles settle. idt refresh")
 
     rows = []
+    stats = []
     for tab, v in sorted(rep.items()):
         settled = v.get("settled", 0)
+        pending = v.get("pending", 0)
         rows.append({
             "k": tab,
-            "v": (f"{settled} settled, {v.get('pending', 0)} pending"
+            "v": (f"{settled} settled, {pending} pending"
                   + (f" · hit {v.get('hit_rate')}%" if v.get("hit_rate") is not None else "")),
             "severity": "watch" if settled < 30 else None,
         })
+        stats.append({"n": str(settled), "l": f"{tab} settled",
+                      "severity": "watch" if settled < 30 else None})
+        stats.append({"n": str(pending), "l": f"{tab} pending"})
+        if v.get("hit_rate") is not None:
+            stats.append({"n": f"{v['hit_rate']}%", "l": f"{tab} hit rate"})
     return panel("scorecard", "Calibration — are the calls honest", state=OK,
-                 body={"rows": rows},
+                 body={"rows": rows, "stats": stats},
                  note=("Calibrated means a call stated at conviction 60 or above actually wins "
                        "more often than one below it. Under about 30 settled calls, a hit rate "
                        "is noise."),

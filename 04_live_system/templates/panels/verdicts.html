@@ -1,4 +1,6 @@
 {% import "panels/_viz.html" as viz %}
+{# What survived, drawn as a diverging record: survivors extend right in ink,
+   the refuted extend left in red, magnitude is the bar. #}
 <section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
   {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
@@ -6,8 +8,8 @@
     {% for r in p.body.rows %}
     <div class="barrow {{ r.severity or '' }}">
       <span class=k>{{ r.k }}</span>
-      {{ viz.linbar(r.wpct, 'faint' if r.tier == 'null' else ('watch' if r.tier == 'prior' else '')) }}
-      <span class=v>{{ r.v }} <span class="tier {{ r.tier }}">{{ r.tier }}</span></span>
+      {{ viz.hbar(r.mag, r.severity or ('watch' if r.tier == 'modelled' else ''), r.dir) }}
+      <span class=v>{{ r.v }}{% if r.tier %} <span class="tier {{ r.tier }}">{{ r.tier }}</span>{% endif %}</span>
     </div>
     {% endfor %}
   </div>

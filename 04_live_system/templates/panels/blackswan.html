@@ -1,0 +1,21 @@
+{% import "panels/_viz.html" as viz %}
+{# Far-OTM returns by bucket, drawn diverging: losses left in red, gains right. #}
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
+  <div class=bars>
+    {% for r in p.body.findings %}
+    <div class="barrow {{ r.severity or '' }}">
+      <span class=k>{{ r.k }}</span>
+      {{ viz.hbar(r.mag, 'down' if r.dir == '-' else 'up', r.dir) }}
+      <span class=v>{{ r.v }} <span class="tier measured">measured</span></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% if p.body.rows %}
+  <div class=chips2>
+    {% for r in p.body.rows %}<span class=chip2><span class=cs></span><b>{{ r.k }}</b>&nbsp;{{ r.v }}</span>{% endfor %}
+  </div>
+  {% endif %}
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

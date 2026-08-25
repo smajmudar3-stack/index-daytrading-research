@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**282 files, 61,231 lines.**
+**296 files, 61,542 lines.**
 
 ## Repo root
 
-*8 files, 992 lines*
+*8 files, 1,006 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 20 | 251 B |
 | `AGENTS.md` | 158 | 9 KB |
 | `CLAUDE.md` | 158 | 9 KB |
-| `MANIFEST.md` | 462 | 17 KB |
+| `MANIFEST.md` | 476 | 18 KB |
 | `README.md` | 108 | 6 KB |
 | `pyproject.toml` | 57 | 2 KB |
 | `requirements.txt` | 11 | 261 B |
@@ -147,15 +147,15 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*6 files, 1,002 lines*
+*6 files, 1,123 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `04_live_system/panels/__init__.py` | 109 | 4 KB |
-| `04_live_system/panels/evidence.py` | 189 | 9 KB |
-| `04_live_system/panels/markets.py` | 140 | 6 KB |
-| `04_live_system/panels/risk.py` | 140 | 7 KB |
-| `04_live_system/panels/today.py` | 289 | 12 KB |
+| `04_live_system/panels/evidence.py` | 206 | 10 KB |
+| `04_live_system/panels/markets.py` | 182 | 8 KB |
+| `04_live_system/panels/risk.py` | 163 | 8 KB |
+| `04_live_system/panels/today.py` | 328 | 13 KB |
 | `04_live_system/panels/views.py` | 135 | 5 KB |
 
 ## 04_live_system/templates — Jinja templates
@@ -172,24 +172,38 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*6 files, 90 lines*
+*20 files, 314 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `04_live_system/templates/panels/_empty.html` | 5 | 184 B |
 | `04_live_system/templates/panels/_generic.html` | 18 | 993 B |
+| `04_live_system/templates/panels/_ladder.html` | 25 | 893 B |
+| `04_live_system/templates/panels/_periscope.html` | 17 | 750 B |
 | `04_live_system/templates/panels/_unavailable.html` | 6 | 357 B |
+| `04_live_system/templates/panels/_viz.html` | 27 | 897 B |
+| `04_live_system/templates/panels/account.html` | 10 | 434 B |
 | `04_live_system/templates/panels/answer.html` | 28 | 1 KB |
-| `04_live_system/templates/panels/evidence_meter.html` | 17 | 729 B |
-| `04_live_system/templates/panels/weights.html` | 16 | 602 B |
+| `04_live_system/templates/panels/blackswan.html` | 21 | 860 B |
+| `04_live_system/templates/panels/events.html` | 15 | 740 B |
+| `04_live_system/templates/panels/evidence_meter.html` | 18 | 694 B |
+| `04_live_system/templates/panels/gates.html` | 17 | 878 B |
+| `04_live_system/templates/panels/peri_ndx.html` | 1 | 39 B |
+| `04_live_system/templates/panels/peri_spx.html` | 1 | 39 B |
+| `04_live_system/templates/panels/regime.html` | 29 | 1 KB |
+| `04_live_system/templates/panels/scorecard.html` | 10 | 410 B |
+| `04_live_system/templates/panels/services.html` | 19 | 816 B |
+| `04_live_system/templates/panels/swing.html` | 15 | 695 B |
+| `04_live_system/templates/panels/verdicts.html` | 17 | 780 B |
+| `04_live_system/templates/panels/weights.html` | 15 | 628 B |
 
 ## 04_live_system/static — stylesheet and refresh script
 
-*2 files, 601 lines*
+*2 files, 510 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/static/app.css` | 544 | 17 KB |
+| `04_live_system/static/app.css` | 453 | 24 KB |
 | `04_live_system/static/app.js` | 57 | 2 KB |
 
 ## 05_studies — backtest and hunt harnesses
@@ -344,13 +358,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*5 files, 1,178 lines*
+*5 files, 1,204 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
-| `docs/DESIGN.md` | 56 | 3 KB |
+| `docs/DESIGN.md` | 82 | 5 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
 | `docs/VERDICT_LOG.md` | 379 | 19 KB |
 
@@ -380,13 +394,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*4 files, 642 lines*
+*4 files, 659 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `test/conftest.py` | 65 | 2 KB |
 | `test/test_gates.py` | 140 | 6 KB |
-| `test/test_panels.py` | 273 | 11 KB |
+| `test/test_panels.py` | 290 | 12 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 
 ## test/fixtures — frozen snapshots

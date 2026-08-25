@@ -1,0 +1,15 @@
+{% import "panels/_viz.html" as viz %}
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}{% if p.state == "stale" %} <span style="color:var(--watch)">· stale</span>{% endif %}</h3>
+  {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
+  <div class=bars>
+    {% for r in p.body.rows %}
+    <div class=barrow>
+      <span class=k><b>{{ r.k }}</b> <span style="color:var(--ink-3);font-size:11px">{{ r.dir_word }}</span></span>
+      {{ viz.linbar(r.conv, '' if r.dir_word == 'bullish' else 'faint') }}
+      <span class=v>{{ r.conv }}/100</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

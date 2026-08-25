@@ -1,4 +1,30 @@
-# The dashboard's visual system: the dossier
+# The dashboard's visual system: the dark dossier, drawn
+
+Fifth pass. The dossier's layout survived (rail + grid, ruled sections, three type
+voices); two things changed on operator feedback ("dark mode, visuals over text —
+I'm staring at walls of text"):
+
+- **Dark.** Ink on paper became light on carbon (#0c0f15). The thick printed rules
+  stay, inverted: near-white rules on near-black are the signature.
+- **Drawn.** Every panel that has numbers now draws them. The gamma regime is a
+  gauge with the z marker on a −2.5..+2.5 band. The periscope is a price ladder:
+  put wall, gamma flip, spot and call wall on one axis. The verdicts are a
+  diverging record: survivors extend right in ink, the refuted left in red.
+  Weights are bars (amber = fabricated prior). The evidence meters are rings.
+  Gates, services and swing are chips with state squares; account, calendar and
+  calibration are stat tiles. Prose is the caption, not the content.
+
+Drawing rules: geometry that carries no severity is drawn in ink and greys;
+severity is the only hue; signed RETURNS wear the desaturated up/down pair, never
+severity red, because a measured loss is a measurement, not an alert. The
+one-action-verb invariant now scans the drawn layer too (chips, switches, tiles,
+gauges, ladders, finding bars).
+
+The section below records the previous (paper) identity for the record.
+
+---
+
+## The previous identity: the paper dossier
 
 Third identity, and the first true redesign. The first two passes were both the same
 object with better finish: a dark page, one centered column, stacked rounded cards.

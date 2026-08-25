@@ -198,6 +198,23 @@ def _fragments(p):
     for m in body.get("meters") or []:
         out.append((f"meter:{m.get('label')}",
                     f"{m.get('label')} {m.get('value')} {m.get('why')}".lower(), False))
+    # The drawn layer: chips, switches, stat tiles, gauges, ladders and finding
+    # bars are operator-visible too, and a verb hidden in a chip label would be a
+    # verb on screen. Scan them all.
+    for t in body.get("tags") or []:
+        out.append((f"tag:{t.get('k')}", str(t.get("k") or "").lower(), False))
+    for sw in body.get("switches") or []:
+        out.append((f"switch:{sw.get('k')}", f"{sw.get('k')} {sw.get('v')}".lower(), False))
+    for st in body.get("stats") or []:
+        out.append((f"stat:{st.get('l')}", f"{st.get('n')} {st.get('l')}".lower(), False))
+    for f in body.get("findings") or []:
+        out.append((f"finding:{f.get('k')}", f"{f.get('k')} {f.get('v')}".lower(),
+                    f.get("severity") == "stop" or f.get("dir") == "-"))
+    g = body.get("gauge") or {}
+    if g:
+        out.append(("gauge", f"{g.get('caption')} {g.get('left')} {g.get('right')}".lower(), False))
+    for lv in (body.get("ladder") or {}).get("levels") or []:
+        out.append((f"ladder:{lv.get('label')}", str(lv.get("label") or "").lower(), False))
     return out
 
 

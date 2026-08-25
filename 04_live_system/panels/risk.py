@@ -31,6 +31,19 @@ def events():
         rows.append({"k": "calendar runs out in", "v": f"{cal['days_until_newest']} days",
                      "severity": "watch" if cal["days_until_newest"] < 14 else None})
 
+    stats = [
+        {"n": state.upper(), "l": "calendar", "severity": None if good else "stop"},
+        {"n": (f"{cal['age_days']:.0f}d" if cal.get("age_days") is not None else "—"),
+         "l": "file age"},
+        {"n": cal.get("newest") or "—", "l": "newest entry"},
+    ]
+    runout = None
+    runout_note = None
+    dn = cal.get("days_until_newest")
+    if dn is not None:
+        runout = max(0, min(100, round(dn / 60 * 100)))
+        runout_note = f"The calendar covers {dn} more day(s). Refill before it runs dry."
+
     note = (cal.get("reason") or "").rstrip(". ")
     if note:
         note += "."
@@ -40,7 +53,8 @@ def events():
                 "looked identical to a clear day.")
     return panel("events", "Event calendar", state=OK,
                  severity=None if good else "stop",
-                 body={"rows": rows}, note=note,
+                 body={"rows": rows, "stats": stats, "runout": runout,
+                       "runout_note": runout_note}, note=note,
                  fix=None if good else "Add FOMC and CPI dates to 04_live_system/data/events.json",
                  source="risk_gates.event_calendar_status()")
 
@@ -56,15 +70,24 @@ def account():
                            f"growth_plan.status() failed: {type(e).__name__}: {e}")
 
     rows = []
+    stats = []
     for k, label in (("account", "account value"), ("milestone", "next milestone"),
                      ("aggression", "aggression state"), ("risk_cap_pct", "risk cap per trade"),
                      ("max_open", "max concurrent"), ("daily_stop_pct", "daily loss stop")):
         if k in st:
             rows.append({"k": label, "v": str(st[k])})
+            n = str(st[k])
+            if k == "account":
+                n = f"${st[k]:,}" if isinstance(st[k], (int, float)) else n
+            if k in ("risk_cap_pct", "daily_stop_pct"):
+                n = f"{st[k]}%"
+            stats.append({"n": n, "l": label})
     if not rows:
         rows = [{"k": k, "v": str(v)} for k, v in list(st.items())[:8]]
+        stats = [{"n": str(v), "l": k} for k, v in list(st.items())[:6]]
 
-    return panel("account", "Account and sizing", state=OK, body={"rows": rows},
+    return panel("account", "Account and sizing", state=OK,
+                 body={"rows": rows, "stats": stats},
                  note=("Being behind the growth curve relaxes selectivity, never these caps. "
                        "Position size for the tail, not the win rate: a 91% win rate with "
                        "losers at half of risk still means twelve consecutive max-losers is a "
