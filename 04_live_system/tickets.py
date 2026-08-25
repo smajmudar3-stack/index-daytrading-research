@@ -152,7 +152,10 @@ def best_contract(ticker):
         cost = per * qty
         if not qty or not (COST_LO <= cost <= COST_HI):
             continue
-        # prefer closest to target DTE, then tightest spread
+        # Intrinsic vs extrinsic is the number that answers "won't this just
+        # decay away?". Only the extrinsic part is guaranteed to go to zero;
+        # intrinsic moves one-for-one with the stock. Deep ITM is chosen
+        # precisely because extrinsic is a small share of the premium.
         score = abs(dte - TARGET_DTE) + spread * 50
         if best_score is None or score < best_score:
             best_score, best = score, dict(
@@ -193,6 +196,31 @@ def log_calls(tk):
             continue
 
 
+def add_decay(tk):
+    """Attach intrinsic/extrinsic per ticket using the real underlying price."""
+    if not tk:
+        return tk
+    try:
+        import yfinance as yf
+        px = yf.download([t["ticker"] for t in tk], period="5d", progress=False,
+                         auto_adjust=False, threads=False)["Close"]
+    except Exception:
+        return tk
+    for t in tk:
+        try:
+            s_ = float(px[t["ticker"]].dropna().iloc[-1])
+        except Exception:
+            continue
+        intr = max(0.0, t["strike"] - s_)
+        ext = max(0.0, t["ask"] - intr)
+        t["spot"] = round(s_, 2)
+        t["intrinsic"] = round(intr, 2)
+        t["extrinsic"] = round(ext, 2)
+        t["theta_pct"] = round(ext / t["ask"] * 100, 1) if t["ask"] else None
+        t["breakeven"] = round(t["strike"] - t["ask"], 2)
+    return tk
+
+
 def build(limit=10):
     """The basket. Returns {'tickets': [...], 'why': str, 'blocked': str|None}."""
     cands = candidates()
@@ -216,6 +244,7 @@ def build(limit=10):
                 f"{len(out)} of {len(cands)} candidates had a contract clearing the "
                 f"{int(MAX_SPREAD*100)}% spread and ${COST_LO}-{COST_HI} gates — "
                 f"too few to run as a basket"}
+    out = add_decay(out)
     log_calls(out)
     return {"tickets": out, "blocked": None}
 
@@ -291,6 +320,8 @@ def panel():
 
     total = sum(t["cost"] for t in tk)
     exp = max(t["exp"] for t in tk)
+    ext = round(sum((t.get("extrinsic") or 0) * t["qty"] * 100 for t in tk))
+    extpct = (ext / total * 100) if total else 0
     rows = "".join(
         f"<tr><td><b>{t['ticker']}</b></td>"
         f"<td class=sell>BUY PUT</td>"
@@ -300,6 +331,7 @@ def panel():
         f"<td class=num>{t['delta']:+.2f}</td>"
         f"<td class=mono>{t['bid']:.2f}/{t['ask']:.2f}</td>"
         f"<td class=num>{t['spread_pct']}%</td>"
+        f"<td class=num>{t.get('theta_pct','—')}%</td>"
         f"<td class=num>{t['qty']}x</td>"
         f"<td class=num><b>${t['cost']:,}</b></td>"
         f"<td class=num>{t['short_float']}%</td></tr>" for t in tk)
@@ -311,8 +343,15 @@ def panel():
     with a slight tilt.</div>
   <div class=txscroll><table class=txtable>
     <tr><th>ticker</th><th>action</th><th>strike</th><th>expiration</th><th>dte</th>
-        <th>delta</th><th>bid/ask</th><th>spread</th><th>qty</th><th>cost</th><th>short float</th></tr>
+        <th>delta</th><th>bid/ask</th><th>time value</th><th>qty</th><th>cost</th><th>short float</th></tr>
     {rows}</table></div>
+  <div class=txdecay><b>“Won’t these just decay to zero?” — no, and here is why.</b>
+    These are <b>deep in-the-money</b>, so most of the premium is
+    <b>intrinsic</b>, which moves one-for-one with the stock and does not decay.
+    Only the time-value column bleeds away. Across this basket that is
+    <b>${ext:,} of ${total:,} — {extpct:.0f}%</b>. An at-the-money put would be
+    ~100% time value: every dollar a bet against the clock. That is the trade
+    you are right to be suspicious of, and it is not this one.</div>
   <div class=txexit><b>EXIT — sell the same contracts at expiration ({exp}).</b>
     Hold to expiry and settle at intrinsic; do not close early. That is the
     protocol the result was measured under, and deep ITM carries little extrinsic
@@ -344,6 +383,9 @@ CSS = """
  .txtable td.mono,.txtable td.num{font-family:ui-monospace,Menlo,monospace}
  .txtable td.num{text-align:right}
  .txtable td.sell{color:var(--red);font-weight:700;font-size:11px}
+ .txdecay{font-size:12px;line-height:1.6;margin-top:12px;padding:9px 11px;
+   background:rgba(63,185,80,.07);border-left:3px solid var(--go);border-radius:0 8px 8px 0}
+ .txdecay b{color:var(--text)}
  .txexit{font-size:12px;line-height:1.6;margin-top:12px;padding:9px 11px;
    background:rgba(248,81,73,.07);border-left:3px solid var(--red);border-radius:0 8px 8px 0}
  .txexit b{color:var(--text)}
