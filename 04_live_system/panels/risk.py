@@ -31,7 +31,9 @@ def events():
         rows.append({"k": "calendar runs out in", "v": f"{cal['days_until_newest']} days",
                      "severity": "watch" if cal["days_until_newest"] < 14 else None})
 
-    note = cal.get("reason") or ""
+    note = (cal.get("reason") or "").rstrip(". ")
+    if note:
+        note += "."
     if not good:
         note = (f"{note} Trading is blocked while this is true. It used to be permitted: "
                 "the gate returned 'no events' on any read failure, so an absent calendar "
@@ -123,9 +125,13 @@ def services():
             why = st.get("detail") or st.get("why") or "" if isinstance(st, dict) else ""
             sev = None if state in ("available", "ok") else (
                 "watch" if state in ("no-key", "disabled") else "stop")
-            rows.append({"k": name, "v": f"{state}{' · ' + why if why else ''}", "severity": sev})
+            # The state is the VALUE and the sentence is a sub-line. They were joined
+            # into one right-aligned mono string, which set six sentences of amber
+            # monospace ragged-left against the card edge and was unreadable.
+            rows.append({"k": name, "v": state, "severity": sev, "sub": why})
         except Exception as e:                      # noqa: BLE001
-            rows.append({"k": name, "v": f"import failed: {type(e).__name__}", "severity": "stop"})
+            rows.append({"k": name, "v": "import failed", "severity": "stop",
+                         "sub": f"{type(e).__name__}: {e}"})
 
     return panel("services", "Service health", state=OK, body={"rows": rows},
                  note=("A missing key is not an outage and neither is a rejected one. Each row "

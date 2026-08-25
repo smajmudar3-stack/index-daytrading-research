@@ -1,6 +1,9 @@
-{# One status line. It replaced four banners that could disagree with each other. #}
+{# One slim strip. Freshness per source as dot+label, the last cycle's outcome on
+   the right. It replaced four banners that could disagree with each other. #}
 <div class="status {{ status.severity or '' }}">
-  <strong>{{ status.headline }}</strong>
-  {% for c in status.chips %}<span class="chip {{ c.severity or '' }}">{{ c.label }}</span>{% endfor %}
-  {% if status.detail %}<span style="color:var(--muted)">{{ status.detail }}</span>{% endif %}
+  <span class=headline>{{ status.headline }}</span>
+  <span class=chips>
+    {% for c in status.chips %}<span class="chip {{ c.severity or '' }}"><span class=cdot aria-hidden=true></span>{{ c.label }}</span>{% endfor %}
+  </span>
+  {% if status.detail %}<span class=detail>{{ status.detail }}</span>{% endif %}
 </div>

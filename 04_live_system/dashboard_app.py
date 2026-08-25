@@ -58,12 +58,26 @@ FOOTER = (
 )
 
 
+def _session_ctx():
+    """Market state and the ET clock for the masthead. Never raises into a render."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("America/New_York"))
+    try:
+        import session
+        awake = bool(session.awake())
+    except Exception:                               # noqa: BLE001
+        awake = None
+    return {"market_open": awake, "now_et": now.strftime("%H:%M")}
+
+
 def render_view(slug, partial=False):
     panels = views.build(slug)
     v = views.view_by_slug(slug)
     ctx = {
-        "title": "Index options desk",
+        "title": "Index Options Desk",
         "subtitle": "SPX / NDX 0DTE, swing and risk. Paper only.",
+        **_session_ctx(),
         "views": [{"slug": x["slug"], "label": x["label"]} for x in views.VIEWS],
         "view": v["slug"],
         "view_question": v["question"],
@@ -103,31 +117,66 @@ def render_docs():
     else:
         with open(src, encoding="utf-8") as fh:
             text = fh.read()
+
+        def _inline(t):
+            t = _html.escape(t)
+            t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
+            t = re.sub(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])", r"<em>\1</em>", t)
+            t = re.sub(r"`(.+?)`", r"<code>\1</code>", t)
+            # Markdown links. A raw [text](file.md) on screen reads as broken, so
+            # point .md targets at the docs route (best effort) and leave the rest.
+            t = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", r"\1", t)
+            return t
+
+        # Source lines are wrapped at ~90 columns, so one line is NOT one paragraph.
+        # The first pass here rendered each line as its own <p>, which shattered every
+        # paragraph into single sentences with a blank row between them.
         out = []
+        para = []
+
+        def _flush():
+            # Inline conversion happens AFTER the join: emphasis can span a source
+            # line wrap ("*structure\ntype*"), and per-line conversion misses it.
+            if para:
+                out.append(f"<p>{_inline(' '.join(para))}</p>")
+                para.clear()
+
+        in_table = False
         for line in text.splitlines():
-            e = _html.escape(line)
-            e = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", e)
-            e = re.sub(r"`(.+?)`", r"<code>\1</code>", e)
-            if line.startswith("### "):
-                out.append(f"<h3>{e[4:]}</h3>")
-            elif line.startswith("## "):
-                out.append(f"<h2>{e[3:]}</h2>")
-            elif line.startswith("# "):
-                out.append(f"<h1>{e[2:]}</h1>")
-            elif line.startswith("|"):
-                cells = [c.strip() for c in e.strip("|").split("|")]
-                if set("".join(cells)) <= set("-: "):
+            stripped = line.strip()
+            if line.startswith("|"):
+                _flush()
+                cells = [c.strip() for c in _inline(line).strip("|").split("|")]
+                if set("".join(c.replace("&#8212;", "-") for c in cells)) <= set("-: "):
                     continue
+                if not in_table:
+                    out.append("<table>")
+                    in_table = True
                 out.append("<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
-            elif not line.strip():
-                out.append("")
+                continue
+            if in_table:
+                out.append("</table>")
+                in_table = False
+            if stripped in ("---", "***", "___"):
+                _flush()
+                continue
+            if line.startswith("### "):
+                _flush(); out.append(f"<h3>{_inline(line[4:])}</h3>")
+            elif line.startswith("## "):
+                _flush(); out.append(f"<h2>{_inline(line[3:])}</h2>")
+            elif line.startswith("# "):
+                _flush(); out.append(f"<h1>{_inline(line[2:])}</h1>")
+            elif not stripped:
+                _flush()
             else:
-                out.append(f"<p>{e}</p>")
-        body = "\n".join(out).replace("<tr>", "<table><tr>", 1)
-        if "<table>" in body:
-            body += "</table>"
+                para.append(line.strip())
+        _flush()
+        if in_table:
+            out.append("</table>")
+        body = "\n".join(out)
     return env.get_template("docs.html").render(
-        title="What this system knows",
+        title="Index Options Desk",
+        **_session_ctx(),
         subtitle=f"from {os.path.relpath(src, os.path.dirname(HERE))}" if src else "source missing",
         views=[{"slug": x["slug"], "label": x["label"]} for x in views.VIEWS],
         view="docs",

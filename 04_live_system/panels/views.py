@@ -120,24 +120,13 @@ def status():
         detail = "no cycle has run yet"
         worst = worst or "watch"
 
-    try:
-        import session
-        awake = session.awake()
-    except Exception:                               # noqa: BLE001
-        awake = None
-
-    if awake is False:
-        headline = "Market closed."
-    elif awake is True:
-        headline = "Market open."
-    else:
-        headline = "Session state unknown."
-
+    # The masthead owns the market-open state; repeating it here in a different
+    # colour recreates the two-sources-disagree shape this strip replaced.
     if worst == "stop":
-        headline += " Some data is missing or the last cycle failed."
+        headline = "Data missing or last cycle failed"
     elif worst == "watch":
-        headline += " Some data is older than it should be."
+        headline = "Some data is older than it should be"
     else:
-        headline += " Data is fresh."
+        headline = "Data fresh"
 
     return {"headline": headline, "chips": chips, "detail": detail, "severity": worst}

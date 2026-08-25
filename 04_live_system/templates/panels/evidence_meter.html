@@ -1,15 +1,17 @@
 <section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}</h3>
   {% if p.note %}<p class=note>{{ p.note }}</p>{% endif %}
+  <div class=meters>
   {% for m in p.body.meters %}
-  <div style="margin-top:var(--s4)">
-    <div class=row style="padding-left:0;padding-right:0;background:none">
-      <span class=k>{{ m.label }}</span>
-      <span class=v>{{ m.value }}</span>
+    <div class=meterblock>
+      <div class=mhead>
+        <span class=mlabel>{{ m.label }}</span>
+        <span class="mvalue {{ m.severity or '' }}">{{ m.value }}</span>
+      </div>
+      <div class="meter {{ m.severity or '' }}" role="meter" aria-valuenow="{{ m.pct }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ m.pct }}%"></span></div>
+      <p class=mwhy>{{ m.why }}</p>
     </div>
-    <div class="meter {{ m.severity or '' }}"><span style="width:{{ m.pct }}%"></span></div>
-    <p class=note style="font-size:var(--t-xs)">{{ m.why }}</p>
-  </div>
   {% endfor %}
-  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+  </div>
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
 </section>

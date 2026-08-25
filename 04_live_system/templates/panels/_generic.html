@@ -5,7 +5,10 @@
   {% if p.body.rows %}
   <div class=rows>
     {% for r in p.body.rows %}
-    <div class="row {{ r.severity or '' }}"><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}{% if r.tier %} <span class="tier {{ r.tier }}">{{ r.tier }}</span>{% endif %}</span></div>
+    <div class="row {{ r.severity or '' }}">
+      <div class=rmain><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}{% if r.tier %} <span class="tier {{ r.tier }}">{{ r.tier }}</span>{% endif %}</span></div>
+      {% if r.sub %}<p class=rsub>{{ r.sub }}</p>{% endif %}
+    </div>
     {% endfor %}
   </div>
   {% endif %}

@@ -1,222 +1,614 @@
-/* app.css — the dashboard stylesheet.
+/* app.css — the desk stylesheet.
  *
- * Extracted from a ~350-line f-string inside gap_dashboard.py, where changing a
- * colour meant editing a Python string and no rule could be reused.
+ * THE COLOUR RULE (unchanged from the first rewrite, and load-bearing): colour
+ * means SEVERITY and nothing else. Four levels — none, info, watch, stop — plus
+ * a desaturated up/down pair for signed numbers that is deliberately quieter
+ * than any severity, so a green P&L never competes with a red gate.
  *
- * THE COLOUR RULE. Colour means SEVERITY and nothing else.
- *
- * The old page used green and red for at least three unrelated meanings at once:
- * green for "a signal fired", green for "a number went up", green for "this gate
- * passed" — and red for "danger", red for "a number went down", red for "long
- * gamma", which is not danger at all. So a green card and a red card sitting next
- * to each other told you nothing, and the operator learned to ignore both.
- *
- * Now there are exactly four severities and they are the ONLY thing that colours a
- * card, a pill or a rule:
- *
- *   (none)   neutral. The overwhelming majority of the page. Information.
- *   info     worth reading now, no action implied.
- *   watch    a condition that could require action soon, or data you should not
- *            fully trust: stale, modelled, or a fabricated prior.
- *   stop     something is blocked, broken, or unsafe to act on.
- *
- * P&L and other signed numbers use --up / --down, which are deliberately DESATURATED
- * so a green number never competes with a severity. A number is not a severity.
+ * The visual system on top of that rule:
+ *   - Surfaces step by LIGHTNESS, not shadows. Dark UIs read elevation as
+ *     lightness; shadows vanish on near-black.
+ *   - The background is a blue-tinted near-black, never pure #000: pure black
+ *     makes every surface float and halates light text.
+ *   - Text has three tiers (primary / secondary / faint) and numbers wear the
+ *     mono face. Tabular numerals ONLY in columns; a display-size figure uses
+ *     proportional figures so it does not set loose.
+ *   - Exactly one hero figure per view: the decision verb.
+ *   - Severity colours were run through the data-viz palette validator against
+ *     this surface: CVD separation, normal-vision floor and 3:1 contrast all
+ *     pass on #10141b.
  */
 
 :root {
-  /* surface */
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface-2: #1c2230;
-  --line: #2a3038;
-  --line-soft: #21262d;
+  /* ---- surfaces: elevation by lightness ---- */
+  --bg: #0a0c10;
+  --bg-glow: rgba(76, 132, 255, 0.055);
+  --surface: #10141b;
+  --surface-2: #151a23;
+  --surface-3: #1a202b;
 
-  /* type */
-  --text: #e6edf3;
-  --muted: #9aa4b2;
-  --faint: #6e7781;
+  /* Border tiers, from the dark-system research: ~8% white for static hairlines,
+   * ~13% for emphasis, ~20% for interactive edges (Grafana 0.12/0.20, GitHub
+   * #30363d on #0d1117). One token per tier, no ad-hoc border colours. */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --line-active: rgba(255, 255, 255, 0.20);
 
-  /* severity — the only semantic colours */
-  --info: #58a6ff;
-  --info-bg: #0e1c2e;
-  --watch: #e3b341;
-  --watch-bg: #241d0c;
-  --stop: #f85149;
-  --stop-bg: #26120f;
+  /* ---- text tiers ---- */
+  --text: #e8ecf3;
+  --muted: #98a2b3;
+  --faint: #5c6675;
 
-  /* signed numbers, deliberately quieter than any severity */
-  --up: #57a86b;
-  --down: #c96a63;
+  /* ---- severity: the only semantic colours ---- */
+  --info: #4c9ffe;
+  --watch: #fab219;
+  --stop: #f2685f;
+  --live: #34d399;
 
-  /* type scale */
-  --t-hero: 34px;
-  --t-xl: 21px;
-  --t-lg: 17px;
-  --t-md: 15px;
-  --t-sm: 13px;
-  --t-xs: 11.5px;
+  --info-bg: rgba(76, 159, 254, 0.09);
+  --watch-bg: rgba(250, 178, 25, 0.08);
+  --stop-bg: rgba(242, 104, 95, 0.09);
 
-  /* spacing scale */
-  --s1: 4px;
-  --s2: 8px;
-  --s3: 12px;
-  --s4: 16px;
-  --s5: 24px;
-  --s6: 36px;
+  --info-line: rgba(76, 159, 254, 0.38);
+  --watch-line: rgba(250, 178, 25, 0.34);
+  --stop-line: rgba(242, 104, 95, 0.4);
 
-  --r: 12px;
-  --r-sm: 8px;
-  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ---- signed numbers, quieter than any severity ---- */
+  --up: #6fae81;
+  --down: #c97b74;
+
+  /* ---- geometry ---- */
+  --r: 14px;
+  --r-sm: 9px;
+  --pad: 22px;
+
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Inter", sans-serif;
+  --mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, "JetBrains Mono", monospace;
 }
 
 * { box-sizing: border-box; min-width: 0; }
+html { overflow-y: scroll; }
 html, body { overflow-x: clip; max-width: 100%; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font: var(--t-md)/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
-  padding: var(--s5) var(--s4) var(--s6);
-  max-width: 960px;
+  padding: 0 24px 72px;
+  /* Tabular lining numerals globally (The Pudding sets this on body): every number
+   * in every row, table and meter column-aligns without a grid. Display-size
+   * figures opt back out locally, because tnum sets a big number loose. */
+  font-feature-settings: "tnum" 1;
+  background:
+    radial-gradient(1100px 420px at 50% -140px, var(--bg-glow), transparent 70%),
+    var(--bg);
+  color: var(--text);
+  font: 400 14.5px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  max-width: 1020px;
   margin-inline: auto;
 }
 
-a { color: var(--info); }
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ---------------------------------------------------------------- header --- */
-.top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
-.top h1 { font-size: var(--t-xl); margin: 0; letter-spacing: -0.01em; }
-.top .sub { color: var(--muted); font-size: var(--t-xs); }
-.actions { display: flex; gap: var(--s2); }
-
-.btn {
-  display: inline-block; padding: 7px 13px; border-radius: var(--r-sm);
-  border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  font-size: var(--t-sm); font-weight: 600; text-decoration: none; cursor: pointer;
+/* Focus is geometry, not glow: a 2px accent outline offset from the element
+ * (Vercel Geist), visible on the darkest surface without a box-shadow. */
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
-.btn:hover { border-color: var(--faint); }
-.btn.primary { border-color: rgba(88, 166, 255, .5); color: var(--info); }
 
-/* ------------------------------------------------------------ status bar --- */
-/* One line, always visible: is the data fresh, did the last cycle work, what is
- * switched off. This replaces four separate banners that could disagree. */
-.status {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2);
-  font-size: var(--t-xs); border: 1px solid var(--line); border-radius: var(--r-sm);
-  padding: 9px var(--s3); margin: var(--s4) 0 var(--s5);
-  background: var(--surface);
-}
-.status.watch { border-color: rgba(227, 179, 65, .45); background: var(--watch-bg); }
-.status.stop { border-color: rgba(248, 81, 73, .5); background: var(--stop-bg); }
-.chip {
-  font-family: var(--mono); font-size: 10.5px; padding: 2px 7px;
-  border-radius: 5px; border: 1px solid var(--line-soft); color: var(--muted);
-}
-.chip.info { color: var(--info); border-color: rgba(88, 166, 255, .4); }
-.chip.watch { color: var(--watch); border-color: rgba(227, 179, 65, .45); }
-.chip.stop { color: var(--stop); border-color: rgba(248, 81, 73, .5); }
+::selection { background: rgba(76, 159, 254, 0.28); }
 
-/* ------------------------------------------------------------------ nav --- */
-.nav { display: flex; gap: var(--s1); flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: var(--s5); }
+/* ------------------------------------------------------------- masthead --- */
+
+.masthead {
+  /* Sticky with a blur (Linear): the identity and the nav stay reachable in long
+   * views without a second chrome layer. The translucent bg needs the blur, or
+   * scrolled text shows through it verbatim. */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(10, 12, 16, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { display: flex; align-items: baseline; gap: 12px; }
+
+.mark {
+  align-self: center;
+  width: 9px; height: 9px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--info), #7c5cfc);
+  box-shadow: 0 0 14px rgba(76, 159, 254, 0.55);
+}
+
+.wordmark {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
+
+.session {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--faint);
+  flex: none;
+}
+.dot.live {
+  background: var(--live);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+}
+
+.nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
 .nav a {
-  padding: 9px var(--s4); font-size: var(--t-sm); font-weight: 650;
-  color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  position: relative;
+  padding: 8px 13px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--muted);
+  border-radius: 8px;
 }
-.nav a:hover { color: var(--text); }
-.nav a.on { color: var(--text); border-bottom-color: var(--info); }
+.nav a:hover { color: var(--text); text-decoration: none; background: rgba(255, 255, 255, 0.04); }
+.nav a.on { color: var(--text); }
+.nav a.on::after {
+  content: "";
+  position: absolute;
+  left: 13px; right: 13px; bottom: -19px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--info);
+}
 
+/* ----------------------------------------------------------- status strip --- */
+/* Dots carry state; text stays muted and carries content. One strip replaced
+ * four banners that could disagree. */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 11px 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.status .headline { font-weight: 550; color: var(--text); font-size: 12px; }
+.status.watch .headline { color: var(--watch); }
+.status.stop .headline { color: var(--stop); }
+
+.status .chips { display: inline-flex; gap: 12px; flex-wrap: wrap; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.01em;
+}
+.cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); flex: none; }
+.chip.info .cdot { background: var(--info); }
+.chip.watch .cdot { background: var(--watch); box-shadow: 0 0 6px rgba(250, 178, 25, 0.5); }
+.chip.stop .cdot { background: var(--stop); box-shadow: 0 0 6px rgba(242, 104, 95, 0.55); }
+.chip.watch { color: var(--muted); }
+.chip.stop { color: var(--muted); }
+
+.status .detail { margin-left: auto; font-size: 11px; color: var(--faint); }
+
+/* ------------------------------------------------------------- view head --- */
+
+.viewhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 22px 2px 20px;
+}
 .viewq {
-  color: var(--muted); font-size: var(--t-sm); margin: calc(var(--s5) * -1 + var(--s2)) 0 var(--s5);
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  max-width: 62ch;
 }
-
-/* ---------------------------------------------------------------- cards --- */
-.card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
-  padding: var(--s4); margin-bottom: var(--s4);
+.refresh {
+  flex: none;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--muted);
+  border: 1px solid var(--line-active);
+  border-radius: 7px;
+  padding: 6px 12px;
 }
-.card > h3 {
-  margin: 0 0 var(--s1); font-size: var(--t-sm); font-weight: 700;
-  letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
-}
-.card .note { color: var(--muted); font-size: var(--t-sm); margin: var(--s1) 0 0; }
-.card .fix {
-  margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line-soft);
-  font-family: var(--mono); font-size: var(--t-xs); color: var(--muted);
-}
-.card .src { margin-top: var(--s3); font-size: 10.5px; color: var(--faint); }
-
-.card.info { border-color: rgba(88, 166, 255, .4); }
-.card.watch { border-color: rgba(227, 179, 65, .45); }
-.card.stop { border-color: rgba(248, 81, 73, .5); }
-
-/* An unavailable card must not be mistakable for an empty one. */
-.card.is-unavailable { background: var(--stop-bg); }
-.card.is-empty { background: transparent; border-style: dashed; }
-.card.is-stale { background: var(--watch-bg); }
+.refresh:hover { color: var(--text); border-color: var(--info-line); text-decoration: none; }
 
 /* ------------------------------------------------------------ the answer --- */
-/* The one decision. Nothing else on the page is allowed to render an action verb. */
+/* The one decision. The only hero figure on any view, and the only place an
+ * action verb may appear. Severity keys a thin top accent, not a full border:
+ * the card should feel weighted, not alarmed. */
+
 .answer {
-  border: 1px solid var(--line); border-radius: var(--r);
-  padding: var(--s5) var(--s4); margin-bottom: var(--s4);
-  background: linear-gradient(150deg, var(--surface-2), var(--surface));
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 30px var(--pad) 24px;
+  margin-bottom: 18px;
 }
-.answer.info { border-color: rgba(88, 166, 255, .55); }
-.answer.watch { border-color: rgba(227, 179, 65, .5); }
-.answer.stop { border-color: rgba(248, 81, 73, .55); }
-.answer .lab { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; color: var(--muted); }
-.answer .verb { font-size: var(--t-hero); font-weight: 800; line-height: 1.1; margin: var(--s1) 0; letter-spacing: -0.02em; }
-.answer .because { color: var(--muted); font-size: var(--t-md); max-width: 62ch; }
-.answer .trust {
-  margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line-soft);
-  font-size: var(--t-sm); color: var(--muted);
+.answer::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--line-strong);
 }
+.answer.info::before { background: linear-gradient(90deg, transparent, var(--info) 30%, var(--info) 70%, transparent); }
+.answer.watch::before { background: linear-gradient(90deg, transparent, var(--watch) 30%, var(--watch) 70%, transparent); }
+.answer.stop::before { background: linear-gradient(90deg, transparent, var(--stop) 30%, var(--stop) 70%, transparent); }
+
+.overline {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.verb {
+  margin: 8px 0 10px;
+  font-feature-settings: normal;
+  font-size: 52px;
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  /* Proportional figures at display size — tabular sets a big number loose. */
+  font-variant-numeric: normal;
+}
+/* Pure white is reserved for the verdict alone (LSEG/Bloomberg: brightest = the
+ * thing under judgment). Everything else on the page caps at primary ink. */
+.verb { color: #ffffff; }
+.answer.watch .verb { color: var(--watch); }
+
+.because {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+/* The order ticket, when there is one. */
+.ticket {
+  margin: 20px 0 0;
+  border-top: 1px solid var(--line);
+}
+.trow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.trow dt { margin: 0; font-size: 12.5px; color: var(--muted); }
+.trow dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.trow.stop dd { color: var(--stop); }
+.trow.watch dd { color: var(--watch); }
+
+/* The gates standing the decision down. */
+.blockers {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface);
+}
+.bhead {
+  padding: 9px 14px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  border-bottom: 1px solid var(--line);
+}
+.block {
+  display: flex;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.block:last-child { border-bottom: 0; }
+.bgate {
+  flex: none;
+  width: 110px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--stop);
+  padding-top: 2px;
+}
+.breason { color: var(--muted); }
+
+.trust {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--faint);
+}
+.trust { max-width: none; }
+.trust::after { content: ""; display: block; }
+
+/* ---------------------------------------------------------------- cards --- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px var(--pad) 16px;
+  margin-bottom: 14px;
+}
+
+.card > h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card .note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 68ch;
+}
+
+.card .fix {
+  margin-top: 14px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.card .src {
+  margin-top: 12px;
+  font-size: 10.5px;
+  color: var(--faint);
+  font-family: var(--mono);
+}
+
+/* State treatments. `empty` recedes; `unavailable` insists; `stale` warns. */
+.card.is-empty { background: transparent; border-style: dashed; border-color: var(--line-strong); }
+.card.is-empty > h3 { color: var(--faint); }
+
+.card.is-unavailable { background: var(--stop-bg); border-color: var(--stop-line); }
+.card.is-stale { background: var(--watch-bg); border-color: var(--watch-line); }
+
+.card.info { border-color: var(--info-line); }
+.card.watch { border-color: var(--watch-line); }
+.card.stop { border-color: var(--stop-line); }
 
 /* ----------------------------------------------------------------- rows --- */
-.rows { display: grid; gap: 1px; background: var(--line-soft); border-radius: var(--r-sm); overflow: hidden; margin-top: var(--s3); }
-.row { display: flex; justify-content: space-between; gap: var(--s3); padding: 9px var(--s3); background: var(--surface); font-size: var(--t-sm); }
+
+.rows { margin-top: 12px; border-top: 1px solid var(--line); }
+.row { padding: 9px 2px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.rmain {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+/* Rows without the wrapper (the answer ticket, older panels) keep working. */
+.row > .k:first-child { display: inline; }
 .row .k { color: var(--muted); }
-.row .v { font-family: var(--mono); text-align: right; }
+.row .v {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.row:not(:has(.rmain)) { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
 .row.watch .v { color: var(--watch); }
 .row.stop .v { color: var(--stop); }
+/* The sentence under a row: wrapped, muted, left-aligned, sans. A sentence is not
+ * a number and must never be set right-aligned in amber mono. */
+.rsub {
+  margin: 4px 0 1px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--faint);
+  max-width: 70ch;
+}
 
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s3); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 
-table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); margin-top: var(--s3); }
-th { text-align: left; font-weight: 600; color: var(--muted); font-size: var(--t-xs); text-transform: uppercase; letter-spacing: .04em; padding: var(--s2) var(--s2) var(--s2) 0; border-bottom: 1px solid var(--line); }
-td { padding: 7px var(--s2) 7px 0; border-bottom: 1px solid var(--line-soft); font-variant-numeric: tabular-nums; }
-td.num { text-align: right; font-family: var(--mono); }
+/* ---------------------------------------------------------------- tables --- */
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--faint);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0 10px 8px 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+td {
+  padding: 8px 10px 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  vertical-align: baseline;
+}
+tr:last-child td { border-bottom: 0; }
+td.num { text-align: right; font-family: var(--mono); font-size: 12.5px; }
+
 .up { color: var(--up); }
 .down { color: var(--down); }
 
 /* ----------------------------------------------------------- provenance --- */
 /* A measured number and a fabricated prior must never look the same. */
-.tier { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
-.tier.measured { color: var(--info); border-color: rgba(88, 166, 255, .4); }
-.tier.prior { color: var(--watch); border-color: rgba(227, 179, 65, .45); }
-.tier.modelled { color: var(--watch); border-color: rgba(227, 179, 65, .45); }
+
+.tier {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 6px 1px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  vertical-align: 1px;
+}
+.tier.measured { color: var(--info); border-color: var(--info-line); background: var(--info-bg); }
+.tier.prior { color: var(--watch); border-color: var(--watch-line); background: var(--watch-bg); }
+.tier.modelled { color: var(--watch); border-color: var(--watch-line); background: var(--watch-bg); }
 .tier.null { color: var(--faint); text-decoration: line-through; }
 
-.meter { height: 6px; background: var(--line-soft); border-radius: 6px; overflow: hidden; margin-top: 6px; }
-.meter > span { display: block; height: 100%; background: var(--info); }
-.meter.watch > span { background: var(--watch); }
+/* --------------------------------------------------------------- meters --- */
 
-details { margin-top: var(--s3); }
-summary { cursor: pointer; color: var(--muted); font-size: var(--t-sm); }
+.meters { margin-top: 6px; }
+.meterblock { padding: 14px 0 4px; }
+.meterblock + .meterblock { border-top: 1px solid var(--line); }
+
+.mhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
+.mlabel { font-size: 13px; font-weight: 550; }
+.mvalue {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.mvalue.watch { color: var(--watch); }
+.mvalue.stop { color: var(--stop); }
+
+.meter {
+  height: 5px;
+  margin-top: 9px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--info);
+  box-shadow: 0 0 10px rgba(76, 159, 254, 0.45);
+  transition: width 0.4s ease;
+}
+.meter.watch > span { background: var(--watch); box-shadow: 0 0 10px rgba(250, 178, 25, 0.4); }
+.meter.stop > span { background: var(--stop); box-shadow: 0 0 10px rgba(242, 104, 95, 0.45); }
+
+.mwhy {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--faint);
+  max-width: 66ch;
+}
+
+/* ----------------------------------------------------------- disclosure --- */
+
+details { margin-top: 12px; }
+summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--muted);
+  list-style: none;
+}
+summary::before { content: "▸ "; color: var(--faint); }
+details[open] summary::before { content: "▾ "; }
 summary:hover { color: var(--text); }
-dl { margin: var(--s3) 0 0; }
-dt { font-weight: 650; margin-top: var(--s3); font-size: var(--t-sm); }
-dd { margin: 2px 0 0; color: var(--muted); font-size: var(--t-sm); }
 
-pre { overflow-x: auto; font-family: var(--mono); font-size: var(--t-xs); color: var(--muted); background: var(--bg); padding: var(--s3); border-radius: var(--r-sm); }
+dl { margin: 12px 0 0; }
+dt { font-weight: 600; margin-top: 12px; font-size: 13px; }
+dd { margin: 3px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
-footer { margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--line); color: var(--faint); font-size: var(--t-xs); max-width: 74ch; }
+pre {
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+}
 
-@media (max-width: 560px) {
-  body { padding: var(--s4) var(--s3) var(--s5); }
-  .answer .verb { font-size: 26px; }
-  .nav a { padding: 8px var(--s3); font-size: 12.5px; }
+code { font-family: var(--mono); font-size: 0.92em; color: var(--text); }
+
+/* ----------------------------------------------------------------- docs --- */
+
+.card h1 { font-size: 22px; letter-spacing: -0.015em; margin: 4px 0 12px; }
+.card h2 { font-size: 15px; margin: 26px 0 8px; letter-spacing: -0.005em; }
+
+/* --------------------------------------------------------------- footer --- */
+
+footer {
+  margin-top: 56px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 11.5px;
+  line-height: 1.7;
+  max-width: 76ch;
+}
+
+/* --------------------------------------------------------------- mobile --- */
+
+@media (max-width: 700px) {
+  body { padding: 0 14px 56px; }
+  .masthead { padding: 14px 0 10px; }
+  .nav { width: 100%; }
+  .nav a { padding: 7px 10px; font-size: 12.5px; }
+  /* The underline needs the tab's own baseline once the nav wraps to its own row. */
+  .nav a.on::after { left: 10px; right: 10px; bottom: 0; }
+  .verb { font-size: 34px; letter-spacing: -0.02em; }
+  .answer { padding: 20px 16px 16px; }
+  .card { padding: 14px 16px 12px; }
+  .bgate { width: 84px; font-size: 10.5px; }
+  .status .detail { margin-left: 0; }
+  .viewhead { flex-direction: column; align-items: flex-start; gap: 10px; padding-top: 16px; }
 }

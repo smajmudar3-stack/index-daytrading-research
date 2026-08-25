@@ -8,23 +8,30 @@
 </head>
 <body data-view="{{ view }}">
 
-<header class=top>
-  <div>
-    <h1>{{ title }}</h1>
-    <div class=sub>{{ subtitle }}</div>
+{# Masthead: identity on the left, the four views as quiet tabs on the right.
+   One row, one hairline. The nav lives here rather than in its own band because
+   a single-user console does not need a second chrome layer. #}
+<header class=masthead>
+  <div class=brand>
+    <span class=mark aria-hidden=true></span>
+    <span class=wordmark>{{ title }}</span>
+    <span class=session>
+      <span class="dot {{ 'live' if market_open else '' }}" aria-hidden=true></span>
+      {{ 'market open' if market_open else 'market closed' }} · {{ now_et }} ET
+    </span>
   </div>
-  <div class=actions>
-    <a class=btn href="/docs">What this knows</a>
-    <a class="btn primary" href="/refresh?view={{ view }}">Refresh</a>
-  </div>
+  <nav class=nav aria-label="Views">
+    {% for v in views %}<a href="/{{ v.slug }}" class="{{ 'on' if v.slug == view else '' }}">{{ v.label }}</a>{% endfor %}
+    <a href="/docs" class="{{ 'on' if view == 'docs' else '' }}">Findings</a>
+  </nav>
 </header>
 
 {% include "status.html" %}
 
-<nav class=nav>
-  {% for v in views %}<a href="/{{ v.slug }}" class="{{ 'on' if v.slug == view else '' }}">{{ v.label }}</a>{% endfor %}
-</nav>
-<p class=viewq>{{ view_question }}</p>
+<div class=viewhead>
+  <p class=viewq>{{ view_question }}</p>
+  <a class=refresh href="/refresh?view={{ view }}">Refresh now</a>
+</div>
 
 <main id=view>
 {% block content %}{% endblock %}

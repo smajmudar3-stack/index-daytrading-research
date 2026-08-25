@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**280 files, 60,647 lines.**
+**282 files, 61,305 lines.**
 
 ## Repo root
 
-*8 files, 990 lines*
+*8 files, 991 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 20 | 251 B |
 | `AGENTS.md` | 158 | 9 KB |
 | `CLAUDE.md` | 158 | 9 KB |
-| `MANIFEST.md` | 460 | 17 KB |
+| `MANIFEST.md` | 461 | 17 KB |
 | `README.md` | 108 | 6 KB |
 | `pyproject.toml` | 57 | 2 KB |
 | `requirements.txt` | 11 | 261 B |
@@ -86,7 +86,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*54 files, 14,198 lines*
+*54 files, 14,247 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -102,7 +102,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/confluence.py` | 51 | 3 KB |
 | `04_live_system/daily_edges.py` | 75 | 3 KB |
 | `04_live_system/dashboard.py` | 167 | 10 KB |
-| `04_live_system/dashboard_app.py` | 210 | 8 KB |
+| `04_live_system/dashboard_app.py` | 259 | 10 KB |
 | `04_live_system/direction_signals.py` | 71 | 4 KB |
 | `04_live_system/edge_panel.py` | 306 | 14 KB |
 | `04_live_system/fetch_minutes.py` | 179 | 8 KB |
@@ -147,49 +147,49 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*6 files, 1,004 lines*
+*6 files, 999 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `04_live_system/panels/__init__.py` | 109 | 4 KB |
 | `04_live_system/panels/evidence.py` | 189 | 9 KB |
 | `04_live_system/panels/markets.py` | 140 | 6 KB |
-| `04_live_system/panels/risk.py` | 134 | 6 KB |
+| `04_live_system/panels/risk.py` | 140 | 7 KB |
 | `04_live_system/panels/today.py` | 289 | 12 KB |
-| `04_live_system/panels/views.py` | 143 | 5 KB |
+| `04_live_system/panels/views.py` | 132 | 5 KB |
 
 ## 04_live_system/templates — Jinja templates
 
-*5 files, 68 lines*
+*5 files, 78 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/templates/base.html` | 39 | 903 B |
+| `04_live_system/templates/base.html` | 46 | 1 KB |
 | `04_live_system/templates/docs.html` | 6 | 103 B |
 | `04_live_system/templates/panel.html` | 13 | 642 B |
-| `04_live_system/templates/status.html` | 6 | 381 B |
+| `04_live_system/templates/status.html` | 9 | 528 B |
 | `04_live_system/templates/view.html` | 4 | 121 B |
 
 ## 04_live_system/templates/panels — one per panel
 
-*6 files, 84 lines*
+*6 files, 87 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `04_live_system/templates/panels/_empty.html` | 5 | 184 B |
-| `04_live_system/templates/panels/_generic.html` | 15 | 897 B |
+| `04_live_system/templates/panels/_generic.html` | 18 | 993 B |
 | `04_live_system/templates/panels/_unavailable.html` | 6 | 357 B |
-| `04_live_system/templates/panels/answer.html` | 27 | 943 B |
-| `04_live_system/templates/panels/evidence_meter.html` | 15 | 672 B |
+| `04_live_system/templates/panels/answer.html` | 25 | 892 B |
+| `04_live_system/templates/panels/evidence_meter.html` | 17 | 729 B |
 | `04_live_system/templates/panels/weights.html` | 16 | 602 B |
 
 ## 04_live_system/static — stylesheet and refresh script
 
-*2 files, 279 lines*
+*2 files, 671 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/static/app.css` | 222 | 10 KB |
+| `04_live_system/static/app.css` | 614 | 17 KB |
 | `04_live_system/static/app.js` | 57 | 2 KB |
 
 ## 05_studies — backtest and hunt harnesses
@@ -344,11 +344,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*3 files, 1,000 lines*
+*5 files, 1,208 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
+| `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
+| `docs/DESIGN.md` | 86 | 5 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
 | `docs/VERDICT_LOG.md` | 379 | 19 KB |
 
