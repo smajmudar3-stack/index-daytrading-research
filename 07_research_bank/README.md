@@ -20,15 +20,15 @@ strategies differently.
 |---|---|---|
 | 1 | Kelly, leverage, ruin math | ✅ `reports/01_kelly_ruin.md` |
 | 2 | GitHub repos with high-return claims | ✅ `reports/02_github_repos.md` |
-| 3 | Verified track records & base rates | 🔁 relaunched (API error) |
-| 4 | Small-account capacity-constrained edges | ⏳ running |
+| 3 | Verified track records & base rates | ❌ failed 2x — search budget exhausted |
+| 4 | Small-account capacity-constrained edges | ❌ failed — **highest priority to retry** |
 | 5 | Forums & practitioner communities | ✅ `reports/03_forums_communities.md` |
-| 6 | Vol arb, dispersion, Section 1256 | 🔁 relaunched (died mid-response) |
-| 7 | Event-driven: where IV underprices | ⏳ running |
-| 8 | Blow-up forensics | 🔁 relaunched (API error) |
-| 9 | Meta: find uncovered domains | 🔁 relaunched (spawned children, exhausted budget) |
-| 10 | Optimal betting to a target (bold play) | ⏳ running |
-| 11 | Maximum-convexity vehicle selection | ⏳ running |
+| 6 | Vol arb, dispersion, Section 1256 | ❌ failed |
+| 7 | Event-driven: where IV underprices | ✅ `reports/04_event_driven.md` |
+| 8 | Blow-up forensics | ❌ failed 2x |
+| 9 | Meta: find uncovered domains | ❌ failed 2x |
+| 10 | Optimal betting to a target (bold play) | ❌ stalled — partially covered by `synthesis/tenx_baseline.txt` |
+| 11 | Maximum-convexity vehicle selection | ❌ failed — **highest priority to retry** |
 
 ## Rules for this bank
 
@@ -78,3 +78,28 @@ positive-expectancy measurements survive scrutiny? If yes, the answer is many
 small convex bets. If no, it is one large one. **This is the first thing to test
 when the bank is complete** — the two designs are opposites and cannot be hedged
 between.
+
+
+## Blocker (2026-08-25)
+
+**The session-wide web-search budget is exhausted.** Agents are failing with
+"Search budget is exhausted for the session" and stream watchdog stalls.
+Relaunching now fails immediately, so no further agents until the quota resets —
+the 21:37 cron will pick this up.
+
+**4 of 11 reports are in, and they are the four that matter most for calibration.**
+The two highest-value gaps are:
+
+- **04 capacity-constrained small-account edges** — report 01 concluded this is
+  the *only* structurally promising direction, because the binding constraint at
+  elite Sharpe is capacity, not risk, and a $5k account faces no capacity limit.
+- **11 maximum-convexity vehicle selection** — the empirical base rate of a 10x
+  by delta × DTE, which is the number that decides everything.
+
+## Open audit item
+
+Our in-house earnings-straddle result (**−35.03%, t = −95.7**) is contradicted by
+Milian (2023, *JRFM*, peer-reviewed): **mean +0.48% (n.s.), median −17.69%**. A
+t-stat of −95.7 on a fat-tailed near-zero-mean distribution is implausible unless
+the exit convention is systematically costly. **Audit before anything is built on
+it** — and it is currently published in `BUNDLE/02_findings/` and on GitHub.
