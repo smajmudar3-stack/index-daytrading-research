@@ -164,6 +164,35 @@ def best_contract(ticker):
     return best
 
 
+def log_calls(tk):
+    """Record the basket so the scorecard can grade it later.
+
+    record() already dedupes to one call per tab/ticker/direction/day, so the
+    30-minute rebuild cannot inflate the hit rate by re-logging a standing view.
+    """
+    try:
+        import scorecard
+    except Exception:
+        return
+    for x in tk:
+        try:
+            scorecard.record("tickets", x["ticker"], "bearish",
+                             conviction=int(min(x["short_float"] * 2, 100)),
+                             structure=f"{x['qty']}x {x['strike']:g}P {x['exp']}",
+                             # entry_px MUST be the underlying price, not the
+                             # option ask -- settle() grades direction by
+                             # comparing entry_px against the UNDERLYING close.
+                             # Passing the premium made GME read as a +500% move
+                             # from $3.50 to $21. None lets settle() take the
+                             # first underlying close itself, which is correct.
+                             entry_px=None,
+                             note=f"short float {x['short_float']}%, "
+                                  f"delta {x['delta']}, paid {x['ask']:.2f}, "
+                                  f"hold to expiry")
+        except Exception:
+            continue
+
+
 def build(limit=10):
     """The basket. Returns {'tickets': [...], 'why': str, 'blocked': str|None}."""
     cands = candidates()
@@ -187,6 +216,7 @@ def build(limit=10):
                 f"{len(out)} of {len(cands)} candidates had a contract clearing the "
                 f"{int(MAX_SPREAD*100)}% spread and ${COST_LO}-{COST_HI} gates — "
                 f"too few to run as a basket"}
+    log_calls(out)
     return {"tickets": out, "blocked": None}
 
 
@@ -260,6 +290,7 @@ def panel():
                 f"This panel stays empty until the gates pass.</div></div>")
 
     total = sum(t["cost"] for t in tk)
+    exp = max(t["exp"] for t in tk)
     rows = "".join(
         f"<tr><td><b>{t['ticker']}</b></td>"
         f"<td class=sell>BUY PUT</td>"
@@ -282,6 +313,13 @@ def panel():
     <tr><th>ticker</th><th>action</th><th>strike</th><th>expiration</th><th>dte</th>
         <th>delta</th><th>bid/ask</th><th>spread</th><th>qty</th><th>cost</th><th>short float</th></tr>
     {rows}</table></div>
+  <div class=txexit><b>EXIT — sell the same contracts at expiration ({exp}).</b>
+    Hold to expiry and settle at intrinsic; do not close early. That is the
+    protocol the result was measured under, and deep ITM carries little extrinsic
+    so decay costs little. <b>No profit target and no stop</b> — neither was
+    tested, and inventing one would be trading an untested rule. The premium is
+    the risk: worst case is the full <b>${total:,}</b> if every put expires
+    worthless, so size the basket as money you can lose in whole.</div>
   <div class=txwhy><b>Why puts, deep ITM:</b> high short float predicts LOWER
     returns (the squeeze thesis is backwards), and deep ITM is the only option
     vehicle that tracks the mean shift instead of paying for convexity. Measured
@@ -306,6 +344,9 @@ CSS = """
  .txtable td.mono,.txtable td.num{font-family:ui-monospace,Menlo,monospace}
  .txtable td.num{text-align:right}
  .txtable td.sell{color:var(--red);font-weight:700;font-size:11px}
+ .txexit{font-size:12px;line-height:1.6;margin-top:12px;padding:9px 11px;
+   background:rgba(248,81,73,.07);border-left:3px solid var(--red);border-radius:0 8px 8px 0}
+ .txexit b{color:var(--text)}
  .txwhy{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:12px;
    padding-top:10px;border-top:1px solid var(--line2)}
  .txwhy b{color:var(--text)}

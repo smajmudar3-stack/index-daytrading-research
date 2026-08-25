@@ -26,7 +26,8 @@ from datetime import datetime, timezone
 DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "scorecard.db")
 
 # Horizon each tab is judged over, in calendar days.
-HORIZON = {"0dte": 1, "desk": 21, "swing": 21, "blackswan": 42}
+HORIZON = {"0dte": 1, "desk": 21, "swing": 21, "blackswan": 42,
+           "tickets": 63}   # 63d = where the short-interest IC was measured
 
 
 def _con():

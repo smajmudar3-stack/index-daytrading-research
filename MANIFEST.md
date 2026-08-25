@@ -92,7 +92,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `risk_gates.py` | 396 | 17 KB |
 | `rules.py` | 316 | 16 KB |
 | `scan_all.py` | 239 | 10 KB |
-| `scorecard.py` | 218 | 9 KB |
+| `scorecard.py` | 219 | 9 KB |
 | `session.py` | 91 | 3 KB |
 | `signal_tracker.py` | 242 | 12 KB |
 | `signal_weights.py` | 139 | 6 KB |
@@ -103,7 +103,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `spx_ndx_advisor.py` | 474 | 22 KB |
 | `swing_signals.py` | 442 | 23 KB |
 | `ticket.py` | 154 | 8 KB |
-| `tickets.py` | 330 | 13 KB |
+| `tickets.py` | 371 | 16 KB |
 | `uw_archive.py` | 157 | 6 KB |
 | `uw_calibrate.py` | 218 | 8 KB |
 | `uw_client.py` | 346 | 15 KB |
