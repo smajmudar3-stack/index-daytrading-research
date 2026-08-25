@@ -89,8 +89,27 @@ Anything above **52.9%** is unreachable whatever the signal.
 | 2 hours | 1.65% |
 | 4 hours | 3.03% |
 
-Against the observed SPX intraday range over 1,919 days: **median 0.43%**, p75
-0.84%, p90 1.40%. Only **19%** of days range ≥1.0%; only **8.3%** reach ≥1.5%.
+**CORRECTED 2026-08-25.** An earlier version of this section compared the
+hurdle against the *intraday range* (median 0.43% from SPXW snapshots). That was
+wrong twice: 13 half-hourly snapshots understate true range by roughly half, and
+more importantly **range is not the move a trade captures** — a day can range
+1% and close flat. Feeding range into the hurdle credits the trade with a move
+it cannot realise, which is trap #6 in another guise.
+
+The correct input is |return over the hold|, measured on 495 sessions of minute
+bars:
+
+| hold | median &#124;move&#124; | p90 | median range | accuracy needed at median |
+|---|---:|---:|---:|---:|
+| 30 min | **0.09%** | 0.32% | 0.23% | **69.3%** |
+| 1 hour | 0.13% | 0.45% | 0.33% | 71.8% |
+| 2 hours | 0.19% | 0.63% | 0.48% | 74.9% |
+
+Range runs 2–3× the captured move at every hold. Only **1.9%** of 30-minute
+windows (4.4% on QQQ) are large enough to clear the hurdle at the 52.9% ceiling.
+
+The gap is therefore far wider than first stated: a typical 30-minute 0DTE
+directional trade needs **69.3%** accuracy against a ceiling of **52.9%**.
 
 **On a median day, a directional ATM 0DTE trade is not payable at the best
 accuracy anyone has ever demonstrated.** The binding constraint is theta, not

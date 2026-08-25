@@ -84,6 +84,7 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/macro_test.py` | Does the macro/rates narrative actually predict sector returns at swing horizon? |
 | `scripts/mirror_drift_control.py` | Is QQQ's breakout asymmetry a signal, or is it just drift? |
 | `scripts/mirror_test.py` | The mirror test: is a breakout "hit rate" directional, or just volatility? |
+| `scripts/move_distribution.py` | How far does price actually move over a hold? The right input to the hurdle. |
 | `scripts/nge_proper.py` | The Baltussen test done properly: full-surface NGE + the true 09:30 open. |
 | `scripts/nge_validate.py` | Validate the Baltussen dealer-gamma split on our own SPXW chains. |
 | `scripts/openalex_gap.py` | Fill remaining gaps: recent works citing Cusatis-Miles-Woolridge, plus targeted title searches. |
@@ -126,6 +127,9 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `scripts/test_witching_drift.py` | Test the "derivative payoff bias" / third-Friday AM-settlement drift on our own SPX data. |
 | `scripts/theta_hurdle.py` | The spread is not the binding cost on 0DTE direction -- theta is. |
 | `scripts/uw_backtest_weights.py` | Backtest the UW inputs that HAVE history, so their weights are earned. |
+| `scripts/vol_gate.py` | The payoff of the volatility work: can a forecast pick the tradeable days? |
+| `scripts/vol_har.py` | Is volatility actually predictable on our data, and can anything beat HAR? |
+| `scripts/vol_vs_implied.py` | HAR predicts volatility. Does it predict anything the OPTION MARKET does not? |
 | `scripts/zebra_vs_call.py` | ZEBRA vs a plain 0.80-delta call vs ATM call vs 100 shares — head to head, |
 | `validate_condor_real.py` | validate_condor_real.py — the condor edge, priced on REAL SPXW quotes instead of a model. |
 | `validate_gapgo.py` | Stress-test the gap-and-go-with-volume edge before believing it. Kill it if it's fragile: |
@@ -134,4 +138,4 @@ The 113 harnesses that produced every number in the findings. All are standalone
 | `vwap_momentum.py` | Intraday VWAP MOMENTUM — trade WITH the extension (the mirror of the losing fade). |
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
-**129 files.**
+**133 files.**

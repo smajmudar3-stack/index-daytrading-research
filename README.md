@@ -39,6 +39,10 @@ signals and their measured strength.
 full answer on intraday direction: the ~53% accuracy ceiling, the theta hurdle
 that exceeds it, and the one dealer-gamma signal that clears it.
 
+**[02_findings/VOLATILITY.md](02_findings/VOLATILITY.md)** — volatility is 360×
+the signal in direction (OOS R² 39.8%), and the market prices it better than we
+forecast it. Why an 88.5% win rate still loses money.
+
 **[02_findings/METHODOLOGY_TRAPS.md](02_findings/METHODOLOGY_TRAPS.md)** — fifteen
 ways a backtest lies. Seven of these produced fake winning strategies in this
 repo before being caught. Check any new backtest against this list first.

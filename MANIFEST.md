@@ -204,6 +204,7 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `macro_test.py` | 167 | 6 KB |
 | `mirror_drift_control.py` | 122 | 5 KB |
 | `mirror_test.py` | 108 | 5 KB |
+| `move_distribution.py` | 107 | 4 KB |
 | `nge_proper.py` | 148 | 6 KB |
 | `nge_validate.py` | 131 | 5 KB |
 | `openalex_gap.py` | 66 | 3 KB |
@@ -246,7 +247,10 @@ Every file in this bundle, with size and line count. Copied from `~/index-daytra
 | `test_witching_drift.py` | 85 | 4 KB |
 | `theta_hurdle.py` | 108 | 5 KB |
 | `uw_backtest_weights.py` | 165 | 7 KB |
+| `vol_gate.py` | 118 | 4 KB |
+| `vol_har.py` | 154 | 6 KB |
+| `vol_vs_implied.py` | 136 | 5 KB |
 | `zebra_vs_call.py` | 169 | 8 KB |
 
 
-**215 files total.**
+**219 files total.**
