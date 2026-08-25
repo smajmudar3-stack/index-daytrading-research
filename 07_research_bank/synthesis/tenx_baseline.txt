@@ -1,0 +1,52 @@
+==========================================================================================
+P($5,000 -> $50,000)  --  the honest baselines
+==========================================================================================
+
+  10x  ($5k -> $50k)  <-- the goal
+    log return required          2.3026
+    Sharpe to earn it in 1 year  2.15
+    martingale ceiling (fair)    10.00%   <- ANY strategy, cannot be beaten
+    lognormal, fixed date         1.59%   <- if you must be there on a date
+
+  23.3x (30%/month for a year)
+    log return required          3.1485
+    Sharpe to earn it in 1 year  2.51
+    martingale ceiling (fair)     4.29%   <- ANY strategy, cannot be beaten
+    lognormal, fixed date         0.60%   <- if you must be there on a date
+
+==========================================================================================
+HOW NEGATIVE EXPECTANCY EATS THE 10% CEILING
+==========================================================================================
+  Bold play: each bet risks everything staked for a multiple. With
+  per-bet expectancy e, n sequential bets each needing 10^(1/n):
+
+   bets   each must return      e=+0%     e=-5%    e=-15%    e=-30%
+      1             10.00x     10.00%     9.50%     8.50%     7.00%
+      2              3.16x     10.00%     9.02%     7.22%     4.90%
+      3              2.15x     10.00%     8.57%     6.14%     3.43%
+      5              1.58x     10.00%     7.74%     4.44%     1.68%
+     10              1.26x     10.00%     5.99%     1.97%     0.28%
+     20              1.12x     10.00%     3.58%     0.39%     0.01%
+
+  Read down a column: MORE BETS IS STRICTLY WORSE once expectancy
+  is negative. Each additional trade pays the house again. At e=-15%
+  twenty bets is a rounding error away from zero.
+
+  Read across a row: this is the cost of the spread. One bet at
+  -30% still leaves 7%; twenty bets at -30% leaves almost nothing.
+
+==========================================================================================
+WHAT THE MEASURED OPTIONS NUMBERS IMPLY
+==========================================================================================
+  vehicle                           per-trade    1 bet   3 bets   10 bets   source
+  far-OTM held to expiry              -90.0%    1.00%    0.01%     0.00%   10.5M real purchases
+  far-OTM, mid of range               -48.0%    5.20%    1.41%     0.01%   same study
+  far-OTM, spread <=20% filter         +5.6%   10.56%   11.78%    17.24%   execution filter
+  16-30 delta band                    +26.1%   12.61%   20.05%      nan%   best measured bucket
+
+==========================================================================================
+  The two positive-expectancy rows are the whole ballgame. A vehicle
+  with e>0 makes MORE bets better, not worse -- the sign flips the
+  entire strategy. Everything turns on whether those two survive
+  scrutiny, because they invert the optimal structure.
+==========================================================================================
