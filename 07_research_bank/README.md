@@ -29,6 +29,7 @@ relaunched; only failures were restarted.
 | 4 | Event-driven: where IV mis-prices | `reports/04_event_driven.md` |
 | 5 | Meta: fourteen uncovered domains | `reports/05_new_domains.md` |
 | 6 | Crypto convexity + access | `reports/06_crypto_convexity.md` |
+| 7 | **Warrants — first measured P(10x)** | `reports/07_warrants.md` |
 
 ### Running — the original cycle, completed
 
@@ -41,7 +42,7 @@ relaunched; only failures were restarted.
 | Verified track records & retail base rate | failed 3× → **relaunched** |
 | Crash winners & strictly-bounded structures | failed 2× → **relaunched, reframed** |
 | Prop-firm independent trials | new, from report 05 |
-| SPAC warrant P(10x) base rate | new, from report 05 |
+
 
 All eight are instructed: **no subagents**, conserve searches, ~30–40 calls. The
 earlier fleet died because the meta-agent spawned children and exhausted the
@@ -154,3 +155,25 @@ The martingale ceiling — P($5k→$50k) = 10% — binds *one* sequence of bets.
 Report 05's prop-firm domain offers **N independent attempts at bounded cost**,
 which is a different problem. That reframing is worth more than any edge found so
 far, and it went unexamined because the whole investigation was framed in options.
+
+
+## Scoreboard — P(10x) by route
+
+Every candidate must be measured against the **10% martingale ceiling**: with a
+fair bet and optimal play, P($5k→$50k) = 10% exactly, and no bet sizing beats it.
+
+| route | P(10x) | downside bounded? | evidence |
+|---|---:|---|---|
+| fair bet (theoretical ceiling) | **10.0%** | — | theorem |
+| **warrant basket** | **~5%** (2–10%) | **yes — cash account** | measured |
+| single warrant, 12m | 1–2% | yes | measured |
+| warrants bought in the 2020–21 boom | **0.0%** | yes | measured |
+| far-OTM options held to expiry | ~1% | yes | measured (10.5M purchases) |
+
+Nothing yet **beats** a fair coin. The warrant route is the closest, and its
+argument is not superior odds but **genuinely bounded downside with no options
+approval and a computable base rate**.
+
+The open question that could change the ranking is whether **independent repeated
+trials** (prop firms) escape the ceiling entirely — 1−(1−p)^N is a different
+problem from a single sequence.
