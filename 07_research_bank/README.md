@@ -16,7 +16,7 @@ strategies differently.
 
 ## Status — 2026-08-26
 
-**6 banked · 8 running · 0 re-run unnecessarily.** Completed reports are never
+**ALL 14 BANKED. Research phase complete.** Completed reports are never
 relaunched; only failures were restarted.
 
 ### Banked — do not re-dispatch
@@ -36,6 +36,7 @@ relaunched; only failures were restarted.
 | 11 | **Crash winners + bounded structures** | `reports/11_crash_winners.md` |
 | 12 | **Optimal betting — the master formula** | `reports/12_optimal_betting.md` |
 | 13 | **Base rates — the 1.47% hurdle** | `reports/13_base_rates.md` |
+| 14 | **P(10x) base-rate table — strike selection** | `reports/14_convexity_base_rates.md` |
 
 ### Running — the original cycle, completed
 
