@@ -1,4 +1,9 @@
-# Synthesis — 13 reports, one answer
+# Synthesis — 14 reports, one answer
+
+> **TESTED AND NULL (2026-08-26).** The decisive vol-compression screen was run
+> against 7,038 real-quote entries and **failed 3 of 4 stress tests** — strong in
+> 2020–23 (p=0.0025), absent in 2023–26 (p=0.42). See
+> [TEST_RESULT.md](TEST_RESULT.md). Measured base rate P(10×) = **1.39%**.
 
 **The research phase is complete. All 14 domains banked.**
 
