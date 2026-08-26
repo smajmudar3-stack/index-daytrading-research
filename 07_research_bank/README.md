@@ -31,12 +31,13 @@ relaunched; only failures were restarted.
 | 6 | Crypto convexity + access | `reports/06_crypto_convexity.md` |
 | 7 | **Warrants — first measured P(10x)** | `reports/07_warrants.md` |
 | 8 | **Prop firms — first route to beat the ceiling** | `reports/08_prop_firms.md` |
+| 9 | **Capacity edges — thesis killed** | `reports/09_capacity_edges.md` |
 
 ### Running — the original cycle, completed
 
 | domain | history |
 |---|---|
-| Capacity-constrained small-account edges | never finished → **relaunched** |
+
 | Maximum-convexity base rates (delta × DTE) | failed 1× → **relaunched** |
 | Optimal betting to a target (Dubins-Savage) | stalled 1× → **relaunched** |
 | Vol arb, dispersion, **Section 1256** | failed 2× → **relaunched** |
@@ -187,3 +188,17 @@ outstanding in the entire bank.**
 
 Among routes where the counterparty is a market rather than a company, the
 **warrant basket at ~5%** remains the best, and nothing yet beats a fair coin.
+
+### Report 09 closed the direction report 01 called most promising
+
+Report 01 concluded capacity was the reason a small account might beat
+institutions. Report 09 shows the thesis is **half right and the wrong half is
+fatal**: every small-capacity edge also has a capacity **FLOOR** set by the
+$0.65/contract commission, the 100-share multiplier and combo spreads. The
+window is **$100k to a few million — $5,000 is below it.** Hard-to-borrow
+conversions are *negative* at $5k and *positive* at $500k.
+
+The one-line reason: **"too small in dollars" and "large in percent" are nearly
+incompatible.** That closes the branch, and it means the remaining live routes
+are convexity (warrants, moderate-delta options) and someone else's capital
+(prop firms) — not arbitrage.
