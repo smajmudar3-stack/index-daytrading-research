@@ -14,21 +14,49 @@ This is a **bounded-downside convexity** problem, not a steady-edge problem, and
 it is scored by **P(10x)** — not by expected return or Sharpe, which rank
 strategies differently.
 
-## Status
+## Status — 2026-08-26
 
-| # | domain | status |
+**6 banked · 8 running · 0 re-run unnecessarily.** Completed reports are never
+relaunched; only failures were restarted.
+
+### Banked — do not re-dispatch
+
+| # | domain | report |
 |---|---|---|
-| 1 | Kelly, leverage, ruin math | ✅ `reports/01_kelly_ruin.md` |
-| 2 | GitHub repos with high-return claims | ✅ `reports/02_github_repos.md` |
-| 3 | Verified track records & base rates | ❌ failed 2x — search budget exhausted |
-| 4 | Small-account capacity-constrained edges | ❌ failed — **highest priority to retry** |
-| 5 | Forums & practitioner communities | ✅ `reports/03_forums_communities.md` |
-| 6 | Vol arb, dispersion, Section 1256 | ❌ failed |
-| 7 | Event-driven: where IV underprices | ✅ `reports/04_event_driven.md` |
-| 8 | Blow-up forensics | ❌ failed 2x |
-| 9 | Meta: find uncovered domains | ✅ `reports/05_new_domains.md` — **14 new domains** |
-| 10 | Optimal betting to a target (bold play) | ❌ stalled — partially covered by `synthesis/tenx_baseline.txt` |
-| 11 | Maximum-convexity vehicle selection | ❌ failed — **highest priority to retry** |
+| 1 | Kelly, leverage, ruin math | `reports/01_kelly_ruin.md` |
+| 2 | GitHub repos with high-return claims | `reports/02_github_repos.md` |
+| 3 | Forums, communities, survivorship | `reports/03_forums_communities.md` |
+| 4 | Event-driven: where IV mis-prices | `reports/04_event_driven.md` |
+| 5 | Meta: fourteen uncovered domains | `reports/05_new_domains.md` |
+| 6 | Crypto convexity + access | `reports/06_crypto_convexity.md` |
+
+### Running — the original cycle, completed
+
+| domain | history |
+|---|---|
+| Capacity-constrained small-account edges | never finished → **relaunched** |
+| Maximum-convexity base rates (delta × DTE) | failed 1× → **relaunched** |
+| Optimal betting to a target (Dubins-Savage) | stalled 1× → **relaunched** |
+| Vol arb, dispersion, **Section 1256** | failed 2× → **relaunched** |
+| Verified track records & retail base rate | failed 3× → **relaunched** |
+| Crash winners & strictly-bounded structures | failed 2× → **relaunched, reframed** |
+| Prop-firm independent trials | new, from report 05 |
+| SPAC warrant P(10x) base rate | new, from report 05 |
+
+All eight are instructed: **no subagents**, conserve searches, ~30–40 calls. The
+earlier fleet died because the meta-agent spawned children and exhausted the
+shared search budget.
+
+### Not yet dispatched — remaining HIGH domains from report 05
+
+Reflexive crypto-treasury equities (#1) · prediction markets as digital options
+(#2) · option-writing ETF forced flows via N-PORT (#3) · SOFR/rates convexity
+(#4) · structured-product barrier clusters (#5).
+
+Report 05 flags **#1, #3 and #5 as one connected system** — forced option sellers
+(#3) manufacture the cheap upside convexity in reflexive names (#1), while
+structured-product barriers (#5) mark where the downside gap is mechanically
+amplified. Dispatch together.
 
 ## Rules for this bank
 
