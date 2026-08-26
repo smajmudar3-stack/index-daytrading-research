@@ -34,6 +34,8 @@ relaunched; only failures were restarted.
 | 9 | **Capacity edges — thesis killed** | `reports/09_capacity_edges.md` |
 | 10 | **Vol arb + Section 1256 (statutory edge)** | `reports/10_volarb_section1256.md` |
 | 11 | **Crash winners + bounded structures** | `reports/11_crash_winners.md` |
+| 12 | **Optimal betting — the master formula** | `reports/12_optimal_betting.md` |
+| 13 | **Base rates — the 1.47% hurdle** | `reports/13_base_rates.md` |
 
 ### Running — the original cycle, completed
 
@@ -41,9 +43,9 @@ relaunched; only failures were restarted.
 |---|---|
 
 
-| Optimal betting to a target (Dubins-Savage) | stalled 1× → **relaunched** |
 
-| Verified track records & retail base rate | failed 3× → **relaunched** |
+
+
 
 
 
