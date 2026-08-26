@@ -30,6 +30,7 @@ relaunched; only failures were restarted.
 | 5 | Meta: fourteen uncovered domains | `reports/05_new_domains.md` |
 | 6 | Crypto convexity + access | `reports/06_crypto_convexity.md` |
 | 7 | **Warrants — first measured P(10x)** | `reports/07_warrants.md` |
+| 8 | **Prop firms — first route to beat the ceiling** | `reports/08_prop_firms.md` |
 
 ### Running — the original cycle, completed
 
@@ -41,7 +42,7 @@ relaunched; only failures were restarted.
 | Vol arb, dispersion, **Section 1256** | failed 2× → **relaunched** |
 | Verified track records & retail base rate | failed 3× → **relaunched** |
 | Crash winners & strictly-bounded structures | failed 2× → **relaunched, reframed** |
-| Prop-firm independent trials | new, from report 05 |
+
 
 
 All eight are instructed: **no subagents**, conserve searches, ~30–40 calls. The
@@ -169,11 +170,20 @@ fair bet and optimal play, P($5k→$50k) = 10% exactly, and no bet sizing beats 
 | single warrant, 12m | 1–2% | yes | measured |
 | warrants bought in the 2020–21 boom | **0.0%** | yes | measured |
 | far-OTM options held to expiry | ~1% | yes | measured (10.5M purchases) |
+| **Apex 20-account correlated cycle** | **14–45%** | **yes — fee only** | modelled; ⚠ counterparty |
 
-Nothing yet **beats** a fair coin. The warrant route is the closest, and its
-argument is not superior odds but **genuinely bounded downside with no options
-approval and a computable base rate**.
+**Only one route beats the ceiling, and it does so for a clean reason:** the 10%
+bound binds when the payoff is funded by *your own stake*. A prop evaluation fee
+is a call-option premium on **someone else's** drawdown allowance — roughly 50:1
+free leverage, downside truncated at the fee. The ceiling simply does not apply.
 
-The open question that could change the ranking is whether **independent repeated
-trials** (prop firms) escape the ceiling entirely — 1−(1−p)^N is a different
-problem from a single sequence.
+**But its risk is not market risk.** Apex's own disclosure calls the payout
+*"discretionary"*; the accounts are simulated, unregulated, and the $50,000 is an
+unsecured payable from a private LLC. And the strategy that makes the math work —
+correlated copy-trading, one-directional, no stop-loss — is reportedly the same
+behaviour cited in past payout denials. **That single unverified fact is the
+difference between a 30% plan and a 0% one, and it is the highest-value item
+outstanding in the entire bank.**
+
+Among routes where the counterparty is a market rather than a company, the
+**warrant basket at ~5%** remains the best, and nothing yet beats a fair coin.
