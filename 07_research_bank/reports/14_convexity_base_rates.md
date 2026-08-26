@@ -205,6 +205,28 @@ Every name in the *non-winner* basket had 2–3 windows over 8.5 years where a 1
 
 ---
 
+## ⚠️ CORRECTED by report 15 — the crypto ranking is unsupported
+
+This report ranked crypto-linked names highest (**4.85%**) **because it assumed a
+30%/yr drift**, citing Almeida's 66%/yr Bitcoin premium. Report 15 measured the
+realised outcome over 2025-08 → 2026-08:
+
+| | |
+|---|---|
+| IBIT | **−30.4%** |
+| beta-implied MSTR | −40.0% |
+| **MSTR actual** | **−65.4%** |
+| **residual alpha** | **−42.3%** (mNAV de-rating) |
+
+The drift input that produced 4.85% is not merely absent — it is **deeply
+negative** over the most recent year. Report 15 also found MSTR IV sits **14–16
+vol points ABOVE** coin IV × beta, and that **tail beta does not expand**
+(1.23–1.43 against a 1.41 baseline).
+
+**Treat the crypto-linked ranking as unsupported.** The delta-curve conclusion
+(peak at 15–25Δ, deep OTM six times worse) is unaffected — report 15 independently
+reproduced it on real MSTR quotes.
+
 ## The bottom line
 
 **P(10×) is maximised at 15–25 delta, 90–180 DTE, on a positively-skewed single
