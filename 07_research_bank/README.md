@@ -32,17 +32,19 @@ relaunched; only failures were restarted.
 | 7 | **Warrants — first measured P(10x)** | `reports/07_warrants.md` |
 | 8 | **Prop firms — first route to beat the ceiling** | `reports/08_prop_firms.md` |
 | 9 | **Capacity edges — thesis killed** | `reports/09_capacity_edges.md` |
+| 10 | **Vol arb + Section 1256 (statutory edge)** | `reports/10_volarb_section1256.md` |
+| 11 | **Crash winners + bounded structures** | `reports/11_crash_winners.md` |
 
 ### Running — the original cycle, completed
 
 | domain | history |
 |---|---|
 
-| Maximum-convexity base rates (delta × DTE) | failed 1× → **relaunched** |
+
 | Optimal betting to a target (Dubins-Savage) | stalled 1× → **relaunched** |
-| Vol arb, dispersion, **Section 1256** | failed 2× → **relaunched** |
+
 | Verified track records & retail base rate | failed 3× → **relaunched** |
-| Crash winners & strictly-bounded structures | failed 2× → **relaunched, reframed** |
+
 
 
 
@@ -202,3 +204,32 @@ The one-line reason: **"too small in dollars" and "large in percent" are nearly
 incompatible.** That closes the branch, and it means the remaining live routes
 are convexity (warrants, moderate-delta options) and someone else's capital
 (prop firms) — not arbitrage.
+
+
+## Convergence — three reports independently point at the same vehicle
+
+Reports 10 and 11 were dispatched separately on unrelated questions (tax
+treatment; crash forensics) and arrived at the **same instrument**:
+
+> **XSP — the 1/10th-size S&P 500 index option.**
+
+| property | why it matters | source |
+|---|---|---|
+| European, cash-settled | **no early assignment, no exercise-by-exception** — the only structure with no mechanical path to a negative balance | 11 |
+| Section 1256, 60/40 | worth **$1,890–$5,400** on a $45k gain — 38–108% of the entire stake, risk-free | 10 |
+| no wash-sale rule | a losing position can be rebuilt immediately | 10 |
+| 3-year loss carryback | **directly rewards the "total loss acceptable" framing** | 10 |
+| 1/10th SPX notional | ~$65k/contract instead of ~$650k — sized for a $5k account | 11 |
+
+And three reports independently converge on the same *structure* of bet:
+
+| finding | source |
+|---|---|
+| with negative expectancy, **fewer bets is strictly better** | martingale math |
+| **moderate delta beats the far wing** (+26.1% at 16–30Δ; 38.7% of BTC premium in [+20%,+60%]) | ours + report 06 |
+| **event-conditioned, held days, not a standing hedge** — carry disqualifies a continuous ladder at $5k | 11 |
+| 5–15Δ is what 10xs on a ~1-per-2-year dislocation; 85–95% expire worthless | 11 |
+
+**The emerging shape: a small number of event-conditioned XSP debit positions at
+moderate-to-low delta, held for days, in a cash account.** Not a standing hedge,
+not far-OTM lottery tickets, not credit structures.
