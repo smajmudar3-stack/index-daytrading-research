@@ -13,7 +13,7 @@ import time
 
 from idt import paths
 
-from . import signals, evidence, markets, risk, today
+from . import signals, structures, evidence, markets, risk, today
 
 VIEWS = [
     {
@@ -36,7 +36,8 @@ VIEWS = [
         "slug": "markets",
         "label": "Markets",
         "question": "What is the tape doing? Context only — nothing here is a recommendation.",
-        "panels": [markets.periscope_spx, markets.periscope_ndx, markets.swing,
+        "panels": [structures.gamma_structures,
+                   markets.periscope_spx, markets.periscope_ndx, markets.swing,
                    markets.gaps, markets.blackswan],
     },
     {

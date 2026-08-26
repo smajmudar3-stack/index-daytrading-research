@@ -1,0 +1,22 @@
+{% set b = p.body %}
+<div class="st-head">
+  <span class="st-q">Q{{ b.quintile }}/5</span>
+  <span class="st-label">range {{ b.label }}</span>
+  {% if b.call_wall and b.put_wall %}
+  <span class="st-walls">put wall {{ b.put_wall }} · spot {{ b.spot|round(0)|int }} · call wall {{ b.call_wall }}</span>
+  {% endif %}
+</div>
+{% for r in b.rows %}
+<div class="st {{ 'fit' if r.fits else 'nofit' }}">
+  <div class="st-top">
+    <span class="st-name">{{ r.name }}</span>
+    <span class="st-tag">{{ 'FITS THE REGIME' if r.fits else 'ARGUED AGAINST' }}</span>
+  </div>
+  <div class="st-legs">{{ r.legs }}</div>
+  <div class="st-why">{{ r.why }}</div>
+  <div class="st-risk">{{ r.risk }}</div>
+  <div class="st-ev"><b>measured:</b> {{ r.ev }}</div>
+</div>
+{% endfor %}
+<p class="st-foot">Strikes from {{ b.basis }}. Which structure fits the regime, not
+a recommendation to trade it. The gates on Today decide that.</p>

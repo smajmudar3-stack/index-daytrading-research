@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**300 files, 61,965 lines.**
+**302 files, 62,180 lines.**
 
 ## Repo root
 
-*8 files, 1,007 lines*
+*8 files, 1,010 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 20 | 251 B |
 | `AGENTS.md` | 158 | 9 KB |
 | `CLAUDE.md` | 158 | 9 KB |
-| `MANIFEST.md` | 477 | 18 KB |
+| `MANIFEST.md` | 480 | 18 KB |
 | `README.md` | 108 | 6 KB |
 | `pyproject.toml` | 57 | 2 KB |
 | `requirements.txt` | 11 | 261 B |
@@ -147,7 +147,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*7 files, 1,397 lines*
+*8 files, 1,565 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -156,8 +156,9 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/markets.py` | 182 | 8 KB |
 | `04_live_system/panels/risk.py` | 163 | 8 KB |
 | `04_live_system/panels/signals.py` | 241 | 11 KB |
+| `04_live_system/panels/structures.py` | 167 | 8 KB |
 | `04_live_system/panels/today.py` | 360 | 15 KB |
-| `04_live_system/panels/views.py` | 136 | 5 KB |
+| `04_live_system/panels/views.py` | 137 | 5 KB |
 
 ## 04_live_system/templates — Jinja templates
 
@@ -173,7 +174,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*23 files, 397 lines*
+*24 files, 419 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -190,6 +191,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/events.html` | 15 | 693 B |
 | `04_live_system/templates/panels/evidence_meter.html` | 18 | 671 B |
 | `04_live_system/templates/panels/gamma_meter.html` | 18 | 655 B |
+| `04_live_system/templates/panels/gamma_structures.html` | 22 | 914 B |
 | `04_live_system/templates/panels/gates.html` | 17 | 855 B |
 | `04_live_system/templates/panels/patterns.html` | 45 | 1 KB |
 | `04_live_system/templates/panels/peri_ndx.html` | 1 | 39 B |
@@ -203,11 +205,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/static — stylesheet and refresh script
 
-*2 files, 540 lines*
+*2 files, 562 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/static/app.css` | 483 | 25 KB |
+| `04_live_system/static/app.css` | 505 | 26 KB |
 | `04_live_system/static/app.js` | 57 | 2 KB |
 
 ## 05_studies — backtest and hunt harnesses
