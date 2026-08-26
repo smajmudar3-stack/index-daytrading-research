@@ -30,14 +30,19 @@ from idt import snapshots
 
 from . import EMPTY, OK, UNAVAILABLE, panel, safe
 
-# Gamma quintile -> range expectation. 1 = deepest positive gamma (dealers damp),
-# 5 = deepest negative (dealers amplify).
+# Gamma quintile -> range expectation. pd.qcut labels ASCENDING, so Q1 is the
+# LOWEST gex_z (most NEGATIVE dealer gamma, moves amplify) and Q5 the HIGHEST
+# (most positive, price pins). This was inverted in the first version of this
+# file and would have recommended condors in exactly the regime that loses.
+#
+# Q4 is deliberately no-signal: measured -1.83%/trade, a hole in the gradient.
+# High gamma is not enough; it takes DEEP positive gamma.
 RANGE_READ = {
-    1: ("COMPRESSES HARD", "range"),
-    2: ("COMPRESSES", "range"),
+    1: ("EXPANDS HARD", "move"),
+    2: ("EXPANDS", "move"),
     3: ("NO SIGNAL", None),
-    4: ("EXPANDS", "move"),
-    5: ("EXPANDS HARD", "move"),
+    4: ("COMPRESSES (measured hole)", None),
+    5: ("COMPRESSES HARD", "range"),
 }
 
 # Measured expectancy for each structure, so no row can be read as a green light.

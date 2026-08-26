@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**304 files, 62,593 lines.**
+**306 files, 62,758 lines.**
 
 ## Repo root
 
-*8 files, 1,013 lines*
+*8 files, 1,014 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 20 | 251 B |
 | `AGENTS.md` | 158 | 9 KB |
 | `CLAUDE.md` | 158 | 9 KB |
-| `MANIFEST.md` | 483 | 18 KB |
+| `MANIFEST.md` | 484 | 18 KB |
 | `README.md` | 108 | 6 KB |
 | `pyproject.toml` | 57 | 2 KB |
 | `requirements.txt` | 11 | 261 B |
@@ -147,7 +147,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*8 files, 1,604 lines*
+*8 files, 1,612 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -155,8 +155,8 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/evidence.py` | 206 | 10 KB |
 | `04_live_system/panels/markets.py` | 182 | 8 KB |
 | `04_live_system/panels/risk.py` | 163 | 8 KB |
-| `04_live_system/panels/signals.py` | 241 | 11 KB |
-| `04_live_system/panels/structures.py` | 206 | 10 KB |
+| `04_live_system/panels/signals.py` | 244 | 11 KB |
+| `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 360 | 15 KB |
 | `04_live_system/panels/views.py` | 137 | 5 KB |
 
@@ -269,7 +269,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies/scripts — research harnesses
 
-*72 files, 10,929 lines*
+*73 files, 11,042 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -293,6 +293,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scripts/cb_weekly_manage.py` | 176 | 7 KB |
 | `05_studies/scripts/check_apis.py` | 87 | 3 KB |
 | `05_studies/scripts/combo_sweep.py` | 196 | 8 KB |
+| `05_studies/scripts/condor_q5_test.py` | 113 | 5 KB |
 | `05_studies/scripts/daily_engine.py` | 243 | 10 KB |
 | `05_studies/scripts/delta_hedged_gains.py` | 161 | 7 KB |
 | `05_studies/scripts/earnings_convexity.py` | 177 | 8 KB |
@@ -402,11 +403,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*4 files, 659 lines*
+*5 files, 702 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `test/conftest.py` | 65 | 2 KB |
+| `test/test_gamma_direction.py` | 43 | 2 KB |
 | `test/test_gates.py` | 140 | 6 KB |
 | `test/test_panels.py` | 290 | 12 KB |
 | `test/test_pricing.py` | 164 | 6 KB |

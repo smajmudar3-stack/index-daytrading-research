@@ -30,17 +30,18 @@ from . import EMPTY, OK, UNAVAILABLE, panel, safe
 # Gamma quintile -> what it means for price, in the operator's language.
 # 1 = deepest positive gamma (dealers dampen), 5 = deepest negative (dealers amplify).
 GAMMA_MEANING = {
-    1: ("PINNED", "Dealers are long the most gamma. They sell rallies and buy dips, "
-                  "which pins price to the big strikes. Ranges hold; breakouts fail."),
-    2: ("STICKY", "Dealer hedging still damps moves. Expect the range to hold more "
-                  "often than not."),
+    1: ("AMPLIFIED", "Dealers are deeply short gamma. They buy strength and sell "
+                     "weakness, which feeds the move. Trends run and gaps run "
+                     "furthest. Measured: selling range here loses 1.31%/trade."),
+    2: ("LOOSE", "Dealers are short gamma. Hedging adds to moves rather than "
+                 "damping them, so a push tends to keep going."),
     3: ("NEUTRAL", "Dealer positioning is not pushing price either way. Whatever "
-                   "happens today is the market's doing, not the hedging flow's."),
-    4: ("LOOSE", "Dealers are short gamma. Their hedging now adds to moves instead "
-                 "of damping them, so a push tends to keep going."),
-    5: ("AMPLIFIED", "Dealers are deeply short gamma. They buy strength and sell "
-                     "weakness, which feeds the move. This is when a trend actually "
-                     "runs -- and when a gap runs furthest."),
+                   "happens is the market's doing, not the hedging flow's."),
+    4: ("STICKY", "Dealer hedging damps moves, but not enough. Measured: this is "
+                  "a HOLE -- selling range here still lost 1.83%/trade."),
+    5: ("PINNED", "Dealers are deeply long gamma. They sell rallies and buy dips, "
+                  "pinning price to the big strikes. This is the one regime where "
+                  "selling range measured POSITIVE: +1.52%/trade, 87.2% win."),
 }
 
 SHORT_FLOAT_FIRE = 20.0     # percent of float; below this the signal is noise
@@ -89,8 +90,10 @@ def _gamma():
         "gex_bn": g.get("gex_bn"), "gex_z": g.get("gex_z"),
         "neg": bool(g.get("neg_gamma")),
         "as_of": g.get("as_of"), "applies_to": g.get("applies_to"),
-        # 4 and 5 are the low-gamma regime the 8-of-8 result refers to
-        "fires": q >= 4,
+        # Q1 is the LOWEST gex_z, i.e. the most NEGATIVE dealer gamma.
+        # qcut labels ascending, so low quintile = low gamma. Getting this
+        # backwards inverts every recommendation built on it.
+        "fires": q <= 2,
     }
 
 
@@ -208,7 +211,7 @@ def _quiet(gam, ratio, shorts):
     rows = []
     if gam:
         rows.append(("Low dealer gamma",
-                     f"quintile {gam['score']} of 5 ({gam['label']}) — fires at 4 or 5"))
+                     f"quintile {gam['score']} of 5 ({gam['label']}) — fires at 1 or 2"))
     else:
         rows.append(("Low dealer gamma", "no gamma snapshot"))
     if ratio:
@@ -236,6 +239,6 @@ def gamma_meter():
                      "applies_to": g.get("applies_to"),
                      "scale": [(i, GAMMA_MEANING[i][0]) for i in range(1, 6)],
                  },
-                 severity="watch" if g["score"] >= 4 else "info",
-                 note="1 = dealers pin price · 5 = dealers amplify moves",
+                 severity="watch" if g["score"] <= 2 or g["score"] == 5 else "info",
+                 note="1 = dealers AMPLIFY moves (lowest gamma) · 5 = dealers PIN price (highest)",
                  source=f"gex_snapshot.json, {g.get('as_of', 'unknown time')}")
