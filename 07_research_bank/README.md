@@ -26,7 +26,7 @@ strategies differently.
 | 6 | Vol arb, dispersion, Section 1256 | ❌ failed |
 | 7 | Event-driven: where IV underprices | ✅ `reports/04_event_driven.md` |
 | 8 | Blow-up forensics | ❌ failed 2x |
-| 9 | Meta: find uncovered domains | ❌ failed 2x |
+| 9 | Meta: find uncovered domains | ✅ `reports/05_new_domains.md` — **14 new domains** |
 | 10 | Optimal betting to a target (bold play) | ❌ stalled — partially covered by `synthesis/tenx_baseline.txt` |
 | 11 | Maximum-convexity vehicle selection | ❌ failed — **highest priority to retry** |
 
@@ -80,6 +80,8 @@ when the bank is complete** — the two designs are opposites and cannot be hedg
 between.
 
 
+| 12 | Crypto convexity + access | ✅ `reports/06_crypto_convexity.md` |
+
 ## Blocker (2026-08-25)
 
 **The session-wide web-search budget is exhausted.** Agents are failing with
@@ -103,3 +105,24 @@ Milian (2023, *JRFM*, peer-reviewed): **mean +0.48% (n.s.), median −17.69%**. 
 t-stat of −95.7 on a fat-tailed near-zero-mean distribution is implausible unless
 the exit convention is systematically costly. **Audit before anything is built on
 it** — and it is currently published in `BUNDLE/02_findings/` and on GitHub.
+
+
+## The two findings that survived contact so far
+
+**1. Moderate delta beats the far wing — confirmed twice, independently.**
+
+| study | asset | far wing | moderate delta |
+|---|---|---|---|
+| ours, 10.5M purchases | US equity | −90% | **+26.1% at 16–30Δ** |
+| Almeida et al., 7.8M Deribit trades | BTC | small premium beyond ±60% | **38.7% of premium in [+20%,+60%]** |
+
+Two asset classes, two datasets, same conclusion, and the crypto one comes with a
+stated mechanism: **high IV ≠ negative expectancy when the underlying carries a
+66%/yr risk premium**. This is the most robust result in the bank.
+
+**2. Independent repeated trials may beat any single edge.**
+
+The martingale ceiling — P($5k→$50k) = 10% — binds *one* sequence of bets.
+Report 05's prop-firm domain offers **N independent attempts at bounded cost**,
+which is a different problem. That reframing is worth more than any edge found so
+far, and it went unexamined because the whole investigation was framed in options.
