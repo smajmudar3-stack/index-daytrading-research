@@ -438,3 +438,46 @@ footer p { margin: 8px 0 0; color: var(--faint); font-size: 11px; line-height: 1
   .verb { font-size: 40px; }
   .herorow { flex-direction: column; }
 }
+
+/* ── validated-signal alert ─────────────────────────────────────────────────
+   These three are the only measured signals in the repo. Everything else on
+   the page is context. The visual weight is deliberate: a signal you have to
+   go looking for is a signal you will miss. */
+.fire{border:1px solid var(--stop);border-left:4px solid var(--stop);border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,90,90,.10),rgba(255,90,90,.02));
+  padding:16px 18px;margin:0 0 14px}
+.fire:last-child{margin-bottom:0}
+.fire-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fire-flag{font-size:10.5px;font-weight:800;letter-spacing:.14em;background:var(--stop);
+  color:#12060a;padding:3px 9px;border-radius:99px}
+.fire-name{font-size:19px;font-weight:800;letter-spacing:.01em}
+.fire-read{font-family:var(--mono);font-size:13px;color:var(--fg);margin:8px 0 12px;
+  padding:7px 11px;background:rgba(255,255,255,.05);border-radius:8px;display:inline-block}
+.fire-block{margin:10px 0}
+.fire-h{font-size:10px;font-weight:800;letter-spacing:.11em;color:var(--muted);margin-bottom:3px}
+.fire-block p{margin:0;font-size:13.5px;line-height:1.6}
+.fire-act{border-left:3px solid var(--go);padding-left:11px}
+.fire-not{margin-top:11px;font-size:12px;line-height:1.55;color:var(--muted);
+  background:rgba(255,255,255,.04);border-radius:8px;padding:8px 11px}
+.fire-not b{color:var(--stop)}
+.fire-ev{margin-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.fire-names{margin-top:12px;overflow-x:auto}
+.fire-names .hot{color:var(--stop);font-weight:700}
+.fire-names .dn{color:var(--stop)}
+.quiet-tbl .qn{font-weight:600;padding-right:16px;white-space:nowrap}
+.quiet-tbl .qw{color:var(--muted);font-family:var(--mono);font-size:11.5px}
+
+/* ── gamma out of five ──────────────────────────────────────────────────── */
+.gm{display:flex;align-items:center;gap:18px}
+.gm-score{display:flex;align-items:baseline}
+.gm-n{font-size:46px;font-weight:800;line-height:1}
+.gm-d{font-size:17px;color:var(--muted);margin-left:2px}
+.gm-label{font-size:15px;font-weight:700;letter-spacing:.04em}
+.gm-dots{display:flex;gap:6px;margin-top:8px}
+.gm-dot{width:34px;height:7px;border-radius:99px;background:rgba(255,255,255,.13)}
+.gm-dot.on{background:var(--muted)}
+.gm-dot.on.hi{background:var(--warn)}
+.gm-mean{margin:13px 0 0;font-size:13.5px;line-height:1.6}
+.gm-nums{margin-top:11px;display:flex;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11px;color:var(--muted)}
+.gm-nums b{color:var(--fg)}

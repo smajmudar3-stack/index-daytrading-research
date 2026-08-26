@@ -13,14 +13,15 @@ import time
 
 from idt import paths
 
-from . import evidence, markets, risk, today
+from . import signals, evidence, markets, risk, today
 
 VIEWS = [
     {
         "slug": "today",
         "label": "Today",
         "question": "Is there anything to do right now, and how much should I trust it?",
-        "panels": [today.answer, today.gates, today.regime, today.positions],
+        "panels": [signals.patterns, today.answer, signals.gamma_meter,
+                   today.gates, today.regime, today.positions],
     },
     {
         "slug": "evidence",

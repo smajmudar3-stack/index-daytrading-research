@@ -1,0 +1,18 @@
+{% set b = p.body %}
+<div class="gm">
+  <div class="gm-score"><span class="gm-n">{{ b.score }}</span><span class="gm-d">/5</span></div>
+  <div class="gm-right">
+    <div class="gm-label">{{ b.label }}</div>
+    <div class="gm-dots">
+      {% for i, lab in b.scale %}
+        <span class="gm-dot {{ 'on' if i <= b.score }} {{ 'hi' if i >= 4 }}" title="{{ i }} — {{ lab }}"></span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<p class="gm-mean">{{ b.meaning }}</p>
+<div class="gm-nums">
+  <span>net gamma <b>{{ b.gex_bn }}bn</b></span>
+  <span>z-score <b>{{ b.gex_z }}</b></span>
+  {% if b.applies_to %}<span>{{ b.applies_to }}</span>{% endif %}
+</div>

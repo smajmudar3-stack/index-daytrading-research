@@ -387,7 +387,18 @@ def run():
             if _prof.get("short_float_pct") is not None:
                 # NEGATIVE by measurement (IC -0.068 @21d): heavily shorted
                 # names underperform.
-                _votes["short"] = -min(float(_prof["short_float_pct"]) / 20.0, 1.0)
+                _sf = float(_prof["short_float_pct"])
+                _votes["short"] = -min(_sf / 20.0, 1.0)
+                # PERSIST it. The vote was computed and then thrown away, so the
+                # strongest measured signal in this repo (IC -0.107 at 63d) was
+                # invisible to every downstream reader -- the dashboard could
+                # never fire on it because the field did not exist in the
+                # snapshot. Values above 60 are a vendor error, not a signal:
+                # BYND has printed 758%.
+                if 0 <= _sf <= 60:
+                    s["short_float_pct"] = round(_sf, 2)
+            if _prof.get("dp_buy_share") is not None:
+                s["dp_buy_share"] = _prof.get("dp_buy_share")
         except Exception:
             pass
 

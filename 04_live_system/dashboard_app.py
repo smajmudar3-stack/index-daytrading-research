@@ -27,7 +27,7 @@ from markupsafe import Markup  # noqa: E402
 
 from panels import views  # noqa: E402
 
-PORT = 8094
+PORT = 8095
 TEMPLATES = os.path.join(HERE, "templates")
 STATIC = os.path.join(HERE, "static")
 
