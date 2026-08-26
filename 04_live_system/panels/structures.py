@@ -41,15 +41,53 @@ RANGE_READ = {
 }
 
 # Measured expectancy for each structure, so no row can be read as a green light.
+# Measured directly on 1,919 sessions of real SPXW bid/ask, 17,230 trades, held
+# to the 16:00 cash settle. Credit structures on capital at risk, debit on premium
+# paid. See 05_studies/scripts/gex_structures_test.py.
 EVIDENCE = {
-    "iron condor": "unconditional 0DTE: gross Sharpe 0.77, NET −0.20 (Vilkov). "
-                   "Our own 11:00 entry measured −1.70%/trade on real quotes.",
-    "iron butterfly": "same family as the condor. Every credit structure tested "
-                      "here was negative after real fills, |t| > 9.",
-    "long straddle": "buying 0DTE premium on a signal measured −10% to −11% per "
-                     "trade. Below the flip specifically: −7.2%.",
-    "long strangle": "below the flip measured −19.1% per trade. The worst of the four.",
+    "iron condor": "MEASURED −0.25%/trade on 4,310 real-quote trades, t = −0.47. "
+                   "Win rate 74.8% — high win rate, negative expectancy.",
+    "iron butterfly": "MEASURED −0.35%/trade on 4,310 trades, t = −0.56, "
+                      "57.0% win rate.",
+    "long straddle": "MEASURED −5.69%/trade on 4,305 trades, t = −4.75. "
+                     "Significantly negative, not merely unprofitable.",
+    "long strangle": "MEASURED −11.54%/trade, median −100%. Most expire worthless.",
 }
+
+# The gamma conditioning does NOT work in the direction the range read predicts.
+# Condor mean by quintile: Q1 −1.31%, Q2 +0.29%, Q3 +0.04%, Q4 −1.83%, Q5 +1.52%.
+# Q1 is the most positive gamma — where compression should make a condor work best
+# — and it is the WORST cell. One cell of 100 cleared the |t| = 3.03 noise
+# threshold (condor, 12:00 entry, Q5, t = +3.15), which is exactly what 100 tests
+# produce by chance, and it sits in the quintile opposite to the theory. It is not
+# treated as a finding.
+GAMMA_CONDITIONING = ("Tested across 5 quintiles x 5 entry times: the range read "
+                      "does not convert into a profitable structure, and the best "
+                      "condor cell is in the wrong quintile.")
+
+# WHY THIS PANEL USES ONE NUMBER AND NOT THE WHOLE GAMMA PICTURE.
+# The obvious objection is that a single quintile throws away net GEX level, flip
+# distance, wall geometry, gamma concentration and the next significant strike in
+# each direction. All seven were measured against realised range / implied move on
+# 1,384 sessions, split 60/40 (05_studies/scripts/gamma_features_test.py):
+#
+#   feature          IC train   IC test
+#   net_gamma          -0.099    -0.014
+#   flip_dist          -0.022    -0.001
+#   wall_width         +0.103    +0.008
+#   wall_pos           -0.055    -0.013
+#   concentration      -0.091    -0.075   <- best, t = -1.76, still not significant
+#   next_up            +0.039    -0.003
+#   next_dn            +0.107    -0.012   <- sign flips
+#
+# Every one collapses out of sample, and next_dn reverses. The quintile itself is
+# no better: IC -0.105 in train, -0.020 in test, with realised/implied running
+# 1.493 at the most negative gamma down to 1.387 at the most positive -- the right
+# direction, a 7% spread, and no out-of-sample significance.
+#
+# So the panel keeps the quintile not because it is good but because nothing
+# richer survives the split, and adding six dead inputs to one weak one would
+# only make the output look more authoritative than the evidence is.
 
 
 def _read(name):
@@ -163,5 +201,6 @@ def gamma_structures():
                  note=f"Gamma quintile {q} of 5 — range {label}. Strikes from the "
                       f"live dealer map. This is which structure FITS the regime, "
                       f"not a recommendation to trade it.",
-                 source="realised/implied 0.843× high-γ vs 1.139× low-γ, t = −13.2 · "
-                        "strikes from periscope_SPX.json")
+                 source="range read: realised/implied 0.843× high-γ vs 1.139× "
+                        "low-γ, t = −13.2 · structures measured on 17,230 real-quote "
+                        "trades, all negative · strikes from periscope_SPX.json")

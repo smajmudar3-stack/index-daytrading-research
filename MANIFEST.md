@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**302 files, 62,180 lines.**
+**304 files, 62,593 lines.**
 
 ## Repo root
 
-*8 files, 1,010 lines*
+*8 files, 1,013 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 20 | 251 B |
 | `AGENTS.md` | 158 | 9 KB |
 | `CLAUDE.md` | 158 | 9 KB |
-| `MANIFEST.md` | 480 | 18 KB |
+| `MANIFEST.md` | 483 | 18 KB |
 | `README.md` | 108 | 6 KB |
 | `pyproject.toml` | 57 | 2 KB |
 | `requirements.txt` | 11 | 261 B |
@@ -147,7 +147,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*8 files, 1,565 lines*
+*8 files, 1,604 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -156,7 +156,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/markets.py` | 182 | 8 KB |
 | `04_live_system/panels/risk.py` | 163 | 8 KB |
 | `04_live_system/panels/signals.py` | 241 | 11 KB |
-| `04_live_system/panels/structures.py` | 167 | 8 KB |
+| `04_live_system/panels/structures.py` | 206 | 10 KB |
 | `04_live_system/panels/today.py` | 360 | 15 KB |
 | `04_live_system/panels/views.py` | 137 | 5 KB |
 
@@ -269,7 +269,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies/scripts — research harnesses
 
-*70 files, 10,558 lines*
+*72 files, 10,929 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -300,6 +300,8 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scripts/exotic_claims_test.py` | 240 | 11 KB |
 | `05_studies/scripts/exotic_structure_costs.py` | 262 | 11 KB |
 | `05_studies/scripts/fat_tail_test.py` | 125 | 6 KB |
+| `05_studies/scripts/gamma_features_test.py` | 164 | 7 KB |
+| `05_studies/scripts/gex_structures_test.py` | 207 | 9 KB |
 | `05_studies/scripts/leadlag_test.py` | 71 | 3 KB |
 | `05_studies/scripts/leadlag_trade.py` | 73 | 3 KB |
 | `05_studies/scripts/lit_search.py` | 59 | 3 KB |
