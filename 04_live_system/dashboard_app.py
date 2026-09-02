@@ -14,9 +14,12 @@ Routes:
   /refresh           run a cycle, then return to the view you were on
 """
 import os
+import subprocess
 import sys
+import threading
+import time
 import urllib.parse
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
@@ -30,6 +33,61 @@ from panels import views  # noqa: E402
 PORT = 8095
 TEMPLATES = os.path.join(HERE, "templates")
 STATIC = os.path.join(HERE, "static")
+
+# ---------------------------------------------------------------- refresh
+# The old handler did `import scan_all`, which is wrong twice over.
+#
+#   1. IT ONLY EVER RAN ONCE. Python caches modules in sys.modules, so the
+#      second press of "Refresh the desk" and every press after it was a
+#      silent no-op that still returned a cheerful 302. That is precisely the
+#      reported symptom: pressing refresh did nothing.
+#   2. WHEN IT DID RUN, IT BLOCKED THE SERVER. scan_all has no main() and no
+#      __main__ guard, so the whole ~3-minute cycle executed inside the request
+#      handler of a single-threaded HTTPServer. The page hung until it finished.
+#
+# Fix: run it as a SUBPROCESS (a fresh interpreter re-executes it every time)
+# on a background thread, and report real status instead of guessing.
+_refresh = {"state": "idle", "started": None, "finished": None, "error": None}
+_refresh_lock = threading.Lock()
+
+
+def refresh_state():
+    """A copy for the template. Includes how long ago, so 'done' cannot mislead."""
+    with _refresh_lock:
+        d = dict(_refresh)
+    for k in ("started", "finished"):
+        if d.get(k):
+            d[k + "_ago_s"] = int(time.time() - d[k])
+    return d
+
+
+def _run_cycle():
+    env = dict(os.environ)
+    env.setdefault("PYTHONPATH", os.path.dirname(HERE))
+    try:
+        r = subprocess.run([sys.executable, "scan_all.py"], cwd=HERE, env=env,
+                           capture_output=True, text=True, timeout=900)
+        err = None if r.returncode == 0 else (
+            (r.stderr or r.stdout or "").strip().splitlines() or ["failed"])[-1][:200]
+    except subprocess.TimeoutExpired:
+        err = "cycle exceeded 15 minutes and was killed"
+    except Exception as e:                                    # noqa: BLE001
+        err = f"{type(e).__name__}: {e}"[:200]
+    with _refresh_lock:
+        _refresh.update(state="failed" if err else "done",
+                        finished=time.time(), error=err)
+
+
+def start_refresh():
+    """Kick a cycle off unless one is already running. Returns what happened."""
+    with _refresh_lock:
+        if _refresh["state"] == "running":
+            return "already running"
+        _refresh.update(state="running", started=time.time(),
+                        finished=None, error=None)
+    threading.Thread(target=_run_cycle, daemon=True).start()
+    return "started"
+
 
 # Cache-bust the stylesheet without a build step: the newest mtime under static/.
 def asset_version():
@@ -228,16 +286,17 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/refresh":
             back = q.get("view", views.DEFAULT_VIEW)
-            # A refresh that fails must SAY so. The old handler swallowed every
-            # exception and issued an identical 302 either way.
-            try:
-                import scan_all  # noqa: F401  - running it IS the refresh
-                note = ""
-            except Exception as e:                  # noqa: BLE001
-                note = f"?cycle_error={urllib.parse.quote(str(e)[:120])}"
+            # Returns IMMEDIATELY. The cycle runs on a thread and the page polls
+            # /refresh_status, so the button never hangs the browser again.
+            start_refresh()
             self.send_response(302)
-            self.send_header("Location", f"/{back}{note}")
+            self.send_header("Location", f"/{back}")
             self.end_headers()
+            return
+
+        if path == "/refresh_status":
+            import json as _json
+            self._send(_json.dumps(refresh_state()), "application/json")
             return
 
         slug = path.lstrip("/")
@@ -254,7 +313,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     print(f"Index options desk -> http://127.0.0.1:{PORT}")
-    HTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
 
 
 if __name__ == "__main__":

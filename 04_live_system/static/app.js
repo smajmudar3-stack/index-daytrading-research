@@ -53,5 +53,72 @@
       });
   }
 
+  window.__idtRefreshView = refresh;
   setInterval(refresh, EVERY_MS);
+})();
+
+// ---------------------------------------------------------------- refresh status
+// "Refresh the desk" used to return a 302 instantly whether or not anything
+// happened, so a no-op looked identical to a completed cycle. Now the button
+// starts a background cycle and this polls its real state.
+(function () {
+  var link = document.querySelector('a.refresh');
+  if (!link) return;
+  var chip = document.createElement('span');
+  chip.className = 'chip';
+  chip.setAttribute('data-refresh', '1');
+  link.parentNode.insertBefore(chip, link.nextSibling);
+
+  var timer = null;
+
+  function show(s) {
+    if (s.state === 'running') {
+      var secs = s.started_ago_s || 0;
+      chip.textContent = 'refreshing the desk… ' + secs + 's';
+      chip.className = 'chip watch';
+      link.textContent = 'Refreshing…';
+      link.style.pointerEvents = 'none';
+      link.style.opacity = '0.6';
+      return true;
+    }
+    link.textContent = 'Refresh the desk';
+    link.style.pointerEvents = '';
+    link.style.opacity = '';
+    if (s.state === 'failed') {
+      chip.textContent = 'refresh FAILED: ' + (s.error || 'unknown');
+      chip.className = 'chip stop';
+    } else if (s.state === 'done') {
+      var ago = s.finished_ago_s || 0;
+      chip.textContent = 'desk rebuilt ' + (ago < 60 ? ago + 's' : Math.round(ago / 60) + 'm') + ' ago';
+      chip.className = 'chip';
+      // a completed cycle wrote new snapshots — pull them in
+      if (ago < 5 && window.__idtRefreshView) window.__idtRefreshView();
+    } else {
+      chip.textContent = '';
+      chip.className = 'chip';
+    }
+    return false;
+  }
+
+  function poll() {
+    fetch('/refresh_status', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        var running = show(s);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(poll, running ? 1000 : 15000);
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(poll, 15000);
+      });
+  }
+
+  link.addEventListener('click', function () {
+    chip.textContent = 'starting…';
+    chip.className = 'chip watch';
+    setTimeout(poll, 400);
+  });
+
+  poll();
 })();

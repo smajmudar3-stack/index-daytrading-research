@@ -78,6 +78,27 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    # The macro overlay built from the Crown Macro Letter desk notes. Two sessions is
+    # the limit: a macro read older than that is describing a different tape, and a
+    # stale one is worse than none because it still looks like information.
+    "desk_notes": {
+        "version": 1,
+        "files": ("desk_notes.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("regime_line", "themes"),
+        "not_null": ("regime_line",),
+        "max_age_min": 2880,
+    },
+    # Weekly trade cards. Short max_age on purpose: every card carries live strikes and
+    # a net debit or credit off a real chain, and those go wrong within the session.
+    "weekly": {
+        "version": 1,
+        "files": ("weekly_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("cards", "macro_as_of"),
+        "not_null": (),
+        "max_age_min": 240,
+    },
 }
 
 VERSION_KEY = "schema_version"

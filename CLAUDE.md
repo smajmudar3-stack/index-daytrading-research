@@ -85,6 +85,36 @@ Rules:
   version on write. A version mismatch is not stale data to warn about, it is data written by
   code that no longer exists: when the engines stopped emitting the refuted advice, the page
   still served it from a periscope written twenty minutes earlier.
+- **The weekly book is macro-first, and the macro is not price.** `desk_notes.py` holds an
+  overlay built from the Crown Macro Letter desk notes (`data/desk_notes.json`), and
+  `weekly_swing.py` will not propose a trade that cannot name the theme it expresses. That
+  overlay is the only input on the page not derived from the price series, which is the
+  whole point: `swing_signals.py` had four transforms of one close series and a ±5 macro
+  nudge, so it was technicals wearing a macro hat and it produced eight bearish cards on a
+  flat tape. It is refreshed by `ingest_desk_notes.sh` (a headless Claude session reading
+  Gmail, scheduled by `com.daytrading.desknotes.plist`); an overlay older than two sessions
+  is REFUSED and the book empties with a stated reason.
+- **A weekly card names real strikes off a real ladder, or it is not printed.** Strikes are
+  snapped to the chain's listed strikes per side, never computed as a percentage of spot and
+  rounded — that is what produced "Buy 14P / Sell 14P" on TTD and "Sell 969C / Buy 1015C" on
+  a stock that lists in fives. Every leg prices at the ask when bought and the bid when sold,
+  and a spread whose FULL round-trip bid-ask (both legs, in and out) exceeds 20% of its own
+  max risk is refused. That gate measured one-way at first and called it round-trip, which
+  understated every card's cost by exactly 2x; the ledger caught it within minutes.
+- **A name's event and a tape-wide event want opposite expiries.** Earnings: the first expiry
+  at or after it, because you must still hold when it prints. A macro print (NFP, CPI, FOMC):
+  the first expiry at least three days PAST it, because the print is a hazard to survive, not
+  the thing being bought. Treating them the same pulled every card onto one 2-day expiry.
+- **Every issued card is marked against the chain it was issued on.** `weekly_book.py` is
+  the ledger: it records a card once, freezes the entry price, and never rewrites it. Without
+  that, a losing recommendation just stops appearing on the next 4h regeneration and gets
+  replaced by a fresh one at a fresh price, so the page shows healthy suggestions forever.
+  Exits mirror entries (sell the long at the bid, buy the short back at the ask), so a mark
+  pays the full bid-ask twice and reads worse than any mid-to-mid number. That gap is the
+  point. **Marks outside market hours never CLOSE a position** — after the bell quotes widen
+  to something nobody trades at, and the first live run showed a fresh calendar down 29% on
+  spread alone. `weekly_swing.run()` likewise holds the last open-session book rather than
+  regenerating on closed-market quotes.
 - **Gates fail CLOSED.** A gate that cannot evaluate blocks. Seven of them used to return
   "allow" on an exception, including `check_entry` itself. A missing, empty, exhausted or
   malformed `data/events.json` blocks trading; each case has its own test.

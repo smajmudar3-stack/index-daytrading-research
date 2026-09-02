@@ -96,7 +96,17 @@ def periscope_ndx():
 @safe
 @describe("swing", "Swing signals")
 def swing():
-    """Days-to-weeks direction. Kept because two of its three inputs are measured.
+    """RETIRED FROM THE PAGE on 2026-09-02. Kept as a function, rendered by no view.
+
+    It ranked ~100 names on momentum and always surfaced eight, then attached strikes
+    computed as `round(price * (1+pct), 0)`. On 2026-09-02 that shipped "Buy 14P / Sell
+    14P" on TTD -- a zero-width spread -- and "Sell 969C / Buy 1015C" on a stock listing in
+    $5 increments. `panels/weekly.py` answers the same question against real chains with a
+    stated macro reason and a live ledger, so this one is deleted from the views rather
+    than restyled. `swing_signals.run()` still writes its snapshot and `scorecard.py` still
+    scores it, which is why the function survives.
+
+    Days-to-weeks direction. Kept because two of its three inputs are measured.
 
     The swing OPTION overlays are all refuted (every one was beaten by owning SPY on
     return, Sharpe and drawdown), and sector rotation picks names that do worse than
