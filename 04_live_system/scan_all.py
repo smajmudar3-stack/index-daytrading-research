@@ -205,6 +205,20 @@ gap_scanner.run()  # intraday + analyst + paper settle; cheap when no candidates
 if _stale("swing_snapshot.json", 1500):
     swing_signals.run()
 
+# WEEKLY BOOK — macro-conditioned cards on real weekly chains. Refreshed on a much
+# shorter clock than the swing scan (4h, not 25h) because every card carries live
+# strikes and a net debit or credit read off a real bid/ask, and those go stale inside
+# a session in a way a momentum ranking does not. It reads data/desk_notes.json and
+# REFUSES to produce anything when that overlay is missing or older than two sessions,
+# so a failed ingest shows up as an empty book with a stated reason rather than as
+# cards built on last week's macro.
+if _stale("weekly_snapshot.json", 240):
+    try:
+        import weekly_swing
+        weekly_swing.run()
+    except Exception as _e:                       # noqa: BLE001
+        print(f"weekly_swing failed: {type(_e).__name__}: {_e}")
+
 # ---------------------------------------------------------------------------
 # SIGNAL FRESHNESS, CALIBRATION AND SCORECARD
 # Appended at module level because this file is a script, not a main() — three

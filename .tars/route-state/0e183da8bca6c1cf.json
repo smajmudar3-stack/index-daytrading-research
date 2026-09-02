@@ -1,0 +1,14 @@
+{
+  "_note": "MIRROR ONLY. The gate reads ~/.local/state/tars/route/; editing this file changes nothing.",
+  "sessionId": "f29dd16d-439d-4e32-aed3-6e5018bf1f36",
+  "class": "research",
+  "provider": null,
+  "rule": null,
+  "agent": null,
+  "unresolved": true,
+  "unresolvedWhy": "the tars CLI did not answer `dispatch --route`",
+  "operatorAllowedVendors": [],
+  "promptSha": null,
+  "seal": "4f95e6920732cece73301aebac132fe313e6a5a8b6c38fb8e35d537861930d5e",
+  "ts": "2026-09-02T19:37:12.743Z"
+}

@@ -13,14 +13,16 @@ import time
 
 from idt import paths
 
-from . import signals, structures, evidence, markets, risk, today
+from . import signals, structures, evidence, markets, risk, today, direction, weekly
 
 VIEWS = [
     {
         "slug": "today",
         "label": "Today",
         "question": "Is there anything to do right now, and how much should I trust it?",
-        "panels": [signals.patterns, today.answer, signals.gamma_meter,
+        "panels": [signals.patterns, direction.call, today.answer,
+                   signals.gamma_meter, direction.regime,
+                   direction.structure_note,
                    today.gates, today.regime, today.positions],
     },
     {
@@ -31,6 +33,16 @@ VIEWS = [
         # panels (meters, scorecard) sit side by side and the two full-width lists
         # (verdicts, weights) follow.
         "panels": [evidence.meters, evidence.scorecard, evidence.verdicts, evidence.weights],
+    },
+    {
+        # Its own view rather than a card bolted onto Markets. The weekly book answers a
+        # different question on a different clock: Markets is "what is the tape doing
+        # right now", this is "what does the week's macro argue for, and what would prove
+        # it wrong". Mixing them is how the old page ended up with panels that disagreed.
+        "slug": "weekly",
+        "label": "Weekly",
+        "question": "What does this week's macro argue for, and what would prove it wrong?",
+        "panels": [weekly.macro, weekly.index, weekly.trades, weekly.refused],
     },
     {
         "slug": "markets",

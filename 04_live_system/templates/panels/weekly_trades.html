@@ -1,0 +1,59 @@
+{# One card per trade. The order is the order you need it in: what it is, why the macro
+   argues for it, why this expiry, what it costs, and what proves it wrong. The
+   invalidation is last and always present -- it is the field the old panel never had. #}
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
+    <span class="chip">unproven</span>
+  </h3>
+  {% if p.body.macro_as_of %}
+  <p class="wk-src">Macro read from {{ p.body.macro_as_of }}{% if p.body.macro_age_h %} · newest note {{ p.body.macro_age_h }}h old{% endif %}</p>
+  {% endif %}
+
+  {% for c in p.body.cards %}
+  <article class="wk {{ 'wk-bull' if c.direction == 'bullish' else 'wk-bear' }}">
+    <div class="wk-top">
+      <span class="wk-tk">{{ c.ticker }}</span>
+      <span class="wk-dir">{{ c.direction }}</span>
+      <span class="wk-spot">{{ c.spot }}</span>
+      <span class="wk-exp">{{ c.expiry }} · {{ c.dte }}d</span>
+      {% if c.vol_only %}<span class="chip watch">volatility, not direction</span>{% endif %}
+    </div>
+
+    <div class="wk-struct">{{ c.structure }}</div>
+    <div class="wk-legs">{{ c.legs }}</div>
+
+    <div class="wk-nums">
+      <span><b>{{ 'debit' if c.is_debit else 'credit' }}</b> {{ c.net }}</span>
+      <span><b>risk</b> ${{ c.max_risk|round|int }}</span>
+      {% if c.max_reward %}<span><b>reward</b> ${{ c.max_reward|round|int }}</span>{% endif %}
+      {% if c.rr %}<span><b>r:r</b> {{ c.rr }}</span>{% endif %}
+      {% if c.cost_pct %}<span><b>spread cost</b> {{ c.cost_pct }}% of risk</span>{% endif %}
+      {% if c.iv_front %}<span><b>IV</b> {{ c.iv_front }}%{% if c.iv_back %} vs {{ c.iv_back }}% back{% endif %}{% if c.rvol %} · realised {{ c.rvol }}%{% endif %}</span>{% endif %}
+      {% if c.implied_move %}<span><b>week is pricing</b> ±{{ c.implied_move }}%</span>{% endif %}
+    </div>
+
+    {% for t in c.themes %}
+    <div class="wk-theme">
+      <span class="wk-stance {{ t.stance }}">{{ t.stance }}</span>
+      <b>{{ t.label }}</b> — {{ t.why }}
+      {% if t.basis %}<em class="wk-basis">Basis: {{ t.basis }}.</em>{% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="wk-line"><b>Why this structure:</b> {{ c.structure_why }}</div>
+    <div class="wk-line"><b>Why this expiry:</b> {{ c.expiry_why }}.</div>
+    <div class="wk-line"><b>Tape:</b> {{ c.tape }}.</div>
+    {% if c.warn %}<div class="wk-warn">{{ c.warn }}</div>{% endif %}
+
+    <div class="wk-exits">
+      <div><b>Target</b> {{ c.target }}</div>
+      <div><b>Stop</b> {{ c.stop }}</div>
+      <div class="wk-inval"><b>Wrong if</b> {{ c.invalidation }}</div>
+    </div>
+  </article>
+  {% endfor %}
+
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>
