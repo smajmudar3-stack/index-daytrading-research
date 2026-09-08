@@ -205,6 +205,34 @@ gap_scanner.run()  # intraday + analyst + paper settle; cheap when no candidates
 if _stale("swing_snapshot.json", 1500):
     swing_signals.run()
 
+# WEEKLY BOOK — macro-conditioned cards on real weekly chains. Refreshed on a much
+# shorter clock than the swing scan (4h, not 25h) because every card carries live
+# strikes and a net debit or credit read off a real bid/ask, and those go stale inside
+# a session in a way a momentum ranking does not. It reads data/desk_notes.json and
+# REFUSES to produce anything when that overlay is missing or older than two sessions,
+# so a failed ingest shows up as an empty book with a stated reason rather than as
+# cards built on last week's macro.
+if _stale("weekly_snapshot.json", 240):
+    try:
+        import weekly_swing
+        weekly_swing.run()
+    except Exception as _e:                       # noqa: BLE001
+        print(f"weekly_swing failed: {type(_e).__name__}: {_e}")
+
+# THE LEDGER RUNS EVERY CYCLE, not on the generator's 4h clock. Two different jobs: the
+# generator decides what is worth proposing, this marks what was already proposed against
+# the live chain. Marking on the slower clock would leave the page showing a P&L from four
+# hours ago next to a spot price from four minutes ago. It records any new card at its
+# issue price ONCE and never re-prices an entry, so a losing recommendation stays visibly
+# losing instead of being replaced by a fresh one at a fresh price.
+try:
+    import weekly_book
+    _wb = weekly_book.sync()
+    print(f"weekly book: {_wb.get('added')} new, {_wb.get('marked')} marked, "
+          f"{_wb.get('closed')} closed")
+except Exception as _e:                           # noqa: BLE001
+    print(f"weekly_book failed: {type(_e).__name__}: {_e}")
+
 # ---------------------------------------------------------------------------
 # SIGNAL FRESHNESS, CALIBRATION AND SCORECARD
 # Appended at module level because this file is a script, not a main() — three

@@ -11,7 +11,7 @@ import os
 import ai_desk                       # the key, the health row and the cost brake live there
 from idt import paths
 
-MODEL = "claude-fable-5"    # Anthropic's most capable model (there is no "Opus 5")
+MODEL = "claude-fable-5-1"    # Anthropic's most capable model (there is no "Opus 5")
 FALLBACK = "claude-opus-4-8"
 EFFORT = "medium"
 MAX_TOKENS = 1100

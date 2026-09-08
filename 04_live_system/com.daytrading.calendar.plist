@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.daytrading.calendar</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system/refresh_calendar.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system</string>
+
+  <!-- Monthly, on the 2nd at 08:10 ET. BLS publishes a year ahead so the dates rarely move;
+       what changes is the window rolling forward. macro_calendar refuses anything unverified
+       past 45 days, so a monthly cadence keeps a wide margin. Early in the month because the
+       jobs report lands on the first Friday and CPI in the second week. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Day</key><integer>2</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>10</integer></dict>
+  </array>
+
+  <!-- Run once shortly after load too, so a freshly installed job does not wait a month. -->
+  <key>RunAtLoad</key><true/>
+
+  <key>StandardOutPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/calendar.out</string>
+  <key>StandardErrorPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/calendar.err</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key><string>/Users/sahilmajmudar</string>
+  </dict>
+</dict>
+</plist>

@@ -60,7 +60,9 @@
     "app.yaml",
     "firebase.json",
     "wrangler.toml",
-    "MANIFEST.md"
+    "MANIFEST.md",
+    "install.sh",
+    "local.env"
   ],
   "homes": {
     "docs": "docs",
@@ -69,7 +71,8 @@
     "missions": "missions",
     "shared": "idt",
     "tests": "test",
-    "superseded": "07_superseded"
+    "superseded": "07_superseded",
+    "influencers": "influencers"
   },
   "knownDirs": [
     "src",
@@ -122,7 +125,8 @@
     "venv",
     "idt",
     "07_superseded",
-    "index_daytrading_research.egg-info"
+    "index_daytrading_research.egg-info",
+    "influencers"
   ],
   "note": "Every file category has a home. New category => add a home here AND document it in AGENTS.md, same change."
 }

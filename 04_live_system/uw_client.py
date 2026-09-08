@@ -23,6 +23,7 @@ are how one machine's home directory ended up hardcoded in four files. Their rea
 """
 import json
 import os
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -77,6 +78,14 @@ HTTP_ATTEMPTS = 3
 HTTP_BACKOFF_S = 0.4         # first sleep; doubles each attempt
 HTTP_BACKOFF_CAP_S = 2.0
 HTTP_TOTAL_BUDGET_S = 25.0   # wall clock across all attempts, sleeps included
+
+# Rate-limit handling is deliberately separate from the generic backoff above. That one is
+# sized for a single page load; a 1,550-name scan being throttled needs to slow the whole
+# scan, not retry faster. The lock is global so one worker's pause stalls the others too --
+# without it, every thread just races back into the same limit.
+_RATE_LIMIT_PAUSE_S = 5.0
+_RATE_LIMIT_MAX_S = 60.0
+_RATE_LIMIT_LOCK = threading.Lock()
 
 
 class Transient(Exception):
@@ -226,6 +235,27 @@ def _get(path, params=None):
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_S) as r:
                 return json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
+            if e.code == 429:
+                # A RATE LIMIT IS NOT A TRANSIENT ERROR, and treating it as one is why the
+                # first 1,550-name scan logged 48 of these. The generic backoff is tuned for a
+                # page load — 0.4s doubling to 2s — so under sustained throttling every name
+                # simply burned its budget and returned nothing. 325 names were then refused
+                # for "only 2 input(s) had anything to say", which reads as a market condition
+                # and was really a rate limit wearing its costume.
+                #
+                # The server usually says how long to wait. Honour it, and hold the global gate
+                # while doing so, so the whole scan slows down instead of every worker racing
+                # back into the same wall.
+                wait = _RATE_LIMIT_PAUSE_S
+                try:
+                    ra = (getattr(e, "headers", None) or {}).get("Retry-After")
+                    if ra:
+                        wait = max(wait, min(float(ra), _RATE_LIMIT_MAX_S))
+                except (TypeError, ValueError):
+                    pass
+                with _RATE_LIMIT_LOCK:
+                    time.sleep(wait)
+                raise Transient(f"HTTP 429 rate limited, waited {wait:.0f}s") from e
             if retryable_status(e.code):
                 raise Transient(f"HTTP {e.code} {e.reason}") from e
             raise                                   # 401/403/404: permanent, stop now

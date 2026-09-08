@@ -70,6 +70,8 @@ Rules:
   `scripts/` repo tooling (the verify gate).
   `scripts/` repo tooling (verify gate, manifest generator, data bootstrap),
   `idt/` the shared package (paths, keys, db, bs, snapshots) and the `idt` CLI,
+  `influencers/` Engine D's registry of published trading educators and the setups they
+  teach (public strategy content only; see `05_studies/engine_d_influencers.py`),
   `test/` the offline suite, `07_superseded/` retired documents that are not instructions.
 - **`idt` is how everything resolves.** `idt.paths` for the two data roots (STATE_ROOT for
   live snapshots, DATA_ROOT for the 16 GB that is not in git), `idt.keys` for API keys,
@@ -85,11 +87,245 @@ Rules:
   version on write. A version mismatch is not stale data to warn about, it is data written by
   code that no longer exists: when the engines stopped emitting the refuted advice, the page
   still served it from a periscope written twenty minutes earlier.
+- **The weekly book is macro-first, and the macro is not price.** `desk_notes.py` holds an
+  overlay built from the Crown Macro Letter desk notes (`data/desk_notes.json`), and
+  `weekly_swing.py` will not propose a trade that cannot name the theme it expresses. That
+  overlay is the only input on the page not derived from the price series, which is the
+  whole point: `swing_signals.py` had four transforms of one close series and a ±5 macro
+  nudge, so it was technicals wearing a macro hat and it produced eight bearish cards on a
+  flat tape. It is refreshed by `ingest_desk_notes.sh` (a headless Claude session reading
+  Gmail, scheduled by `com.daytrading.desknotes.plist`); an overlay older than two sessions
+  is REFUSED and the book empties with a stated reason.
+- **A weekly card names real strikes off a real ladder, or it is not printed.** Strikes are
+  snapped to the chain's listed strikes per side, never computed as a percentage of spot and
+  rounded — that is what produced "Buy 14P / Sell 14P" on TTD and "Sell 969C / Buy 1015C" on
+  a stock that lists in fives. Every leg prices at the ask when bought and the bid when sold,
+  and a spread whose FULL round-trip bid-ask (both legs, in and out) exceeds 20% of its own
+  max risk is refused. That gate measured one-way at first and called it round-trip, which
+  understated every card's cost by exactly 2x; the ledger caught it within minutes.
+- **A name's event and a tape-wide event want opposite expiries.** Earnings: the first expiry
+  at or after it, because you must still hold when it prints. A macro print (NFP, CPI, FOMC):
+  the first expiry at least three days PAST it, because the print is a hazard to survive, not
+  the thing being bought. Treating them the same pulled every card onto one 2-day expiry.
+- **Every issued card is marked against the chain it was issued on.** `weekly_book.py` is
+  the ledger: it records a card once, freezes the entry price, and never rewrites it. Without
+  that, a losing recommendation just stops appearing on the next 4h regeneration and gets
+  replaced by a fresh one at a fresh price, so the page shows healthy suggestions forever.
+  Exits mirror entries (sell the long at the bid, buy the short back at the ask), so a mark
+  pays the full bid-ask twice and reads worse than any mid-to-mid number. That gap is the
+  point. **Marks outside market hours never CLOSE a position** — after the bell quotes widen
+  to something nobody trades at, and the first live run showed a fresh calendar down 29% on
+  spread alone. `weekly_swing.run()` likewise holds the last open-session book rather than
+  regenerating on closed-market quotes.
+- **Direction and magnitude are different questions.** `weekly_swing.move_view()` reads how
+  FAR (implied move against realised over the same horizon, term structure, catalysts, and
+  the gamma flip for index proxies) separately from which WAY. `weekly_structures.menu()`
+  maps (direction x magnitude x IV band) onto an ordered menu — condor, butterfly, straddle,
+  strangle, reverse condor, verticals both ways, backspreads, calendar, diagonal — and each
+  is attempted against the real ladder until one clears the gates. Risk and reward come from
+  ONE payoff walk (`weekly_structures.evaluate`), never a per-structure formula. The four
+  shapes this repo measured (condor −0.25%, butterfly −0.35%, straddle −5.69%, strangle
+  −11.54%) carry those numbers onto the card.
+- **`signal_weights` is the authority and a calibration may not overrule it.** A calibration
+  is REJECTED when |IC| > 0.15 (real equity ICs are 0.02–0.05) and otherwise banded to
+  0.25–2.5x the registry prior. Without that band the blend saturated: every calibrated
+  input came out at ~0.99, so insider open buys (n=1,128, sign flips by era) carried the
+  same weight as short interest (n=13,219, monotone in horizon). `data/uw_weights.json`
+  currently holds three impossible ICs (short interest −0.621, flow −0.267, and +0.265 on
+  an input the registry records as a measured NULL) — `uw_calibrate` needs looking at.
+- **Sector rotation is CONTEXT and votes zero.** 1,512 configurations, none beat
+  buy-and-hold; picks selected by it did worse than random (p=0.867). It appears on a card
+  only to say whether the tape corroborates the desk's macro argument, never to pick a name.
+  The old engine moved conviction ±8/−10 on it, more than it allowed the macro tilt.
+- **A price is only today's price if you checked the date.** `gap_scanner.scan_one` read
+  `open.iloc[-1]` off DAILY bars; before the open there is no bar for today, so it served
+  YESTERDAY's gap every cycle until 09:30. On 2026-09-03 at 06:47 that had DELL listed as
+  "GAP-AND-GO LONG +8.72%" from the prior session's earnings pop while the real pre-market
+  print was −1.6%. It now compares the newest bar's date against today and falls back to a
+  live 1-minute print when they differ. RVOL is time-of-day aware for the same reason: today's
+  partial volume against a 20-day FULL-DAY average only clears 1.5 hours after the "buy at
+  open" entry it is supposed to trigger. Pre-market bars carry NO volume on this feed, so
+  RVOL is `None` there and no setup is named — an empty pre-market list is the right answer,
+  and the panel says so rather than rendering the same blank card as a failure.
+- **`safe` guards a panel function; `_render_panel` guards its template.** A missing dict
+  key raised inside Jinja on 2026-09-03 and `/markets` served ZERO BYTES — the same HTTP-000
+  failure the panel contract exists to stop, one layer below where the contract reached.
+  Every card is now rendered through a guard, so a broken template is a broken card that
+  says so and the rest of the page survives. Jinja's `Undefined` is `is not none`, so read
+  optional keys with `r.get('x')`, and set every key a template touches even when the value
+  is None.
+- **A weekly card can be marked "I entered this".** `/entered` flips a paper card to `owned`
+  in `weekly_book` (optionally with your real fill), and `exit_verdict()` then answers CLOSE
+  / TAKE PROFIT / HOLD against the levels the card named at entry — expiry outranks thesis,
+  thesis outranks price, and nothing is signalled on an after-hours mark. It writes a flag
+  and places no order.
+- **Exit thresholds are the PRICE OF THE STRUCTURE, always positive.** `net` is signed cash
+  and negative for a credit, so thresholds derived from it came out negative while the mark
+  is compared as `|cur_net|` — `mark >= stop` was trivially true and every credit structure
+  stopped out on the cycle it opened. A profitable DELL put credit spread was logged as a
+  "stop" while up 10.3%.
+- **The macro is a HANDICAP, not a veto.** Gating purely on the desk notes left seven of
+  eleven sectors permanently empty, because the Crown notes are cross-asset macro and do not
+  write about utilities or staples most weeks. `desk_macro` is only one voter and the only
+  sector-limited one — VIX backwardation, short interest, flow, dark pool and insider buys
+  are all name-level. A themeless name is judged on those alone at a higher bar
+  (`VOTE_NO_MACRO` 0.30 against `VOTE_NEUTRAL` 0.10) and every such card is flagged "no macro
+  basis". An INHERITED theme votes at half strength, because a theme naming the ticker
+  outright is stronger evidence than one taken through its sector.
+- **Cards are allocated best-per-sector, then best-of-the-rest.** Ranking globally returned
+  five tech names out of six, because a theme reaching twenty tech names produces twenty
+  candidates that crowd everything else out — a concentration bet wearing a diversification
+  label. A sector with no eligible candidate is simply absent; slots are never filled by
+  inventing a card to cover a sector.
+- **Every voter must actually vary between names.** `insider_open_buys` used `min(n/3, 1)`,
+  which saturates at three buys, so five of six cards carried an identical +0.25 and the
+  input discriminated nothing; it is `tanh(n/6)` now. `_trend` returned +0.35/+0.35/+0.34/
+  +0.34 for four names in one theme; it is now a seven-part weekly-timeframe composite
+  (4/12/26-week returns, the 10w/40w stack, distance from the 52-week high, RSI, and 12-week
+  RS against SPY) at the same 0.35 weight, printed on the card so two names in one theme can
+  be compared. Improving a voter's VALUE is not the same as raising its weight.
+- **High conviction only; an empty book is a valid answer.** Every card must clear
+  `MIN_CONVICTION` (|weighted vote| 0.30, roughly the 93rd percentile — median is 0.13) AND
+  `MIN_AGREEMENT` (60% of the *voting* weight pointing the same way). A macro theme makes a
+  name ELIGIBLE; it does not make a trade. Before this, TSLA and O shipped on votes of −0.04
+  riding the gate's direction. **Abstentions are excluded from the agreement denominator** —
+  VIX backwardation votes exactly 0.0 in contango and carries weight 0.30, so counting it as
+  disagreement refused MPC at +0.40 for "inputs disagreeing" when one large voter had simply
+  declined to vote.
+- **Realised vol is TRIMMED of its two largest moves.** A plain 20-day realised spanning an
+  earnings gap is dominated by that one day, and every card then reads forward IV as cheap
+  against it — CRWD showed 96.4% raw against 57.9% trimmed, CRM 85.3% against 31.4%. That
+  comparison decides whether the engine buys premium or sells it, which this repo measured as
+  worth ~10 points a trade (paying theta −11.12% against −1.27% collecting). Both figures go
+  on the card.
+- **Buying premium must be justified by cheap vol.** The menu led with a debit unless IV was
+  "rich" (≥1.15× realised, a bar few names clear), so every fair-IV name became a call debit
+  spread. Debit now leads only when vol is genuinely cheap; on an "expand" read with rich vol
+  the backspread leads instead, because it is financed by its short leg.
+- **The overlay is gated on the NOTE's age, not the file's.** `snapshots.read` measures
+  staleness from mtime, and this file is rewritten by hand and by the ingest job, so touching
+  it made a two-day-old macro read look fresh. On 2026-09-04 the engine was building cards on
+  a Sep 2 overlay whose central driver — a cooling labour market — had been falsified by that
+  morning's payroll print.
+- **A MACRO BASIS IS REQUIRED, and three distinct inputs must agree.** `REQUIRE_MACRO_BASIS`
+  is on: a name no theme covers gets no card, whatever its score. This was briefly a handicap
+  so every sector could be represented, and the 2026-09-04 16:02 cycle showed why that was
+  wrong — JNJ and NEM shipped with zero themes on a single voting input, trend, which is
+  exactly the pure-technicals card the rewrite existed to remove. Sector coverage is not worth
+  a card with nothing behind it.
+  `MIN_VOTING_INPUTS`/`MIN_AGREEING_INPUTS` (3 each) force corroboration: `desk_macro` and
+  `trend` are the only always-available voters, so a two-input card is the macro read plus a
+  moving average, and `agreement` cannot detect it — one input agreeing with itself is 100%.
+  Requiring three also cuts the Unusual Whales calls from 103 names a cycle to ~30, which is
+  what exhausted the daily quota and caused the silent degradation in the first place.
+- **Every card carries an enumerated `backing` list, not a prose thesis.** One row per pillar
+  (macro / signal / tape / catalyst / magnitude) with its evidence tier. Listed rather than
+  written so a pillar that stops being true can be struck off, which a paragraph does not
+  allow.
+- **Overlay staleness is counted in SESSIONS, not hours.** A Friday note read on Sunday is
+  still the current read; nothing happened in between. Gating on wall-clock hours blanked the
+  weekly book every weekend, and on 2026-09-06 it did exactly that. `MAX_MISSED_SESSIONS` is 1,
+  carrying a one-session buffer because this repo has no holiday calendar — erring tolerant is
+  right, since refusing a good macro read costs a week of cards.
+- **Unusual Whales is REQUIRED for the weekly book, not optional.** Four of the seven
+  voters come from it (flow lean, dark-pool buy share, short float, insider open buys); of
+  the three that need no key, `vix_backwardation` abstains in contango. So without it the
+  pool is usually the macro read plus a moving average — two inputs, one a transform of
+  price — and `MIN_VOTING_INPUTS` of 3 refuses every card. Measured 2026-09-06 with the key
+  disabled: **0 cards, 32 names refused for "too few inputs"**. `.env.example` used to say
+  "none are required", which is true of the page and misleading about the product.
 - **Gates fail CLOSED.** A gate that cannot evaluate blocks. Seven of them used to return
   "allow" on an exception, including `check_entry` itself. A missing, empty, exhausted or
   malformed `data/events.json` blocks trading; each case has its own test.
 - **`audit_dash.py` exits 1 on failure** and has `--strict`. It reports a third outcome,
   "could not run", because a failed check and an unrunnable one are different problems.
+- **Macro dates are found, not typed.** `macro_calendar.py` carries the BLS/Fed release
+  schedule (CPI, PPI, FOMC) and merges into the engine's catalyst list, so `_pick_weekly`
+  can clear a print. That rule existed and never fired for CPI: the desk notes described the
+  August print in three notes without ever dating it, and 28 of 36 open positions expired
+  2026-09-11 — CPI morning at 08:30, with no session left to recover. A rule with no data to
+  act on is not a control. `FRED_API_KEY` (free) makes it machine-readable instead of
+  transcribed.
+- **A print that lands on expiry day is an exit, not just a worse expiry.** Moving the expiry
+  only protects cards opened after the calendar existed. `weekly_book.exit_verdict` closes an
+  already-open position into the print instead of through it, ranked above the gamma rule
+  because a dated event with a known time is more specific.
+- **The universe is discovered, not hand-typed.** `universe_builder.py` reads the S&P
+  500/400/600 constituents with GICS sectors — 1,550 names, all 11 sectors. A hand-typed list
+  is a selection choice made before any measurement runs, and nothing downstream can detect
+  it. Wikipedia 403s the default pandas user agent; the builder sends its own and refuses to
+  shrink the scan when a page fails to parse.
+- **History is fetched in batches.** `weekly_swing._prefetch` downloads the whole universe in
+  chunks of 120: 1,539 names in 92s, against 13m43s for 283 fetched one at a time. The
+  earlier twelve-worker attempt met HTTP 429 and a Yahoo 401 crumb — that was the same
+  problem approached from the wrong end, more concurrency against a rate limit rather than
+  fewer requests.
+- **Cheap gates run before paid ones.** `votes_for` spends Unusual Whales requests, and it
+  used to run before anything checked whether the name had a basis. Affordable at 283 names,
+  a quota wipeout at 1,255. The basis gate now precedes it, and the liquidity screen precedes
+  both — a name below $25m median dollar volume has no quotable weekly option and would be
+  refused on spread three API calls later anyway.
+- **The earnings variance risk premium is MEASURED, and it is the only UW input that could
+  be.** Rich-percentile premiums into earnings showed a +3.63pt seller edge vs -4.30pt for
+  cheap ones (266 events, t=+9.07, monotone, holds in all three period splits). Not
+  tautological: implied is flat across buckets (7.17/7.63/7.99) while realised falls
+  (11.46/6.71/4.36), so the percentile forecasts the move rather than labelling expensive
+  prices. It routes to STRUCTURE selection and never to direction — the finding is about the
+  SIZE of a move. `02_findings/earnings_vrp.md`, reproduce with `05_studies/earnings_vrp_test.py`.
+- **`expected_move_perc` is a FRACTION.** 0.0761 means 7.6%. Rendered raw it claimed every
+  earnings name was "pricing a 0.1% move". Third units error of this exact shape in this repo,
+  after ^TNX (already in percent) and straddle-vs-one-sigma (0.798x). Check units before
+  trusting a number that looks wrong.
+- **`/api/earnings/{t}` leaves the closes NULL** even on past reports; only the date-keyed
+  `/api/earnings/premarket|afterhours` populate them. Realised moves come from the batched
+  price history instead. Reading them returned zero events across 90 names — a silent zero
+  indistinguishable from "no edge exists".
+- **A panel reads a snapshot; it never calls a vendor.** `weekly.earnings_vol` first called
+  `earnings_vol.scan()` directly and hung the test suite for ten minutes — it would have hung
+  the page identically under the rate limiting the scan already meets. The scan computes,
+  `run()` stores it in the snapshot, the panel displays it. That is why the page renders in
+  milliseconds and survives a dead vendor.
+- **The paid stage is CAPPED, and the cut is stated on the page.** At 1,550 names, 688 cleared
+  the basis gate and went on to spend Unusual Whales requests: 48 HTTP 429s, and 325 names
+  refused for "only 2 input(s) had anything to say" — a rate limit wearing the costume of a
+  market condition. Candidates are now ranked on free signals (trend strength, a dated event, a
+  theme naming the ticker outright) and only `PAID_ANALYSIS_CAP` are analysed. Everything below
+  is refused as "ranked below the paid-analysis cut", never dropped silently: not judged is a
+  different fact from rejected.
+- **A 429 is not a transient error.** The generic backoff is sized for a page load (0.4s
+  doubling to 2s), so under sustained throttling every name burned its budget and returned
+  nothing. `uw_client` now honours `Retry-After` and holds a global lock while waiting, so the
+  scan slows down instead of every worker racing back into the same wall.
+- **`flow_tape.py` RECORDS and does not fit.** Four of seven voters have no history, so their
+  weights are literature priors. The lake writes raw endpoint readings daily — never the vote,
+  which would measure this engine's opinion instead of the market's data — and `study_guard()`
+  REFUSES any study until 60 sessions exist. The threshold was set before there was a result to
+  be tempted by, which is the only time such a threshold is honest.
+- **The dashboard renews itself; nothing waits to be asked.** `maintenance.py` runs inside the
+  5-minute cycle and rebuilds the index universe and the macro calendar when they age out, and
+  `weekly.freshness` shows every asset's age with a severity. A stale asset is worse than a
+  missing one because it still answers: an aged universe still returns 1,550 names and an aged
+  calendar still names a CPI date, both wrong with nothing announcing it.
+- **BLS returns 403 to every scripted request**, browser user-agent included, so the CPI/PPI/
+  jobs schedule cannot be fetched from Python. `refresh_calendar.sh` is a monthly headless
+  Claude session that reads the pages and calls `macro_calendar.save()` — the same pattern as
+  the desk-note ingest. A `FRED_API_KEY` would replace it with a plain API call.
+- **A `--` inside an XML comment is illegal and `plutil -lint` does not care.**
+  `com.daytrading.desknotes.plist` carried one for weeks: it looked installed and healthy while
+  a strict parser rejected it outright. `test_every_shipped_plist_is_valid_xml` parses every
+  shipped plist with `plistlib`, which does care.
+- **`claude -p` takes the prompt FIRST and `--allowedTools` as one comma-separated argument.**
+  Written `--allowedTools WebFetch Bash Read Edit "$PROMPT"` the flag ate the prompt as a fourth
+  tool name and the run died with "Input must be provided either through stdin or as a prompt
+  argument".
+- **A paper trade on a non-trading day can never settle.** All twenty stuck gap trades were
+  dated Saturdays and Sundays and had been retried 371 times each while sitting outside the win
+  rate — the one number the gap-and-go edge is judged on. `_track` refuses to book a weekend,
+  and `settle()` VOIDS a row that cannot ever resolve (`settle_attempts = -1`, excluded from the
+  todo query) instead of retrying forever. A voided trade is reported with its reason and never
+  scored as a win or a loss. Separately, `settle` passed both `start` and `period="5d"` to
+  yfinance, which honours `period` and ignores `start`, so it always fetched the last five days
+  regardless of the trade date.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

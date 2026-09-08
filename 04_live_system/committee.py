@@ -20,7 +20,7 @@ from idt import paths
 ET = ZoneInfo("America/New_York")
 LOG = os.path.join(paths.STATE_ROOT, "committee_log.jsonl")
 BUDGET = os.path.join(paths.STATE_ROOT, "committee_budget.json")
-MODEL = "claude-fable-5"
+MODEL = "claude-fable-5-1"
 FALLBACK = "claude-opus-4-8"
 
 # Two high-effort Fable calls per review. By design this only runs on decisions

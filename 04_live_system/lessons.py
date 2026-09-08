@@ -25,7 +25,7 @@ ET = ZoneInfo("America/New_York")
 # fresh clone "unable to open database file" and no WAL against the writer running in scan_all.
 DB = paths.state("agent_trades.db")
 OUT = paths.state("lessons.json")
-MODEL = "claude-fable-5"
+MODEL = "claude-fable-5-1"
 FALLBACK = "claude-opus-4-8"
 
 MIN_TRADES = 12          # below this, any "pattern" is noise

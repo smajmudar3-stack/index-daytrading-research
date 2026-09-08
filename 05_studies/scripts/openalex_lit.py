@@ -1,9 +1,13 @@
 """OpenAlex lookups for the spinoff / event-driven anomaly literature."""
-import json, os, time, urllib.parse, urllib.request
+import os
+import json, time, urllib.parse, urllib.request
 
 from idt import paths
 
-MAIL = "smajmudar886@gmail.com"
+# CONTACT EMAIL FROM THE ENVIRONMENT, not baked in. OpenAlex and the SEC both ask callers to
+# identify themselves, and both are perfectly reasonable requests -- but a real address
+# committed to a public repository is a scraped address. Set CONTACT_EMAIL in your .env.
+MAIL = os.environ.get("CONTACT_EMAIL", "")
 BASE = "https://api.openalex.org/works"
 
 QUERIES = {

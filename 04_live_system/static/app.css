@@ -503,3 +503,174 @@ footer p { margin: 8px 0 0; color: var(--faint); font-size: 11px; line-height: 1
   padding-top:7px;border-top:1px solid var(--line)}
 .st-ev b{color:var(--warn)}
 .st-foot{font-size:11.5px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+
+/* ---------------------------------------------------------------- weekly cards
+   One card per trade. The visual job is that the EXITS never look optional: they
+   sit in their own block with a rule above them, and the invalidation line is the
+   one that carries colour. The old swing panel had no exits at all, so the design
+   here deliberately spends the reader's attention on them rather than on the P&L
+   numbers, which are the part people already look at. */
+.wk-src { font-size: 11px; color: var(--faint); margin: -4px 0 12px; font-family: var(--mono); }
+.wk { border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; margin: 0 0 12px; }
+.wk-bull { border-left: 3px solid var(--green); background: var(--green-wash); }
+.wk-bear { border-left: 3px solid var(--red); background: var(--red-wash); }
+
+.wk-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.wk-tk { font-size: 17px; font-weight: 800; letter-spacing: .01em; }
+.wk-dir { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.wk-spot { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.wk-exp { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-left: auto; }
+
+.wk-struct { font-size: 13.5px; font-weight: 700; margin: 9px 0 5px; }
+.wk-legs {
+  font-family: var(--mono); font-size: 13px; padding: 8px 11px;
+  background: var(--card-2); border-radius: var(--r-sm); margin: 0 0 9px;
+}
+
+.wk-nums { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+.wk-nums b { color: var(--faint); font-weight: 700; text-transform: uppercase; font-size: 9.5px; letter-spacing: .07em; margin-right: 3px; }
+
+.wk-theme { font-size: 12.5px; line-height: 1.55; margin: 0 0 7px; padding-left: 10px; border-left: 2px solid var(--line-2); }
+.wk-stance {
+  display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .09em;
+  text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 6px;
+  background: var(--card-2); color: var(--muted); vertical-align: 1px;
+}
+.wk-stance.favour { background: var(--green-wash); color: var(--green); }
+.wk-stance.avoid { background: var(--red-wash); color: var(--red); }
+.wk-stance.dispersion { background: var(--blue-wash); color: var(--blue); }
+.wk-stance.watch { background: var(--amber-wash); color: var(--amber); }
+.wk-basis { display: block; color: var(--faint); font-size: 11px; font-style: normal; margin-top: 3px; }
+
+.wk-line { font-size: 12.5px; line-height: 1.55; margin: 0 0 5px; color: var(--muted); }
+.wk-line b { color: var(--text); font-weight: 700; }
+.wk-warn {
+  font-size: 12px; line-height: 1.5; margin: 8px 0; padding: 8px 11px;
+  border-radius: var(--r-sm); background: var(--amber-wash); color: var(--amber);
+}
+
+.wk-exits { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-2); font-size: 12.5px; line-height: 1.6; }
+.wk-exits b { font-weight: 700; text-transform: uppercase; font-size: 9.5px; letter-spacing: .08em; color: var(--faint); margin-right: 6px; }
+.wk-inval { color: var(--amber); }
+.wk-inval b { color: var(--amber); opacity: .8; }
+
+/* ---------------------------------------------------- weekly book (the ledger)
+   The P&L column is the only place colour appears, because it is the only column
+   that carries a verdict. Everything else is reference. A losing row must be as
+   legible as a winning one -- the whole reason this panel exists is that losers
+   used to vanish from the page rather than be shown. */
+.bk-sum { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11.5px; color: var(--muted);
+  margin: -2px 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.bk-sum b { color: var(--faint); font-weight: 700; text-transform: uppercase; font-size: 9.5px;
+  letter-spacing: .07em; margin-right: 4px; }
+
+.bk-tbl { display: block; }
+.bk-hd, .bk-row {
+  display: grid; grid-template-columns: minmax(0,2.4fr) 1fr .7fr .7fr 1fr 1fr .5fr;
+  gap: 10px; align-items: baseline; padding: 7px 0;
+}
+.bk-hd { font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--faint); border-bottom: 1px solid var(--line-2); }
+.bk-row { border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.bk-row:last-child { border-bottom: 0; }
+
+.bk-pos b { font-weight: 700; }
+.bk-pos em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted);
+  display: block; margin-top: 2px; }
+.bk-num { font-family: var(--mono); font-size: 12.5px; text-align: right; }
+.bk-num em { font-style: normal; display: block; font-size: 10.5px; opacity: .7; margin-top: 1px; }
+.bk-num.up { color: var(--green); }
+.bk-num.down { color: var(--red); }
+.bk-dim { color: var(--faint); font-size: 11px; }
+
+.bk-closed { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line-2); }
+.bk-hd2 { font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 6px; }
+.bk-crow { display: grid; grid-template-columns: minmax(0,2.4fr) 1fr 1fr 1fr; gap: 10px;
+  align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.bk-why { font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px; background: var(--card-2); color: var(--muted);
+  justify-self: start; }
+.bk-why.target { background: var(--green-wash); color: var(--green); }
+.bk-why.stop, .bk-why.invalidated { background: var(--red-wash); color: var(--red); }
+.bk-why.expired { background: var(--amber-wash); color: var(--amber); }
+
+@media (max-width: 900px) {
+  .bk-hd { display: none; }
+  .bk-row, .bk-crow { grid-template-columns: minmax(0,1.6fr) 1fr 1fr; }
+  .bk-row > :nth-child(2), .bk-row > :nth-child(6), .bk-row > :nth-child(7) { display: none; }
+}
+
+/* the weighted vote, folded away until asked for */
+.wk-vote { margin: 8px 0; font-size: 12px; }
+.wk-vote summary { cursor: pointer; color: var(--muted); font-size: 11.5px; }
+.wk-vt { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 11.5px; }
+.wk-vt th { font-size: 9px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint);
+  text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line-2); }
+.wk-vt td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); }
+.wk-vt td.n { font-family: var(--mono); text-align: right; }
+.wk-vt td.t { color: var(--faint); font-size: 10.5px; }
+.wk-vt td.up { color: var(--green); } .wk-vt td.down { color: var(--red); }
+.wk-vn { color: var(--faint); font-size: 10.5px; line-height: 1.5; margin: 4px 0 0; }
+.wk-ev { font-size: 11.5px; line-height: 1.55; color: var(--amber); margin: 0 0 6px;
+  padding: 6px 10px; background: var(--amber-wash); border-radius: var(--r-sm); }
+
+/* Expiry is a first-class column in the ledger: a swing position without a visible
+   expiration date is a position you will forget to close. Inside two days it turns amber. */
+.bk-exp { font-family: var(--mono); font-size: 12px; }
+.bk-exp em { font-style: normal; display: block; font-size: 10px; color: var(--faint); margin-top: 1px; }
+.bk-exp.soon { color: var(--amber); }
+.bk-exp.soon em { color: var(--amber); opacity: .75; }
+
+/* "I entered this trade" — the one control on a card. Deliberately understated: it records
+   a fact about YOUR book, it does not place anything. */
+.wk-act { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 2px; }
+.wk-btn {
+  display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .02em;
+  padding: 6px 12px; border-radius: 999px; text-decoration: none;
+  background: var(--card-2); color: var(--text); border: 1px solid var(--line-2);
+}
+.wk-btn:hover { border-color: var(--green); color: var(--green); }
+.wk-actnote { font-size: 10.5px; color: var(--faint); }
+
+/* the owned block in the ledger: this is what you actually hold */
+.bk-own { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--line-2); background: var(--card-2); }
+.bk-own-hd { font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 8px; }
+.bk-orow { display: grid; grid-template-columns: minmax(0,1.7fr) .9fr 1fr auto; gap: 10px;
+  align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.bk-orow:last-child { border-bottom: 0; }
+.bk-verdict { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px; justify-self: start; white-space: nowrap; }
+.bk-verdict.info { background: var(--green-wash); color: var(--green); }
+.bk-verdict.watch { background: var(--amber-wash); color: var(--amber); }
+.bk-verdict.stop { background: var(--red-wash); color: var(--red); }
+.bk-verdict.hold { background: var(--card); color: var(--muted); }
+.bk-why2 { font-size: 12px; line-height: 1.5; color: var(--muted); grid-column: 1 / -1; margin-top: -2px; }
+
+/* the weekly technical read, laid out so two names in the same theme can be compared
+   at a glance — which is the whole reason it is on the card */
+.wk-tech { display: flex; flex-wrap: wrap; gap: 5px 14px; font-size: 11.5px;
+  color: var(--muted); margin: 0 0 7px; padding: 7px 10px;
+  background: var(--card-2); border-radius: var(--r-sm); }
+.wk-tech b { color: var(--faint); font-weight: 700; text-transform: uppercase;
+  font-size: 9.5px; letter-spacing: .07em; align-self: center; }
+
+/* the enumerated case for a trade. Listed rather than written as prose so a pillar that
+   stops being true can be struck off — which a paragraph does not let you do. */
+.wk-back { margin: 10px 0; padding: 10px 12px; border-radius: var(--r-sm);
+  background: var(--card-2); border: 1px solid var(--line); }
+.wk-back-hd { font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 8px; }
+.wk-pill { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; font-size: 12px; }
+.wk-kind { font-size: 8.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  padding: 2px 5px; border-radius: 3px; background: var(--card); color: var(--muted);
+  flex: none; min-width: 62px; text-align: center; }
+.wk-kind.macro { background: var(--blue-wash); color: var(--blue); }
+.wk-kind.signal { background: var(--green-wash); color: var(--green); }
+.wk-kind.catalyst { background: var(--amber-wash); color: var(--amber); }
+.wk-pl b { font-weight: 700; }
+.wk-pl em { font-style: normal; color: var(--faint); font-size: 10.5px; }
+.wk-pd { display: block; color: var(--muted); font-size: 11px; line-height: 1.5; margin-top: 1px; }
+.wk-back-ft { font-size: 10.5px; color: var(--faint); line-height: 1.5; margin: 8px 0 0; }

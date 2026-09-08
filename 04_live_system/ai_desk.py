@@ -17,7 +17,7 @@ from idt import keys, paths
 
 ET = ZoneInfo("America/New_York")
 OUT = os.path.join(paths.STATE_ROOT, "ai_desk_snapshot.json")
-MODEL = "claude-fable-5"        # user's choice (most capable); server-side fallback to Opus
+MODEL = "claude-fable-5-1"        # user's choice (most capable); server-side fallback to Opus
 FALLBACK = "claude-opus-4-8"
 EFFORT = "high"
 MAX_TOKENS = 5000        # effort=high thinking shares this budget — too low truncates the brief

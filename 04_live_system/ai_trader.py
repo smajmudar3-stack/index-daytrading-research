@@ -28,7 +28,7 @@ ET = ZoneInfo("America/New_York")
 # WAL and a 5-second lock while scan_all wrote the same book, and no directory at all on a clone.
 DB = paths.state("agent_trades.db")
 OUT = paths.state("agent_snapshot.json")
-MODEL = "claude-fable-5"
+MODEL = "claude-fable-5-1"
 FALLBACK = "claude-opus-4-8"
 CONV_MIN = 66          # don't enter below this
 MAX_OPEN = 3           # cap concurrent agent positions

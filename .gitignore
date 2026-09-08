@@ -18,3 +18,8 @@ logs/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+local.env
+
+# Per-session routing scratch, mirrored from ~/.local/state/tars/route/. Machine-local by
+# construction — the file says so itself — and meaningless in anyone else's checkout.
+.tars/route-state/

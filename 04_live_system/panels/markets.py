@@ -96,7 +96,17 @@ def periscope_ndx():
 @safe
 @describe("swing", "Swing signals")
 def swing():
-    """Days-to-weeks direction. Kept because two of its three inputs are measured.
+    """RETIRED FROM THE PAGE on 2026-09-02. Kept as a function, rendered by no view.
+
+    It ranked ~100 names on momentum and always surfaced eight, then attached strikes
+    computed as `round(price * (1+pct), 0)`. On 2026-09-02 that shipped "Buy 14P / Sell
+    14P" on TTD -- a zero-width spread -- and "Sell 969C / Buy 1015C" on a stock listing in
+    $5 increments. `panels/weekly.py` answers the same question against real chains with a
+    stated macro reason and a live ledger, so this one is deleted from the views rather
+    than restyled. `swing_signals.run()` still writes its snapshot and `scorecard.py` still
+    scores it, which is why the function survives.
+
+    Days-to-weeks direction. Kept because two of its three inputs are measured.
 
     The swing OPTION overlays are all refuted (every one was beaten by owning SPY on
     return, Sharpe and drawdown), and sector rotation picks names that do worse than
@@ -136,18 +146,68 @@ def gaps():
     if g is None:
         return empty("gaps", "Gap and go candidates", "No gap scan yet.",
                      fix="idt refresh   (writes 04_live_system/data/gap_snapshot.json)")
-    cands = g.get("candidates") or []
-    if not cands:
-        return empty("gaps", "Gap and go candidates",
-                     "No setups right now. Most days have none; forcing one gives the edge back.")
     age = _age_min("gap_snapshot.json")
-    rows = [{"k": c.get("ticker", "?"), "v": c.get("setup", "")} for c in cands[:10]]
+    cands = g.get("candidates") or []
+    state = g.get("session_state")
+    when = f"{g.get('session_date', '?')} · scanned {g.get('as_of', '?')}"
+
+    # EVERY ROW NOW CARRIES THE TIME ITS PRICE CAME FROM. The panel used to show three
+    # tickers and nothing else, so a list that had not changed since yesterday was
+    # indistinguishable from a list that had just been rebuilt. That is what "not
+    # refreshing" looked like: the file WAS being rewritten every five minutes, and the
+    # page gave the reader no way to tell.
+    if not cands:
+        # Pre-market with no named setups is the CORRECT answer, not a failed scan, and the
+        # two used to render as the same blank card.
+        if state == "premarket":
+            gaps_seen = sorted((g.get("all") or []),
+                               key=lambda r: -abs(r.get("gap_pct") or 0))[:6]
+            rows = [{"k": r.get("ticker", "?"),
+                     "v": f"{r.get('gap_pct', 0):+.2f}% pre-market",
+                     "sub": (f"{r.get('prev_close')} → {r.get('last')} "
+                             f"as of {r.get('quote_as_of', '?')}")}
+                    for r in gaps_seen]
+            return panel("gaps", "Gap and go candidates", state=OK, age_min=age,
+                         severity=None, body={"rows": rows},
+                         note=(g.get("premarket_note") or "Pre-market.")
+                              + f" Largest pre-market gaps shown as context. {when}.",
+                         source="gap_scanner.run()")
+        return empty("gaps", "Gap and go candidates",
+                     f"No setups right now. Most days have none; forcing one gives the edge "
+                     f"back. {when}.")
+
+    # DIRECTION IS THE HEADLINE. The panel used to print a setup name and nothing else, so
+    # the reader had to know that "GAP-AND-GO LONG" meant buy — and that name was on the
+    # losing side of the measurement anyway.
+    rows = [{"k": c.get("ticker", "?"),
+             "v": f"{c.get('direction', '?')} · {c.get('setup', '')}",
+             "severity": "info" if c.get("direction") == "LONG" else None,
+             "sub": (f"gap {c.get('gap_pct', 0):+.2f}% "
+                     f"({c.get('prev_close')} → {c.get('last')}), "
+                     f"buy the open and be flat at the close"
+                     + (f" · RVOL {c['rvol']}x, context only"
+                        if c.get("rvol") is not None else
+                        " · RVOL is not a filter here — it was lookahead")
+                     + f" · price as of {c.get('quote_as_of', '?')}")}
+            for c in cands[:10]]
+
+    aside = g.get("stand_aside") or []
+    if aside:
+        names = ", ".join(f"{a['ticker']} {a['gap_pct']:+.1f}%" for a in aside[:6])
+        rows.append({"k": "Stood aside", "v": f"{len(aside)} name(s)",
+                     "sub": f"{names}. Up-gaps and gaps beyond −20% have no measured edge "
+                            f"in either direction, so no side is named."})
+
+    edge = g.get("edge") or {}
     return panel("gaps", "Gap and go candidates",
                  state=STALE if (age or 0) > 30 else OK, age_min=age,
                  body={"rows": rows},
-                 note=("This edge is stress-tested by one script and has no entry in "
-                       "docs/VERDICT_LOG.md, so treat it as unverified rather than validated."),
-                 source="gap_scanner.run()")
+                 note=(f"{when}. "
+                       + (edge.get("note") or "")
+                       + " Direction comes from a measurement, not a convention: buying an "
+                         "up-gap measured −0.33%/trade (t=−3.52) and this panel used to "
+                         "emit exactly that as a BUY."),
+                 source="gap_scanner.run() · 05_studies/gap_direction_test.py")
 
 
 @safe

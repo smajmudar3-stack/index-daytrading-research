@@ -31,6 +31,52 @@ moved is worth keeping.
 
 ---
 
+## REFUTED: the gap-and-go LONG at "+1.25%/trade, t = 6.6"
+
+**Status: REFUTED.** Measured 2026-09-03 by `05_studies/gap_direction_test.py` on
+`gap_scanner.UNIV` — the scanner's own 47 names, 67,858 name-days, 2020-09 to 2026-09, net
+of 15bp round trip.
+
+Buying an up-gap at the open and selling at the close measured **−0.33%/trade, t = −3.52**
+across 4,822 trades, negative in 5 of the 7 years in the sample. `gap_scanner.py` had been
+emitting this as `GAP-AND-GO LONG` on the live dashboard.
+
+**Where the +1.25% came from: lookahead.** The scanner's `RVOL >= 1.5` gate was computed
+from *today's full-day volume*. Apply it and the same trade measures **+1.07%, t = +5.39** —
+essentially the claimed figure. You cannot know today's full-day volume at the open, which
+is when the trade is entered. Conditioning on "today turned out to be a huge volume day"
+selects the days that trended, and trending days are exactly the ones where buying the open
+pays. The filter was reading the answer.
+
+**There is no short side either.** Shorting the up-gap measured +0.03%/trade at t = +0.35.
+Up-gaps are a stand-aside, not an inverted trade.
+
+---
+
+## CURRENT: LONG a gap down of −4% to −20%, flat at the close
+
+**Status: CURRENT**, within stated limits. Same study, same universe and window.
+
+**+0.76%/trade net of 15bp, t = +5.45, n = 2,325, 53% win.**
+
+| check | result |
+|---|---|
+| per year | positive in 5 of 7 (2023 −0.32%, partial 2026 −0.17%) |
+| train / test halves | +1.03% (t=+4.63) then +0.39% (t=+2.27) — degrades, never flips |
+| costs | survives to 50bp (+0.36%, t=+2.57); **dead at 100bp** (−0.14%) |
+| breadth | 30 of 44 names positive; excluding the largest contributor (RIOT) it is +0.66%, t=+4.54 |
+| depth | −4 to −6%: +0.51% · −6 to −10%: +1.10% · −10 to −20%: +1.15% · **beyond −20%: −1.08%** |
+
+**The volume filter must NOT be applied.** Adding `RVOL >= 1.5` takes this from +0.71%
+(t=+5.04) to −0.20% (t=−0.72). The live scanner had been requiring it, so the one real edge
+in the file was being filtered out while the losing one was being advertised.
+
+**Limits.** One study, one universe, six years, in-sample apart from the halves split. It
+has not been through a holdout-once. Treat as measured-but-not-validated, and note that a
+100bp round trip kills it — this is a liquid-name trade or it is nothing.
+
+---
+
 ## 2026-08-24: log created
 
 Written during the repo audit (`docs/AUDIT.md` §2). No new measurement was taken
@@ -377,3 +423,12 @@ one block because none of them was ever a live instruction in the dashboard.
 | `01_START_HERE/HANDOFF.md` | the 147,350-trade premium-selling result, §3 |
 | `03_research/` | 26 literature and repo sweeps. Inputs, not conclusions. `INDEX.md` carries a one-line verdict for each |
 | `07_superseded/` | the two retired documents. Record only. Nothing in there is an instruction |
+
+## 2026-09-06 — earnings variance risk premium: CURRENT
+
+Rich-percentile VRP into earnings predicts the realised move coming in under the implied one.
+266 events, 88 names, 1 year. Rich bucket +3.63pt seller edge (t=+9.07, 79% win) vs cheap
+-4.30pt. Monotone, holds in all three period splits. NOT tautological: implied is flat across
+buckets (7.17/7.63/7.99) while realised falls (11.46/6.71/4.36), so the percentile forecasts
+the move rather than labelling expensive prices. Gross of option-level costs; 65% survive a
+2pt haircut. Routes to STRUCTURE selection, never to direction. See 02_findings/earnings_vrp.md.

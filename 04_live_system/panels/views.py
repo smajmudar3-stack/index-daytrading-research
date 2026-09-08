@@ -13,14 +13,16 @@ import time
 
 from idt import paths
 
-from . import signals, structures, evidence, markets, risk, today
+from . import signals, structures, evidence, markets, risk, today, direction, weekly
 
 VIEWS = [
     {
         "slug": "today",
         "label": "Today",
         "question": "Is there anything to do right now, and how much should I trust it?",
-        "panels": [signals.patterns, today.answer, signals.gamma_meter,
+        "panels": [signals.patterns, direction.call, today.answer,
+                   signals.gamma_meter, direction.regime,
+                   direction.structure_note,
                    today.gates, today.regime, today.positions],
     },
     {
@@ -33,12 +35,32 @@ VIEWS = [
         "panels": [evidence.meters, evidence.scorecard, evidence.verdicts, evidence.weights],
     },
     {
+        # THE SWING PANEL IS GONE FROM HERE, not restyled. `markets.swing` ranked ~100
+        # names on momentum and always found eight, at strikes computed as a rounded
+        # percentage of spot -- which produced a zero-width spread on TTD and two strikes
+        # that do not exist on COST. It answered the same question the weekly book now
+        # answers, and answered it worse, so the rule applies: one of them is deleted.
+        #
+        # Order is the order you need it in. What to trade, then how the last lot is
+        # actually doing, then where the view came from, then the tape underneath it.
+        # The ledger sits directly under the cards on purpose: a page that shows fresh
+        # suggestions without showing what happened to the last ones is a brochure.
         "slug": "markets",
         "label": "Markets",
-        "question": "What is the tape doing? Context only — nothing here is a recommendation.",
-        "panels": [structures.gamma_structures,
-                   markets.periscope_spx, markets.periscope_ndx, markets.swing,
-                   markets.gaps, markets.blackswan],
+        "question": "What is worth being in this week, how are those trades doing, "
+                    "and what is the tape underneath?",
+        # ORDER IS THE ARGUMENT THE PAGE MAKES. The answer first (trades), then what is
+        # already at risk (book), then the two dated things that outrank any thesis — the
+        # macro calendar and the earnings window — because a print landing on an expiry beats
+        # every opinion below it. Context follows, and the flow-history counter sits last
+        # because it is a promise about future measurement, not a reason to act today.
+        "panels": [weekly.trades, weekly.book,
+                   weekly.calendar, weekly.earnings_vol,
+                   weekly.macro, weekly.index,
+                   structures.gamma_structures,
+                   markets.periscope_spx, markets.periscope_ndx,
+                   markets.gaps, markets.blackswan,
+                   weekly.data_lake, weekly.freshness, weekly.refused],
     },
     {
         "slug": "risk",

@@ -1,11 +1,32 @@
-# Derived from imports across 04_live_system/ and 05_studies/ (repo shipped without one).
+# Reconstructed from imports across 04_live_system/, idt/ and 05_studies/ — the repo shipped
+# without a manifest. Regenerate the audit with:
+#   python3 scripts/build_manifest.py   (files)  and the import scan in install.sh's notes
+#
+# jinja2 and lxml were MISSING from this file until 2026-09-07 and the omission was invisible
+# on the machine that wrote it, because both were already installed there. A clean install
+# failed at `import-smoke: dashboard_app: No module named 'jinja2'` — the dashboard could not
+# start at all. That is the whole argument for testing an install on a machine that has never
+# seen the project.
+
+# --- the dashboard ---
+jinja2                 # dashboard_app.py renders every panel through it. markupsafe arrives
+                       # with it as a dependency and is imported directly too.
+
+# --- data and maths ---
 numpy
 pandas
-pyarrow
-scipy
-requests
-yfinance
-anthropic
+scipy                  # confluence.py, and the stats in the studies
+pyarrow                # parquet, used by the 05_studies backtests that read the 16 GB set
+
+# --- market data ---
+yfinance               # price history everywhere; also pulls in lxml
+requests               # fetch_minutes.py and the raw HTTP paths
+lxml                   # pandas.read_html in universe_builder.py. It arrives via yfinance
+                       # today, which makes it an accident rather than a decision: the
+                       # universe silently shrinks to the hand list if it is ever absent.
+
+# --- the LLM paths ---
+anthropic              # desk-note parsing, the analyst panels
 
 # 05_studies/dl_ensemble.py only. Heavy (~1 GB); install separately if you need it:
 #   venv/bin/pip install torch

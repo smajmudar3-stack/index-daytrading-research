@@ -1,7 +1,11 @@
 """Fill remaining gaps: recent works citing Cusatis-Miles-Woolridge, plus targeted title searches."""
+import os
 import json, time, urllib.parse, urllib.request
 
-MAIL = "smajmudar886@gmail.com"
+# CONTACT EMAIL FROM THE ENVIRONMENT, not baked in. OpenAlex and the SEC both ask callers to
+# identify themselves, and both are perfectly reasonable requests -- but a real address
+# committed to a public repository is a scraped address. Set CONTACT_EMAIL in your .env.
+MAIL = os.environ.get("CONTACT_EMAIL", "")
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": f"research ({MAIL})"})

@@ -32,7 +32,12 @@ import pandas as pd
 
 from idt import paths
 
-UA = os.environ.get("SEC_UA", "Sahil Majmudar smajmudar886@gmail.com")
+# CONTACT EMAIL FROM THE ENVIRONMENT, not baked in. OpenAlex and the SEC both ask callers to
+# identify themselves, and both are perfectly reasonable requests -- but a real address
+# committed to a public repository is a scraped address. Set CONTACT_EMAIL in your .env.
+# The SEC rejects a request with no identifying User-Agent, so this fails loudly rather than
+# silently sending a blank one.
+UA = os.environ.get("SEC_UA") or os.environ.get("CONTACT_EMAIL", "")
 HEADERS = {"User-Agent": UA, "Accept-Encoding": "gzip, deflate"}
 OUT = paths.data("spinoffs")   # was 05_studies/data/spinoffs, which never existed
 

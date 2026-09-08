@@ -29,7 +29,7 @@ from idt import paths
 ET = ZoneInfo("America/New_York")
 OUT = os.path.join(paths.STATE_ROOT, "master_call.json")
 SEEN = os.path.join(paths.STATE_ROOT, "big_runs_seen.json")
-MODEL = "claude-fable-5"
+MODEL = "claude-fable-5-1"
 FALLBACK = "claude-opus-4-8"
 CADENCE_S = 600          # 10 minutes between PAID calls, matching scan_all's own gate
 

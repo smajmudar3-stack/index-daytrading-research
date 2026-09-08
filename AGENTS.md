@@ -70,6 +70,8 @@ Rules:
   `scripts/` repo tooling (the verify gate).
   `scripts/` repo tooling (verify gate, manifest generator, data bootstrap),
   `idt/` the shared package (paths, keys, db, bs, snapshots) and the `idt` CLI,
+  `influencers/` Engine D's registry of published trading educators and the setups they
+  teach (public strategy content only; see `05_studies/engine_d_influencers.py`),
   `test/` the offline suite, `07_superseded/` retired documents that are not instructions.
 - **`idt` is how everything resolves.** `idt.paths` for the two data roots (STATE_ROOT for
   live snapshots, DATA_ROOT for the 16 GB that is not in git), `idt.keys` for API keys,

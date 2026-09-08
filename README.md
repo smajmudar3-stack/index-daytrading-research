@@ -14,6 +14,92 @@ survived. Read them before anything else.
 
 ---
 
+## Run it
+
+Tested from scratch on a machine that had never seen the project. The steps below are what
+actually worked, not what should have.
+
+### You need
+
+| | |
+|---|---|
+| **Python 3.11+** | macOS ships 3.9 and it is **not enough**. `python3 --version` to check; `brew install python@3.12` if needed. The installer searches for a suitable one, so it need not be your default. |
+| **git** | already on most Macs |
+| **An Unusual Whales API key** | [unusualwhales.com](https://unusualwhales.com) — required for trade cards, see below |
+| *Anthropic API key* | optional; for the desk-note reading and the monthly calendar refresh |
+| *FRED API key* | optional and [free](https://fred.stlouisfed.org/docs/api/api_key.html); makes the macro calendar a plain API call |
+
+### Install
+
+```bash
+git clone https://github.com/smajmudar3-stack/index-daytrading-research.git
+cd index-daytrading-research
+./install.sh
+```
+
+`install.sh` finds a suitable Python, builds a virtualenv, installs dependencies, creates
+your config, runs the verification gates and the full test suite, and installs the scheduled
+jobs. Safe to re-run after a pull. **It should end with `0 failure(s)`** — if it does not,
+stop, because a failing gate means something is broken rather than merely unconfigured.
+
+Then put your key in the `.env` it created:
+
+```
+UNUSUALWHALES_API_KEY=your-key-here
+```
+
+and open **http://127.0.0.1:8095/markets** (`IDT_PORT=8096` if 8095 is taken).
+
+### What you see, and when
+
+**Immediately** the page loads and every card states its own condition — *"weekly_snapshot.json
+has never been written"*, *"No desk note has been ingested yet"*. That is deliberate: panels
+have four states and an empty one always says why, because "no closed trades yet" and "the book
+could not be read" lead to opposite actions and both used to render as blank. The macro
+calendar and the convexity numbers work from the first second.
+
+**Within five minutes** the scheduled cycle fills in gap candidates, gamma levels and the
+market panels.
+
+**The first weekly scan** takes 2–4 minutes: a year of daily history for ~1,550 names in
+batches, a $25m-a-day liquidity screen, then the top-ranked 200 analysed in full.
+
+**Trade cards need one thing more.** The engine will not propose a trade it cannot give a
+macro reason for, and that reason comes from market commentary read in daily. Without that
+feed the book stays **empty by design** — the engine refusing to trade on technical
+indicators alone, which is the specific failure the rewrite existed to remove.
+
+### Why the Unusual Whales key is not optional
+
+Four of the seven inputs the engine votes on come from that one vendor, and a card needs at
+least three inputs before it will be issued. Measured with the key removed: **0 cards, 32
+names refused for "too few inputs"**. Everything else on the page still works without it.
+
+### What will not work
+
+- **The historical backtests.** ~16 GB of market data lives outside the repo and is not in
+  git; anything in `05_studies/` that reads it fails on a fresh clone. Expected, not a bug —
+  see [`06_data_guide/DATA.md`](06_data_guide/DATA.md). The live dashboard does not touch it.
+- **The desk-note ingest** needs a Gmail connection and the Claude CLI.
+- **The monthly calendar refresh** needs the Claude CLI, because the BLS schedule pages
+  return HTTP 403 to any scripted request. A FRED key removes that dependency. The calendar
+  ships with real dates already verified.
+
+### If something breaks
+
+| symptom | cause |
+|---|---|
+| `python 3.9 is too old` | `brew install python@3.12`, re-run `./install.sh` |
+| `Address already in use` | something else holds 8095 — use `IDT_PORT=8096` |
+| every card empty | normal before the first scan; wait five minutes |
+| no trade cards, ever | check the key is in `.env`, then read the **"Considered and thrown out"** panel — it names every rejected candidate and the reason |
+| anything else | `./venv/bin/python3 scripts/verify.py` |
+
+**Nothing here places an order.** `risk_gates.DRY_RUN = True`, `LIVE_AGENT = False`, and a
+test asserts no order-placement code has appeared. This is research tooling, not advice.
+
+---
+
 ## Read in this order
 
 | # | read | why |
