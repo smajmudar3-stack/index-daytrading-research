@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**398 files, 84,400 lines.**
+**392 files, 83,494 lines.**
 
 ## Repo root
 
-*15 files, 2,601 lines*
+*11 files, 1,985 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,11 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 394 | 29 KB |
-| `MANIFEST.md` | 262 | 9 KB |
-| `MANIFEST.md` | 262 | 9 KB |
-| `MANIFEST.md` | 262 | 9 KB |
-| `README.md` | 218 | 11 KB |
-| `README.md` | 218 | 11 KB |
+| `MANIFEST.md` | 606 | 23 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -100,7 +96,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*73 files, 22,023 lines*
+*73 files, 22,028 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -166,7 +162,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
 | `04_live_system/ticket.py` | 241 | 12 KB |
-| `04_live_system/tickets.py` | 495 | 22 KB |
+| `04_live_system/tickets.py` | 500 | 22 KB |
 | `04_live_system/universe_builder.py` | 195 | 8 KB |
 | `04_live_system/uw_archive.py` | 157 | 6 KB |
 | `04_live_system/uw_calibrate.py` | 218 | 8 KB |
@@ -252,12 +248,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*55 files, 8,875 lines*
+*53 files, 8,581 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `05_studies/INDEX.md` | 147 | 15 KB |
-| `05_studies/INDEX.md` | 147 | 15 KB |
 | `05_studies/INDEX.md` | 147 | 15 KB |
 | `05_studies/backtest_0dte_rules.py` | 943 | 48 KB |
 | `05_studies/backtest_daily.py` | 156 | 7 KB |
@@ -314,7 +308,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies/scripts — research harnesses
 
-*95 files, 13,680 lines*
+*95 files, 13,679 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -410,7 +404,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scripts/vehicle_choice.py` | 123 | 5 KB |
 | `05_studies/scripts/vol_gate.py` | 118 | 4 KB |
 | `05_studies/scripts/vol_har.py` | 154 | 6 KB |
-| `05_studies/scripts/vol_vs_implied.py` | 136 | 5 KB |
+| `05_studies/scripts/vol_vs_implied.py` | 135 | 5 KB |
 | `05_studies/scripts/wing_economics.py` | 173 | 8 KB |
 | `05_studies/scripts/zebra_vs_call.py` | 171 | 8 KB |
 

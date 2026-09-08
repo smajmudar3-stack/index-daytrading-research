@@ -29,7 +29,6 @@ import os
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from scipy import stats
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MIN = os.path.join(ROOT, "data", "minute")

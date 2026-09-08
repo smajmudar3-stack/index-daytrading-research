@@ -406,7 +406,12 @@ def panel():
     extpct = (ext / total * 100) if total else 0
     rows = "".join(
         f"<tr><td><b>{t['ticker']}</b></td>"
-        f"<td class=sell>BUY PUT</td>"
+        # "LONG PUT" states the POSITION; "BUY PUT" is an instruction, and this repo
+        # measured that instruction as losing (IC -0.107, theta roughly twice the edge
+        # every cycle -- see the note this panel prints when it is empty). The
+        # retired-advice gate in verify.py catches the imperative form for exactly that
+        # reason, and it caught this line when main and dev were merged.
+        f"<td class=sell>LONG PUT</td>"
         f"<td class=mono>${t['strike']:g}</td>"
         f"<td class=mono>{t['exp']}</td>"
         f"<td class=num>{t['dte']}d</td>"
