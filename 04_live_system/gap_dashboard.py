@@ -3,6 +3,7 @@ Sections: (1) desk analyst read (Fable, rule-based fallback), (2) intraday gap-a
 tracker, (3) swing-trade signals with options structures + thesis. '/refresh' runs scan_all."""
 import json
 import os
+import re
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -198,8 +199,9 @@ def session_phase(peri):
     pin_txt = f" toward the call wall/pin (~{pin:.0f})" if pin else ""
     if mins < 660:            # 9:30–11:00
         ph = "OPENING DRIVE (9:30–11:00)"; col = "info"
-        g = ("Direction is being set now — this is when a directional 0DTE has the most room. Trade the opening "
-             "drive + flow; respect the gamma flip. Pinning is weakest now.")
+        g = ("Pinning is weakest now, so the widest part of the day's range usually lands in this window. "
+             "That is a statement about range, not direction: 56 features and 220 conditions produced zero "
+             "intraday direction rules that held out of sample, at any hour.")
     elif mins < 810:          # 11:00–13:30
         ph = "MIDDAY CHOP (11:00–13:30)"; col = "mut"
         g = ("Lowest-energy window — ranges compress, breakouts fail. Be patient; avoid buying premium into the "
@@ -317,8 +319,8 @@ def master_panel():
     """THE call, from Fable, at the top of the page.
 
     This exists because the dashboard used to shout several conflicting headlines at once — a green
-    BUY CALLS above a periscope reading 'price is FALLING' above a desk brief saying 'sit out'. One
-    decision goes here; everything below it is evidence."""
+    buy-the-calls headline above a periscope reading 'price is FALLING' above a desk brief saying
+    'sit out'. One decision goes here; everything below it is evidence."""
     d = load(os.path.join(HERE, "data", "master_call.json"))
     if not d:
         return ""
@@ -402,91 +404,42 @@ def master_panel():
 </div>"""
 
 
-def tldr_card(gx, peri):
-    """LEGACY directional read — kept as context only.
-
-    The verb this produces ('BUY CALLS'/'BUY PUTS') is the strategy out-of-sample testing measured at
-    −10% to −11% per trade over 853 trades. It is no longer the page's headline and is labelled as
-    retired wherever it appears; the master call above is the actual decision."""
-    if not gx:
-        return ""
-    md = gx.get("master_dir", "neutral")
-    conv = gx.get("conviction", 0)
-    verb = {"bullish": "BUY CALLS", "bearish": "BUY PUTS", "conflict": "STAND DOWN", "neutral": "WAIT"}.get(md, "WAIT")
-    col = {"bullish": "go", "bearish": "red", "conflict": "warn", "neutral": "mut"}.get(md, "mut")
-    p = peri or {}
-    flip = (p.get("uw") or {}).get("uw_flip") or p.get("gamma_flip")
-    spot = p.get("spot") or gx.get("spx_level")
-    cw = p.get("call_wall"); pw = p.get("put_wall")
-    im = (p.get("uw") or {}).get("implied_move") or {}
-    move = im.get("move_pct") or gx.get("exp_oc_pct")
-    # one-line trigger
-    if md == "conflict":
-        trig = "Signals disagree — no directional trade. Only act on a clean flip break."
-    elif flip and spot:
-        trig = f"Above {flip:.0f} (flip) = calls · below = puts. Now {spot:.0f}."
-    else:
-        trig = "Watch the gamma flip for the call/put line."
-    # conviction → sizing (relative; 0DTE risk must always be capped to what you can lose entirely)
-    size = ("stand down / no position" if conv < 35 else "half size" if conv < 55
-            else "normal size" if conv < 70 else "full size (still cap total 0DTE risk)")
-    # TARGETS — only when there's an actual directional play
-    tgt_html = ""
-    if md in ("bullish", "bearish") and spot:
-        callp = md == "bullish"
-        wall = cw if callp else pw
-        t2 = (spot * (1 + move / 100) if callp else spot * (1 - move / 100)) if move else None
-        parts = []
-        if wall:
-            parts.append(f"<span class=tlt><b>T1</b> {wall:.0f} <i>(wall)</i></span>")
-        if t2:
-            parts.append(f"<span class=tlt><b>T2</b> {t2:.0f} <i>(exp move)</i></span>")
-        parts.append(f"<span class=tlt><b>option:</b> bank ½ at +50-100%, trail the rest to T2 on a trend day</span>")
-        tgt_html = f"<div class=tltgt>🎯 Targets: {''.join(parts)}</div>"
-    lv = "".join(f"<span class=tlv><b>{lab}</b> {val}</span>" for lab, val in
-                 [("SPX", f"{spot:.0f}" if spot else "—"), ("flip", f"{flip:.0f}" if flip else "—"),
-                  ("call wall", f"{cw:.0f}" if cw else "—"), ("put wall", f"{pw:.0f}" if pw else "—"),
-                  ("exp move", f"±{move}%" if move else "—")])
-    return f"""<div class='tldr {col}'>
-  <div class=tlrow>
-    <div class=tlleft><div class=tllabel>LEGACY DIRECTIONAL READ · SPX 0DTE · retired signal, context only</div>
-      <div class=tlverb style='font-size:0.62em;opacity:0.75'>{verb}</div>
-      <div class=tltrig>{trig}</div>
-      <div class=tltrig><b class=red>Not the play.</b> Buying 0DTE premium on this signal tested at
-      −10% to −11%/trade over 853 trades. Shown so you can see what the old model thought; act on the
-      master call at the top.</div></div>
-    <div class=tlconv><div class=tlcnum>{conv}</div><div class=tlclab>/100 conviction</div>
-      <div class=tlbar><span class='tlfill {col}' style='width:{conv}%'></span></div>
-      <div class=tlsize>size: <b>{size}</b></div></div>
-  </div>
-  <div class=tllevels>{lv}</div>
-  {tgt_html}
-  {_macro_html(gx)}
-</div>"""
-
-
-def _macro_html(gx):
-    mr = gx.get("macro_regime")
-    if not mr:
-        return ""
-    mc = "red" if "BEAR" in mr else "warn" if "CAUT" in mr else "go"
-    return (f"<div class=tlmacro><span class='mchip {mc}'>🌐 {mr}</span> "
-            f"<span class=mnote>{gx.get('macro_note','')}</span></div>")
-
-
 def gex_panel(x):
     if not x:
         return ""
-    stance = x.get("stance", "selective")
-    scol = {"buy_premium": "go", "sell_premium": "red", "selective": "info"}.get(stance, "info")
+    # gex_signal's `stance` is a RANGE forecast now (wide_range / average_range / tight_range),
+    # not a buy_premium / sell_premium order. The old values are kept in the map so a stale
+    # snapshot written before the change still renders instead of falling through to a colour
+    # that means something else.
+    stance = x.get("stance", "average_range")
+    scol = {"wide_range": "warn", "tight_range": "mut", "average_range": "info",
+            "buy_premium": "warn", "sell_premium": "mut", "selective": "info"}.get(stance, "info")
     pm = x.get("condor_survival", {})
-    play = "".join(f"<li>{p}</li>" for p in x.get("direction_playbook", []))
+    # The playbook and the thesis are engine prose and still carry the retired instruction
+    # ("buy puts on a decisive break BELOW the gamma flip"). Same gate as the periscope: keep the
+    # reasoning, drop the order, and drop an item that was nothing but the order. When something is
+    # cut, SAY so: a silently shortened sentence reads like the engine had less to say, which is a
+    # different lie from the one being fixed.
+    # `direction_playbook` became `direction_findings`: the engine used to tell the reader how to
+    # pick a side, and now reports that no way of picking one survived testing. Both keys are read
+    # so a snapshot written before the change still renders.
+    play = "".join(f"<li>{_no_advice(p)}</li>"
+                   for p in (x.get("direction_findings") or x.get("direction_playbook") or [])
+                   if _no_advice(p))
+    thesis = str(x.get("thesis") or "").strip()
+    thesis_txt = _no_advice(thesis)
+    if thesis_txt != thesis:
+        thesis_txt += ("<span class=mut> [the engine's trade instruction was cut here: it is the "
+                       "retired directional read, measured at −10% to −11%/trade]</span>")
     bc = x.get("backcheck") or {}
     bc_html = (f"<div class=gexbc><b>Last session ({bc.get('date','')}):</b> predicted ~{bc.get('predicted_range','—')}% "
                f"range · realized <b>{bc.get('realized_range','—')}%</b> — {bc.get('verdict','')}</div>" if bc else "")
-    dix = x.get("dix_tilt", "")
+    x.get("dix_tilt", "")
     conv = x.get("conviction", 0)
     b = x.get("bias", "")
+    # The engine writes the lean and the order together ("BULLISH — favor CALLS"). Keep the lean,
+    # which is what the inputs actually voted; drop the order, which is the retired trade.
+    bias_txt = re.sub(r"\s*[\u2014-]\s*favou?rs?\s+(?:calls|puts)\s*$", "", str(b), flags=re.I)
     bcol = "red" if "BEARISH" in b or "CONFLICT" in b else "go" if "BULLISH" in b else "mut"
     rec = x.get("reconcile") or {}
     rec_html = ""
@@ -503,10 +456,10 @@ def gex_panel(x):
   <div class=gexbig>{x.get('regime','')}</div>
   {_regime_src(x)}
   <div class='gexthesis {bcol}'>
-    <div class=thlabel>📋 REGIME READ · {x.get('bias','')} · conviction {conv}/100</div>
-    <div class=hint style='margin:4px 0 8px'><b class=red>Range read = validated (t=−16). The call/put instruction below is NOT.</b> Buying 0DTE premium on this signal was tested at −10% to −11%/trade, and on real SPXW quotes the directional edge measures +0.00% (t=+0.24). Use the levels and the regime; make the direction call yourself.</div>
+    <div class=thlabel>📋 REGIME READ · {bias_txt} · conviction {conv}/100</div>
+    <div class=hint style='margin:4px 0 8px'><b class=red>The RANGE read is validated on real quotes (t=−13.2). The directional read below is not.</b> Buying 0DTE premium on this signal was tested at −10% to −11%/trade, and on real SPXW quotes the directional edge measures +0.00% (t=+0.24). Dealer gamma says how far the day is likely to travel, not which way. Read the direction lines as context, not as a signal.</div>
     <div class=convbar><span class='cfill {bcol}' style='width:{conv}%'></span></div>
-    <div class=thtext>{x.get('thesis','')}</div>
+    <div class=thtext>{thesis_txt}</div>
     <div class=thsig>Signals reconciled (all inputs voting):<ul>{rec_html}</ul></div>
   </div>
   <div class=gexnote>{x.get('note','')}</div>
@@ -519,9 +472,51 @@ def gex_panel(x):
   </div>
   {bc_html}
   <div class=gexcav>⚠️ {x.get('caveat','')}</div>
-  <details class=gexplay><summary>Which side? (GEX = size, DIX = tilt, trigger = confirm)</summary><ol>{play}</ol></details>
-  <div class=gexfoot>updated {x.get('as_of','—')} · SqueezeMetrics · regime edge 15-yr every-year-stable (t=−16); DIX direction t=+3.0</div>
+  <details class=gexplay><summary>Why there is no side here (what was tested for direction, and what it showed)</summary><ol>{play}</ol></details>
+  <div class=gexfoot>updated {x.get('as_of','—')} · SqueezeMetrics · range edge 15-yr, measured against VIX9D-implied vol (t=−13.2) · DIX direction is real on the underlying (+12.8bp, t=+3.0) but was not monetisable in 0DTE options, and as a premium-selling filter it tested as noise (p=0.49)</div>
 </div>"""
+
+
+# The 0DTE engines still write the retired directional trade into their snapshots as prose:
+# gex_periscope's `signal` is a verb and its `signal_why` ends in an order ("... / put debit
+# spread, trail to the put wall"), and gex_signal's `thesis` can read "IDEAL naked-CALL day. Buy a
+# naked CALL". Out-of-sample testing measured that read at −10% to −11% per trade, and the "below
+# the flip = buy premium" version at −7.2% to −19.1% (docs/VERDICT_LOG.md).
+#
+# So this pattern matches the SHAPES that instruction takes, not one fixed string, and the panels
+# drop whole sentences that match while keeping the ones that explain the mechanism. The gate lives
+# in the renderer on purpose: gex_signal.py and gex_periscope.py both need the same correction at
+# source, and until they get it the page still has to be safe to read. It is a filter, not a
+# guarantee: prose has more shapes than a regex, which is why the panels also carry the measured
+# result in red next to anything directional.
+_RETIRED_ADVICE = re.compile(
+    r"buy\s+(?:a|an|the)?\s*(?:naked\s+|atm\s+|otm\s+|itm\s+|0dte\s+)*(?:call|put)"  # allow: retired-advice
+    r"|(?:call|put)[\s/-]+debit\s+spread"                                            # call debit spread
+    r"|naked[\s-](?:call|put)"                                                       # naked-CALL day
+    r"|go\s+naked|naked\s+only|naked\s+is\s+fine"                                    # allow: retired-advice
+    r"|(?:call|put)\s+on\s+a\s+(?:hold|decisive|break|clean)"                        # CALL on a hold above
+    r"|=\s*(?:puts|calls)",                                                          # allow: retired-advice
+    re.I)
+
+
+def _is_retired_signal(sig):
+    """True when the engine handed us one of the retired directional verbs."""
+    return str(sig or "").startswith("BUY ")
+
+
+def _periscope_read(sig):
+    """Report the engine's verb as the lean it is, rather than reprinting it as an order."""
+    s = str(sig or "")
+    if not _is_retired_signal(s):
+        return s
+    return ("bullish lean" if "CALL" in s else "bearish lean") + " · retired read, not a signal"
+
+
+def _no_advice(text):
+    """Drop whole sentences that instruct the retired trade; keep the ones that explain why."""
+    kept = [s for s in re.split(r"(?<=[.!?])\s+", str(text or ""))
+            if not _RETIRED_ADVICE.search(s)]
+    return " ".join(kept).strip()
 
 
 def peri_panel(p):
@@ -546,15 +541,24 @@ def peri_panel(p):
     brk = p.get("flip_break")
     brk_html = ""
     if brk == "broke_down":
-        brk_html = "<div class='brkbanner down'>⚠️ FLIP BREAK — price broke BELOW the gamma flip → SHORT GAMMA → buy puts</div>"
+        brk_html = ("<div class='brkbanner down'>⚠️ FLIP BREAK · price broke BELOW the gamma flip → short-gamma "
+                    "regime. Dealer hedging now goes WITH the move, so the day's range tends to widen.</div>")
     elif brk == "reclaimed_up":
-        brk_html = "<div class='brkbanner up'>↑ Reclaimed the gamma flip → pin regime restored (put trade invalidated)</div>"
+        brk_html = ("<div class='brkbanner up'>↑ Reclaimed the gamma flip → long-gamma pin regime restored. "
+                    "Ranges tend to compress.</div>")
+    retired = _is_retired_signal(sig)
+    if retired:
+        sigcol = "mut"      # a green or red box is an instruction too; a retired read gets neither
+    why = _no_advice(why)
+    retired_html = ("<div class=sigwhy><b class=red>Not a recommendation.</b> Buying 0DTE premium on this read was "
+                    "tested at −10% to −11% per trade, and the same read taken below the flip lost "
+                    "7.2% to 19.1% per trade. It is shown as context.</div>" if retired else "")
     order = _option_order(sig, p)
     order_html = f"<div class=sigorder>🎫 {order}</div>" if order else ""
     q = p.get("quality") or {}
     conv = q.get("conviction", 0)
     conv_html = ""
-    if conv and sig in ("BUY CALLS", "BUY PUTS"):
+    if conv and retired:
         ccol = "go" if conv >= 60 else "warn" if conv >= 40 else "red"
         conv_html = (f"<div class=sigconv><span class=convlabel>conviction {conv}/100</span>"
                      f"<div class=convbar><span class='cfill {ccol}' style='width:{conv}%'></span></div>"
@@ -563,8 +567,8 @@ def peri_panel(p):
   <div class=gexhead>🛰️ Live gamma periscope · {str(p.get('symbol','')).replace('^','')} {p.get('spot','')}
     <span class='pill {fcol}'>{'PIN regime' if long_gamma else 'TREND regime'}</span></div>
   {brk_html}
-  <div class='sigbox {sigcol}'><span class=siglabel>RECOMMENDED</span>
-    <span class=sigval>{sig}</span><div class=sigwhy>{why}</div>{conv_html}{order_html}</div>
+  <div class='sigbox {sigcol}'><span class=siglabel>PERISCOPE READ</span>
+    <span class=sigval>{_periscope_read(sig)}</span><div class=sigwhy>{why}</div>{retired_html}{conv_html}{order_html}</div>
   <div class=perilevels>
     <div><span class=k>gamma flip</span><span class=v>{flip_str}</span></div>
     <div><span class=k>call wall (resistance/magnet)</span><span class=v>{p.get('call_wall','—')}</span></div>
@@ -670,9 +674,9 @@ def growth_panel():
   <div class=growrow><span class=k>stated ambition (today)</span><span class=v>${s['target_now']:,} · <span class=mut>{s.get('ambition_pct',0):+d}%</span></span></div>
   <div class=growbar><span class='growfill {acol}' style='width:{pct}%'></span></div>
   <div class=hint><b class=red>The $100k-by-Nov-19 ladder is not reachable</b> with any rule that survived out-of-sample testing —
-  it would require risking ~374% of the account per trade (full Kelly on the validated edge is already 172%). Honest range for the
-  remaining weeks is roughly $5,200–$7,800. Aggression is measured against the <b>evidence</b> curve so the agent is never pushed
-  into permanent catch-up. See RULES.md §5.<br>{s['aggr_note']} · Hard caps: ≤{s['risk_cap']['max_risk_per_trade_pct']}%/trade, ≤{s['risk_cap']['max_open']} open, −{s['risk_cap']['daily_loss_stop_pct']}% daily stop.
+  it would require risking ~374% of the account per trade (full Kelly on the strongest edge ever measured here is already 172%).
+  Honest range for the remaining weeks is roughly $5,200–$7,800. Aggression is measured against the <b>evidence</b> curve so the
+  agent is never pushed into permanent catch-up. See 07_superseded/RULES.md §5 for the sizing maths.<br>{s['aggr_note']} · Hard caps: ≤{s['risk_cap']['max_risk_per_trade_pct']}%/trade, ≤{s['risk_cap']['max_open']} open, −{s['risk_cap']['daily_loss_stop_pct']}% daily stop.
   <form action=/setacct method=get style='display:inline-flex;gap:5px;margin-left:8px'><input name=value type=number step=any placeholder='update $' style='width:90px;background:#0d1117;color:var(--text);border:1px solid var(--line2);border-radius:6px;padding:4px 7px;font-size:12px'><button style='background:var(--info);color:#04130a;border:none;border-radius:6px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:12px'>set</button></form></div>
 </div>"""
 
@@ -724,7 +728,11 @@ def agent_panel():
 
 
 def rules_panel():
-    """The one validated edge, its live gate state, and the real-quote evidence accumulating against it."""
+    """The 0DTE condor, its live gate state, and the real-quote evidence accumulating against it.
+
+    This panel used to be titled 'Validated rule' while its own body said to size the trade as
+    unproven. The title was the retired claim: the +3.7%/trade figure came from a pricing model and
+    real SPXW quotes put the structure at roughly break-even. The badge now matches the body."""
     try:
         import rules
         g = rules.gate_state()
@@ -734,7 +742,7 @@ def rules_panel():
     z = g.get("gex_z")
     zs = f"{z:+.2f}" if z is not None else "n/a"
     if g["open"]:
-        state = "<span class='pill go'>GATE OPEN — validated setup is live</span>"
+        state = "<span class='pill mut'>GATE OPEN · conditions met, edge unproven</span>"
         why = ""
     else:
         state = "<span class='pill mut'>STAND DOWN</span>"
@@ -756,7 +764,7 @@ def rules_panel():
     if ev.get("avg_credit_pct_high_gamma") is not None:
         evline += (f"<div class=growrow><span class=k>avg credit (high γ)</span><span class=v>"
                    f"{ev['avg_credit_pct_high_gamma']}% of width over {ev.get('n_high_gamma')} sessions</span></div>")
-    return f"""<div class='card growth'><div class=ahead>📐 Validated rule {state}</div>
+    return f"""<div class='card growth'><div class=ahead>📐 0DTE condor · unproven {state}</div>
   <div class=growrow><span class=k>prior-close GEX z</span><span class=v>{zs} · gate fires above +{rules.GEX_Z_GATE}</span></div>
   {cond}
   {evline}
@@ -768,7 +776,8 @@ def rules_panel():
   profitable condor at real prices. Size this as unproven, not as a validated edge.
   <b>Rejected and now hard-blocked:</b> buying 0DTE premium (−10%/trade), "below the flip = buy premium" (−7.2%), DIX as a selling
   filter (p=0.49), sector-rotation swing picks (worse than random, p=0.87), swing option overlays (all beaten by owning SPY).
-  Every backtest P&amp;L was <b>modelled</b> — the credit log above is accumulating real quotes to confirm or kill it. See RULES.md.</div>
+  Every backtest P&amp;L was <b>modelled</b> — the credit log above is accumulating real quotes to confirm or kill it.
+  Dated verdicts live in docs/VERDICT_LOG.md.</div>
 </div>"""
 
 
@@ -872,7 +881,8 @@ def risk_panel():
                      f"total {st['total_return_pct']:+.0f}%</span></div>")
         split = ("<div class=hint style='margin-top:6px'><b>RANGE vs DIRECTIONAL — your own fills</b></div>"
                  + rows +
-                 "<div class=hint>Backtest said range +3.7%/trade and directional −10 to −11%/trade. "
+                 "<div class=hint>The modelled backtest said range +3.7%/trade, corrected on real SPXW quotes to "
+                 "roughly break-even, and directional −10 to −11%/trade. "
                  "These are opposite payoff shapes — the condor wins small and often, directional loses "
                  "small and often then occasionally pays for everything — so a blended win rate would "
                  "hide which one is working. This settles it with real fills.</div>")
@@ -985,28 +995,20 @@ def condor_card(p):
 
 
 def _option_order(sig, p):
-    """Translate the signal + live levels into a concrete, actionable option order with strikes."""
+    """Turn a signal + live levels into a concrete order, for the structures still on the table.
+
+    The two directional branches this used to have (long ATM 0DTE calls or puts off the periscope
+    verb) were deleted in the 2026-08-24 retirement pass. That trade is the one out-of-sample
+    testing measured at −10% to −11% per trade, and at −7.2% to −19.1% when taken
+    below the gamma flip. Printing strikes and a trail plan for it made a rejected strategy look
+    like a desk ticket."""
     spot = p.get("spot"); cw = p.get("call_wall"); pw = p.get("put_wall")
     if not spot:
         return ""
-    rnd = 5 if spot < 10000 else 25            # SPX→5, NDX→25 strike spacing
-    atm = round(spot / rnd) * rnd
-    if sig == "BUY CALLS":
-        drs = f" · defined-risk alt: {atm:.0f}/{cw:.0f} call debit spread" if cw and cw > atm else ""
-        t1 = f"T1 {cw:.0f} (call wall)" if cw and cw > atm else "T1 = next resistance"
-        return (f"<b>Buy the {atm:.0f} call</b> (ATM/1-ITM), nearest 0DTE{drs}.<br>"
-                f"<b>Targets:</b> {t1}. <b>Exit:</b> bank ½ at +50–100%, TRAIL the rest toward T1/beyond on a trend day. "
-                f"<b>Stop:</b> price loses the flip (thesis dead) or −50% premium.")
-    if sig == "BUY PUTS":
-        drs = f" · defined-risk alt: {atm:.0f}/{pw:.0f} put debit spread" if pw and pw < atm else ""
-        t1 = f"T1 {pw:.0f} (put wall)" if pw and pw < atm else "T1 = next support"
-        return (f"<b>Buy the {atm:.0f} put</b> (ATM/1-ITM), nearest 0DTE{drs}.<br>"
-                f"<b>Targets:</b> {t1}. <b>Exit:</b> bank ½ at +50–100%, TRAIL the rest lower on a trend day. "
-                f"<b>Stop:</b> price reclaims the flip or −50% premium.")
     if "SELL PREMIUM" in sig and cw and pw:
         return (f"<b>Sell an iron condor:</b> short {pw:.0f}P / {cw:.0f}C, buy wings ~1% wider (defined risk).<br>"
                 f"<b>Exit:</b> take 50% of max credit; <b>stop</b> if either short strike breaks (that's a flip/trend day).")
-    return ""      # WAIT / AT FLIP / CAUTION / CONFLICT → no order
+    return ""      # every other read, including both retired directional verbs → no order
 
 
 def _uw_html(u):
@@ -1016,7 +1018,7 @@ def _uw_html(u):
     score = u.get("dir_score")
     scol = "go" if (score or 0) > 12 else "red" if (score or 0) < -12 else "info"
     proxy = u.get("proxy")
-    hdr = f"🐳 Unusual Whales — real flow decision layer" + (f" <span class=basel>(via {proxy} proxy)</span>" if proxy else "")
+    hdr = "🐳 Unusual Whales — real flow decision layer" + (f" <span class=basel>(via {proxy} proxy)</span>" if proxy else "")
     rows = [
         f"<div><span class=k>sweep/block flow</span><span class=v>{(u.get('flow') or {}).get('detail','—')[:60]}</span></div>",
         f"<div><span class=k>intraday tape flow</span><span class=v>{inf.get('bias','—')} · {inf.get('detail','')[:44]}</span></div>",
@@ -1340,7 +1342,7 @@ def render():
 {ticket_panel()}
 {rules_panel()}
 {session_phase(peri_spx)}
-<h2>SPX 0DTE · dealer gamma, DIX &amp; implied move <span style='color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0'>(the range read — validated, t=−16)</span></h2>
+<h2>SPX 0DTE · dealer gamma, DIX &amp; implied move <span style='color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0'>(the range read · validated on real quotes, t=−13.2)</span></h2>
 {gex_panel(gx)}
 {peri_panel(peri_spx)}
 {peri_panel(peri_ndx)}
@@ -1348,18 +1350,18 @@ def render():
 {tracker_panel()}
 <details class='card glossary'><summary>📖 What the terms mean (plain English)</summary><dl>
 <dt>Dealer gamma / GEX</dt><dd>How much the big option market-makers must hedge. When they're "long gamma" they trade AGAINST moves → the market gets pinned and chops (small range). When "short gamma" (negative) they trade WITH moves → the market gets pushed further → big trending days. This is set by yesterday's close, so you know it before the open.</dd>
-<dt>Gamma flip</dt><dd>The price line that separates the two worlds above. ABOVE it = pin/chop (naked options bleed). BELOW it = amplify/trend (naked options have fuel). The single most useful intraday level — it's your call-vs-put trigger.</dd>
+<dt>Gamma flip</dt><dd>The price line that separates the two worlds above. Above it dealers damp moves, so the day's range tends to be small. Below it they push moves along, so the range tends to be big. That is the whole claim: dealer gamma predicts the SIZE of the day's move, never its direction. The reading this glossary used to give, "below the flip = buy premium", was measured on real option quotes and lost 7.2% per trade as a straddle and 19.1% as a strangle. It is retired. Use the flip to judge how far the day is likely to travel, not which way.</dd>
 <dt>Call wall / Put wall</dt><dd>The strikes with the most dealer gamma. Call wall acts like a ceiling/magnet (price gets stuck under it); put wall acts like a floor/support. Great profit-taking and stop levels.</dd>
-<dt>DIX (Dark Index)</dt><dd>How aggressively institutions are BUYING in dark pools (off-exchange). High DIX = big money accumulating = bullish tilt. It's the one thing that reliably gives you a CALL direction the night before.</dd>
-<dt>Expected range / open→close</dt><dd>How much the market is likely to move, based on today's regime. Big = buy premium; small = don't (theta eats you).</dd>
-<dt>Condor survival</dt><dd>If you SOLD a defined-risk iron condor at these strikes, how often it'd expire safe. High on pin days — that's when you flip from buyer to seller.</dd>
-<dt>VIX term structure (backwardation)</dt><dd>When near-term fear (VIX9D) is higher than a bit further out (VIX). Counter-intuitively, high-DIX + backwardation = a bullish "buy-the-stress" day.</dd>
-<dt>Conviction</dt><dd>How many validated bullish signals are firing at once, and how strong. Capped at 75 — these are 55–60% edges, real but never certainties. Size accordingly.</dd>
+<dt>DIX (Dark Index)</dt><dd>How aggressively institutions are BUYING in dark pools (off-exchange). High DIX = big money accumulating = bullish tilt. Over 15 years that tilt is real but small: +12.8bp open to close on the underlying, t=+3.0. It did not survive being expressed as a 0DTE option trade, and as a premium-selling filter it tested as noise (p=0.49). Context, not a trigger.</dd>
+<dt>Expected range / open→close</dt><dd>How much the market is likely to move, based on today's regime. This is the one 0DTE number with 15 years of evidence behind it: realised versus implied move is 0.843× on high-gamma days against 1.139× on low, t=−13.2, measured against VIX9D-implied vol. It tells you which structures are even plausible today. It does not tell you a side, and buying premium because the number is big was tested and lost.</dd>
+<dt>Condor survival</dt><dd>If you SOLD a defined-risk iron condor at these strikes, how often it would expire safe. Highest on pin days. Survival is not profit: on 1,919 sessions of real SPXW bid/ask the same structure came out roughly break-even, so read this as a risk number rather than an edge.</dd>
+<dt>VIX term structure (backwardation)</dt><dd>When near-term fear (VIX9D) is higher than a bit further out (VIX). Backwardation is one of only three signals that survived out-of-sample testing here, holding on all three splits (t=+3.9/+2.8/+2.1), on a days-to-weeks horizon. The older "high DIX plus backwardation = a bullish buy-the-stress day" version was never confirmed.</dd>
+<dt>Conviction</dt><dd>How many of the page's inputs point the same way at once, and how strongly. It is a tally of agreement, not a probability. Nothing in this repo's intraday direction hunt cleared 55% on both train and validate, so a high number means the inputs agree, not that they are right. Capped at 75.</dd>
 </dl></details>
 </section>
 
 <section class="pane pane1">
-<h2>Intraday · gap-and-go <span style='color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0'>(+1.25%/trade, 56% win, t=6.6 — the one validated intraday edge)</span></h2>
+<h2>Intraday · gap-and-go <span style='color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0'>(+1.25%/trade, 56% win, t=6.6 · from its own backtest, no entry in 02_findings yet)</span></h2>
 {ai_panel}
 <div class=grid>{gap_cards}</div>
 {track}
@@ -1378,30 +1380,69 @@ def render():
 {growth_panel()}
 {agent_panel()}
 {ai_desk_panel()}
-{tldr_card(gx, peri_spx)}
 </section>
 
 <section class="pane pane4">
 {blackswan_panel.blackswan_panel()}
 </section>
 
-<footer>0DTE regime = dealer gamma (prior close) predicts the day's RANGE — GO to buy naked calls/puts on low/neg-gamma (big-range) days, sit out or sell premium on high-gamma pin days (15-yr robust, t=−16); it does NOT give direction — get that from your opening drive + flow (Unusual Whales / Market Chameleon / Barchart). Intraday = the validated gap-and-go edge (volatile stocks; the index has no intraday edge). Swing = momentum direction
-(a ~55-60% weekly edge, conviction capped ⩽70) matched to the IV environment for the right options structure. Desk analyst is
-Fable 5 when API credits are on, else a rule-based read. Everything is defined-risk-friendly. Paper-trade first. Not financial advice.</footer>
+<footer><b>What this page is.</b> A local read-out of one research system: the dealer-gamma regime, live option levels, a gap-and-go
+scanner, a swing screen, and the risk gates sitting in front of all of it. It proposes, prices and records. It never places an order.
+<b>What survived testing.</b> Dealer gamma predicts the day's RANGE, not its direction: realised versus implied move is 0.843× on
+high-gamma days against 1.139× on low, t=−13.2 over 15 years. Short interest predicts LOWER forward returns, the opposite of the
+squeeze story (IC −0.107 at 63 days). VIX backwardation held on all three splits (t=+3.9/+2.8/+2.1). Those three, in
+02_findings/WHAT_WORKS.md.
+<b>What is unproven.</b> The 0DTE iron condor. Its +3.7%/trade came from a pricing model; on 1,919 sessions of real SPXW bid/ask it
+is roughly break-even, and the credit log on the 0DTE tab is collecting live quotes to settle it. The gap-and-go and swing figures
+quoted above come from their own backtests and have no entry in 02_findings yet.
+<b>What is retired.</b> Buying 0DTE premium on a directional read (−10% to −11% per trade), and its "below the gamma
+flip = buy premium" form (−7.2% as a straddle, −19.1% as a strangle). Neither is a recommendation on this page any more. Dated
+verdicts: docs/VERDICT_LOG.md. Superseded documents: 07_superseded/.
+<b>Not financial advice.</b> Paper-trade first. Every number here is a measurement with an error bar, not an instruction.</footer>
 <script>var ep={(g or {}).get('epoch',0)};if(ep){{var f=document.querySelector('.fresh');}}</script>
 </body></html>"""
 
 
+# "📖 How it works" used to serve 01_START_HERE/STRATEGY_0DTE.md. That document says at line 3 that
+# the "below the flip = buy premium" rule is wrong and retired, then teaches it again at line 38, and
+# it was the only long-form explanation the dashboard offered. It now serves the current verdicts.
+# One constant so the next move is a one-line change instead of a hunt.
+DOC_PAGE = ("02_findings", "WHAT_WORKS.md")
+
+
+def _repo_path(*parts):
+    """A path inside the repo, resolved through idt.paths so a moved doc still resolves."""
+    try:
+        from idt.paths import REPO_ROOT as _root
+    except Exception:          # idt not installed, e.g. a bare `python3 gap_dashboard.py`
+        _root = os.path.dirname(HERE)
+    return os.path.join(_root, *parts)
+
+
 def strategy_page():
-    """Serve STRATEGY_0DTE.md rendered with a minimal markdown converter."""
+    """Serve the current findings doc (DOC_PAGE) rendered with a minimal markdown converter."""
     import html as _html
     import re
+    path = _repo_path(*DOC_PAGE)
     try:
-        md = open(os.path.join(HERE, "STRATEGY_0DTE.md")).read()
-    except Exception:
-        md = "# Strategy doc not found"
+        md = open(path, encoding="utf-8").read()
+    except (OSError, UnicodeDecodeError) as exc:
+        # A missing file used to render a page reading "Strategy doc not found" and nothing else,
+        # which tells you neither which file nor where it was expected. Name both, and never let
+        # this raise: the handler has no error page, so an exception here is a dead connection.
+        md = ("# That document is missing\n\n"
+              f"This page serves `{os.path.join(*DOC_PAGE)}`, the current research verdicts.\n\n"
+              f"Expected it at `{path}` and got "
+              f"`{exc.__class__.__name__}: {getattr(exc, 'strerror', None) or exc}`.\n\n"
+              "If the file moved, change `DOC_PAGE` in `04_live_system/gap_dashboard.py`. Dated "
+              "verdicts are in `docs/VERDICT_LOG.md` and the superseded strategy documents are in "
+              "`07_superseded/`.\n")
     def _inline(t):
         t = _html.escape(t)
+        # Markdown links keep their words and, when it adds something, their target. None becomes
+        # an <a>: the targets are repo-relative and would 404 against this server.
+        t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
+                   lambda m: m.group(1) if m.group(1) == m.group(2) else f"{m.group(1)} ({m.group(2)})", t)
         t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
         return re.sub(r"`(.+?)`", r"<code>\1</code>", t)
 
@@ -1413,7 +1454,7 @@ def strategy_page():
         else:
             joined.append(ln)
 
-    out, in_ul, buf = [], False, []
+    out, in_ul, in_tbl, buf = [], False, False, []
 
     def _flush_p():
         if buf:
@@ -1423,10 +1464,27 @@ def strategy_page():
         nonlocal in_ul
         if in_ul: out.append("</ul>"); in_ul = False
 
+    def _flush_tbl():
+        # 02_findings/ is table-heavy: without this every result table rendered as one long
+        # run-on paragraph of pipes, which is how a reader stops trusting the page.
+        nonlocal in_tbl
+        if in_tbl: out.append("</table>"); in_tbl = False
+
     for ln in joined:
         s = ln.rstrip()
         if not s.strip():
-            _flush_p(); _flush_ul(); continue
+            _flush_p(); _flush_ul(); _flush_tbl(); continue
+        if s.lstrip().startswith("|"):
+            _flush_p(); _flush_ul()
+            cells = [c.strip() for c in s.strip().strip("|").split("|")]
+            if all(c and set(c) <= set("-: ") for c in cells):
+                continue                      # the |---|:--:| alignment row
+            tag = "td" if in_tbl else "th"
+            if not in_tbl:
+                out.append("<table>"); in_tbl = True
+            out.append("<tr>" + "".join(f"<{tag}>{_inline(c)}</{tag}>" for c in cells) + "</tr>")
+            continue
+        _flush_tbl()
         if s.startswith(("#", "-", "---")) or re.match(r"^\d+\. ", s):
             _flush_p()                        # a block starts → close any open paragraph
         if s.startswith("### "):
@@ -1445,15 +1503,18 @@ def strategy_page():
             out.append(f"<li>{_inline(s.lstrip()[2:])}</li>")
         else:
             buf.append(s.strip())             # accumulate wrapped paragraph lines
-    _flush_p(); _flush_ul()
+    _flush_p(); _flush_ul(); _flush_tbl()
     body = "\n".join(out)
     return f"""<!doctype html><html lang=en><head><meta charset=utf-8>
-<meta name=viewport content='width=device-width,initial-scale=1'><title>0DTE Strategy</title>
+<meta name=viewport content='width=device-width,initial-scale=1'><title>What survived testing</title>
 <style>
  body{{background:#0d1117;color:#e6edf3;font:16px/1.65 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:26px;max-width:820px;margin-inline:auto}}
  a{{color:#58a6ff}} h1{{font-size:26px}} h2{{font-size:19px;margin-top:28px;border-bottom:1px solid #21262d;padding-bottom:5px}} h3{{font-size:16px;margin-top:20px;color:#58a6ff}}
  code{{background:#161b22;border:1px solid #21262d;border-radius:5px;padding:1px 6px;font-size:13px}} hr{{border:0;border-top:1px solid #21262d;margin:22px 0}}
  li{{margin:5px 0}} b{{color:#fff}} p{{color:#c9d1d9}} ul,ol{{padding-left:22px}}
+ table{{border-collapse:collapse;margin:14px 0;font-size:14px;width:100%}}
+ th,td{{border:1px solid #21262d;padding:5px 9px;text-align:left;color:#c9d1d9}}
+ th{{color:#9aa4b2;font-weight:700;background:#161b22}}
  .back{{display:inline-block;margin-bottom:16px;font-weight:700;text-decoration:none}}
 </style></head><body>
 <a class=back href='/'>← back to dashboard</a>

@@ -11,9 +11,8 @@ Guardrail design follows the tasty-agent order-tool contract (RESEARCH_BOTS.md #
   - everything returns None on failure instead of a plausible-looking fabrication
 """
 import os
-import json
 import warnings
-from datetime import datetime, date
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 warnings.filterwarnings("ignore")

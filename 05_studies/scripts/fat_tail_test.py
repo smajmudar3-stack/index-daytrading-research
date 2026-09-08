@@ -21,7 +21,6 @@ Two comparisons, on the same 1.16M stock-days:
      real far-OTM contract prices — the delta of an option IS approximately the
      market's risk-neutral probability of finishing beyond that strike.
 """
-import os
 import warnings
 
 import numpy as np
@@ -29,14 +28,15 @@ import pandas as pd
 import pyarrow.parquet as pq
 from scipy.stats import norm
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BM = os.path.join(ROOT, "data", "bigmove", "panel.parquet")
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
+BM = paths.data("bigmove", "panel.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
 
 
 def main():
-    d = pd.read_parquet(BM)
+    d = pd.read_parquet(paths.require_data(BM))
     print("=" * 92)
     print("1. ARE TAILS FATTER THAN GAUSSIAN?  (1.16M stock-days, 158 names)")
     print("=" * 92)
@@ -68,17 +68,17 @@ def main():
     print("  tail pricing is too thin -- which is the actual trade.\n")
 
     rows = []
-    und = pd.read_parquet(os.path.join(ROOT, "data", "opt_eod", "SPY_underlying.parquet"))
+    und = pd.read_parquet(paths.data("opt_eod", "SPY_underlying.parquet"))
     dcol = [c for c in und.columns if "date" in c.lower()]
     ucol = [c for c in und.columns if c.lower() in ("close", "adjclose")][0]
     und.index = pd.to_datetime(und[dcol[0]]) if dcol else und.index
     px = und[ucol].sort_index()
 
     for y in range(2012, 2026):
-        t = pq.read_table(OPT, columns=["date", "expiration", "strike", "type",
-                                        "bid", "ask", "delta", "open_interest"],
-                          filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
-                                   ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
+        t = pq.read_table(paths.require_data(OPT), columns=["date", "expiration", "strike", "type",
+                                                            "bid", "ask", "delta", "open_interest"],
+                                              filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
+                                                       ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
         if t.empty:
             continue
         t["date"] = pd.to_datetime(t["date"]); t["expiration"] = pd.to_datetime(t["expiration"])

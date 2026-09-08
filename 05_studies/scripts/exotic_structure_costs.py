@@ -16,10 +16,11 @@ the number that actually matters for a small account.
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import pyarrow.compute as pc
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 
 COLS = ["date", "expiration", "strike", "type", "bid", "ask",
         "delta", "gamma", "theta", "vega", "implied_volatility",
@@ -27,7 +28,7 @@ COLS = ["date", "expiration", "strike", "type", "bid", "ask",
 
 
 def load(sample_dates):
-    tbl = pq.read_table(OPT, columns=COLS,
+    tbl = pq.read_table(paths.require_data(OPT), columns=COLS,
                         filters=[("date", "in", list(sample_dates))])
     df = tbl.to_pandas()
     df = df[(df.bid > 0) & (df.ask > df.bid) & (df.open_interest > 0)].copy()
@@ -179,11 +180,11 @@ def payoff_max_risk(legs, S, mid):
 
 
 def main():
-    und = pd.read_parquet(UND)[["date", "close"]]
+    und = pd.read_parquet(paths.require_data(UND))[["date", "close"]]
     und["date"] = pd.to_datetime(und.date)
     und = und.set_index("date")["close"]
 
-    all_dates = pd.Series(pq.read_table(OPT, columns=["date"]).column("date").to_pandas().unique())
+    all_dates = pd.Series(pq.read_table(paths.require_data(OPT), columns=["date"]).column("date").to_pandas().unique())
     all_dates = pd.to_datetime(pd.Series(sorted(all_dates)))
     all_dates = all_dates[all_dates >= "2018-01-01"]
     # first trading day of each month
@@ -214,7 +215,7 @@ def main():
                                  expiration=exp, structure=name, note=note,
                                  max_risk=max_risk, **st))
     res = pd.DataFrame(rows)
-    res.to_parquet("/Users/sahilmajmudar/index-daytrading/data/exotic_structure_costs.parquet")
+    res.to_parquet(paths.data("exotic_structure_costs.parquet"))
 
     pd.set_option("display.width", 220)
     for tag in ["35d", "90d"]:

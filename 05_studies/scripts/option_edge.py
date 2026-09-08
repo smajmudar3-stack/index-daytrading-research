@@ -20,7 +20,6 @@ and IV inputs below are measured from the real market, but a backtested option
 return remains a model output and must never be quoted as a realised result.
 """
 import math
-import os
 import sys
 import time
 import warnings
@@ -28,10 +27,11 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "data", "swing")
+OUT = paths.data("swing")
 
 SQRT2PI = math.sqrt(2 * math.pi)
 
@@ -317,7 +317,7 @@ def main():
 
     # Sanity-check the pricer against a known case.
     g = bs(100, 100, 30 / 365, 0.25)
-    print(f"\n  BS check  S=100 K=100 30d iv=25%:")
+    print("\n  BS check  S=100 K=100 30d iv=25%:")
     print(f"    price {g['price']:.2f}  delta {g['delta']:.3f}  gamma {g['gamma']:.4f}  "
           f"theta {g['theta']:.3f}/day  vega {g['vega']:.3f}/volpt")
     iv = implied_vol(g["price"], 100, 100, 30 / 365)

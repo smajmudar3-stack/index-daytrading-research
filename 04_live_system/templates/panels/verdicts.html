@@ -1,0 +1,17 @@
+{% import "panels/_viz.html" as viz %}
+{# What survived, drawn as a diverging record: survivors extend right in ink,
+   the refuted extend left in red, magnitude is the bar. #}
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  <div class=bars>
+    {% for r in p.body.rows %}
+    <div class="barrow {{ r.severity or '' }}">
+      <span class=k>{{ r.k }}</span>
+      {{ viz.hbar(r.mag, r.severity or ('watch' if r.tier == 'modelled' else ''), r.dir) }}
+      <span class=v>{{ r.v }}{% if r.tier %} <span class="tier {{ r.tier }}">{{ r.tier }}</span>{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

@@ -1,0 +1,242 @@
+"""Markets — the read-only context. No panel here renders an action verb.
+
+These are the levels and readings an operator looks at while deciding. The decision
+itself lives in the Today view, and only there. That separation is the fix for the
+page shouting several conflicting headlines at once, which master_panel()'s own
+docstring recorded as the original problem.
+"""
+from .today import _age_min, _load, _snapshot
+from . import OK, STALE, describe, empty, panel, safe, unavailable
+
+
+def _periscope(sym):
+    name = f"periscope_{sym}.json"
+    key = f"peri_{sym.lower()}"
+    title = f"{sym} gamma levels"
+    p, bad = _snapshot(name)
+    if bad and bad["kind"] == "empty":
+        return empty(key, title, bad["why"], fix=bad["fix"])
+    if bad and bad["kind"] == "unavailable":
+        return unavailable(key, title, bad["why"], fix=bad["fix"])
+    if p is not None and not p.get("ok"):
+        return unavailable(key, title,
+                           f"The {sym} periscope failed: {p.get('error', 'no reason recorded')}",
+                           fix="idt audit")
+
+    age = _age_min(name)
+    stale = bool(bad and bad["kind"] == "stale")
+    rows = [
+        {"k": "spot", "v": f"{p.get('spot', '—')}"},
+        {"k": "gamma flip", "v": f"{p.get('gamma_flip') or 'none within ±10%'}"},
+        {"k": "call wall", "v": f"{p.get('call_wall', '—')}"},
+        {"k": "put wall", "v": f"{p.get('put_wall', '—')}"},
+        {"k": "net GEX", "v": f"{p.get('net_gex_musd', '—')} $M / 1%"},
+    ]
+    pos = p.get("position") or {}
+    if pos.get("note"):
+        rows.append({"k": "position", "v": pos["note"],
+                     "severity": "watch" if pos.get("at_wall") else None})
+
+    # The ladder: put wall, gamma flip and spot drawn between the walls on one
+    # axis. The four numbers above ARE this picture; drawing it is the panel.
+    ladder = None
+    spot, cw, pw = p.get("spot"), p.get("call_wall"), p.get("put_wall")
+    flip = p.get("gamma_flip")
+    if spot and cw and pw and cw > pw:
+        lo = min(pw, spot, *( [flip] if flip else [] ))
+        hi = max(cw, spot, *( [flip] if flip else [] ))
+        span = (hi - lo) or 1
+
+        def pct(v):
+            # 8% margins so a level on the edge keeps its label on the page.
+            return round(8 + (v - lo) / span * 84, 2)
+
+        levels = [
+            {"kind": "wall", "label": "put wall", "px": f"{pw:g}", "pct": pct(pw)},
+            {"kind": "wall", "label": "call wall", "px": f"{cw:g}", "pct": pct(cw)},
+            {"kind": "spot", "label": "spot", "px": f"{spot:g}", "pct": pct(spot)},
+        ]
+        if flip:
+            levels.insert(2, {"kind": "flip", "label": "gamma flip", "px": f"{flip:g}",
+                              "pct": pct(flip)})
+        ladder = {"levels": levels,
+                  "left": "downside support", "right": "upside magnet"}
+
+    stats = []
+    if p.get("net_gex_musd") is not None:
+        stats.append({"n": f"{p['net_gex_musd']:g}", "l": "net GEX $M / 1%"})
+    posd = p.get("position") or {}
+    if posd.get("pct_to_call_wall") is not None:
+        stats.append({"n": f"{posd['pct_to_call_wall']}%", "l": "to call wall"})
+    if posd.get("pct_to_put_wall") is not None:
+        stats.append({"n": f"{posd['pct_to_put_wall']}%", "l": "above put wall"})
+
+    return panel(key, title,
+                 state=STALE if stale else OK,
+                 severity="watch" if stale else None,
+                 age_min=age,
+                 body={"rows": rows, "text": p.get("signal_why", ""),
+                       "ladder": ladder, "stats": stats},
+                 note=p.get("signal", ""),
+                 source=p.get("spot_source") or "yfinance chain")
+
+
+@safe
+@describe("peri_spx", "SPX gamma levels")
+def periscope_spx():
+    return _periscope("SPX")
+
+
+@safe
+@describe("peri_ndx", "NDX gamma levels")
+def periscope_ndx():
+    return _periscope("NDX")
+
+
+@safe
+@describe("swing", "Swing signals")
+def swing():
+    """RETIRED FROM THE PAGE on 2026-09-02. Kept as a function, rendered by no view.
+
+    It ranked ~100 names on momentum and always surfaced eight, then attached strikes
+    computed as `round(price * (1+pct), 0)`. On 2026-09-02 that shipped "Buy 14P / Sell
+    14P" on TTD -- a zero-width spread -- and "Sell 969C / Buy 1015C" on a stock listing in
+    $5 increments. `panels/weekly.py` answers the same question against real chains with a
+    stated macro reason and a live ledger, so this one is deleted from the views rather
+    than restyled. `swing_signals.run()` still writes its snapshot and `scorecard.py` still
+    scores it, which is why the function survives.
+
+    Days-to-weeks direction. Kept because two of its three inputs are measured.
+
+    The swing OPTION overlays are all refuted (every one was beaten by owning SPY on
+    return, Sharpe and drawdown), and sector rotation picks names that do worse than
+    random. What survived is the underlying signal set: short interest with a negative
+    sign, and VIX backwardation. So this panel reports signals, not trades.
+    """
+    sw = _load("swing_snapshot.json")
+    if sw is None:
+        return empty("swing", "Swing signals", "No swing snapshot yet.",
+                     fix="idt refresh   (writes 04_live_system/data/swing_snapshot.json)")
+
+    sigs = sw.get("signals") or []
+    if not sigs:
+        return empty("swing", "Swing signals",
+                     "The scan ran and found no names clearing the threshold.")
+
+    age = _age_min("swing_snapshot.json")
+    rows = []
+    for s in sigs[:12]:
+        conv = s.get("conviction")
+        rows.append({"k": s.get("ticker", "?"),
+                     "v": f"{s.get('direction', '')} · conviction {conv if conv is not None else '—'}",
+                     "dir_word": s.get("direction", ""),
+                     "conv": int(conv) if conv is not None else 0})
+    return panel("swing", "Swing signals",
+                 state=STALE if (age or 0) > 1500 else OK, age_min=age,
+                 body={"rows": rows},
+                 note=("Signals, not trades. Every option overlay tested on these was beaten by "
+                       "simply owning the index, so the honest expression is the underlying."),
+                 source="swing_signals.run()")
+
+
+@safe
+@describe("gaps", "Gap and go candidates")
+def gaps():
+    g = _load("gap_snapshot.json")
+    if g is None:
+        return empty("gaps", "Gap and go candidates", "No gap scan yet.",
+                     fix="idt refresh   (writes 04_live_system/data/gap_snapshot.json)")
+    age = _age_min("gap_snapshot.json")
+    cands = g.get("candidates") or []
+    state = g.get("session_state")
+    when = f"{g.get('session_date', '?')} · scanned {g.get('as_of', '?')}"
+
+    # EVERY ROW NOW CARRIES THE TIME ITS PRICE CAME FROM. The panel used to show three
+    # tickers and nothing else, so a list that had not changed since yesterday was
+    # indistinguishable from a list that had just been rebuilt. That is what "not
+    # refreshing" looked like: the file WAS being rewritten every five minutes, and the
+    # page gave the reader no way to tell.
+    if not cands:
+        # Pre-market with no named setups is the CORRECT answer, not a failed scan, and the
+        # two used to render as the same blank card.
+        if state == "premarket":
+            gaps_seen = sorted((g.get("all") or []),
+                               key=lambda r: -abs(r.get("gap_pct") or 0))[:6]
+            rows = [{"k": r.get("ticker", "?"),
+                     "v": f"{r.get('gap_pct', 0):+.2f}% pre-market",
+                     "sub": (f"{r.get('prev_close')} → {r.get('last')} "
+                             f"as of {r.get('quote_as_of', '?')}")}
+                    for r in gaps_seen]
+            return panel("gaps", "Gap and go candidates", state=OK, age_min=age,
+                         severity=None, body={"rows": rows},
+                         note=(g.get("premarket_note") or "Pre-market.")
+                              + f" Largest pre-market gaps shown as context. {when}.",
+                         source="gap_scanner.run()")
+        return empty("gaps", "Gap and go candidates",
+                     f"No setups right now. Most days have none; forcing one gives the edge "
+                     f"back. {when}.")
+
+    # DIRECTION IS THE HEADLINE. The panel used to print a setup name and nothing else, so
+    # the reader had to know that "GAP-AND-GO LONG" meant buy — and that name was on the
+    # losing side of the measurement anyway.
+    rows = [{"k": c.get("ticker", "?"),
+             "v": f"{c.get('direction', '?')} · {c.get('setup', '')}",
+             "severity": "info" if c.get("direction") == "LONG" else None,
+             "sub": (f"gap {c.get('gap_pct', 0):+.2f}% "
+                     f"({c.get('prev_close')} → {c.get('last')}), "
+                     f"buy the open and be flat at the close"
+                     + (f" · RVOL {c['rvol']}x, context only"
+                        if c.get("rvol") is not None else
+                        " · RVOL is not a filter here — it was lookahead")
+                     + f" · price as of {c.get('quote_as_of', '?')}")}
+            for c in cands[:10]]
+
+    aside = g.get("stand_aside") or []
+    if aside:
+        names = ", ".join(f"{a['ticker']} {a['gap_pct']:+.1f}%" for a in aside[:6])
+        rows.append({"k": "Stood aside", "v": f"{len(aside)} name(s)",
+                     "sub": f"{names}. Up-gaps and gaps beyond −20% have no measured edge "
+                            f"in either direction, so no side is named."})
+
+    edge = g.get("edge") or {}
+    return panel("gaps", "Gap and go candidates",
+                 state=STALE if (age or 0) > 30 else OK, age_min=age,
+                 body={"rows": rows},
+                 note=(f"{when}. "
+                       + (edge.get("note") or "")
+                       + " Direction comes from a measurement, not a convention: buying an "
+                         "up-gap measured −0.33%/trade (t=−3.52) and this panel used to "
+                         "emit exactly that as a BUY."),
+                 source="gap_scanner.run() · 05_studies/gap_direction_test.py")
+
+
+@safe
+@describe("blackswan", "Far-OTM convexity")
+def blackswan():
+    """Partial credit only, and the panel says which part.
+
+    Far-OTM buying measured −45.6% overall. Two things inside it were real: filtering
+    to contracts with a bid-ask spread of 20% or less took it to +5.6%, and returns
+    improve monotonically toward the money, reaching +26.1% in the 16 to 30 delta band.
+    So the useful finding is about EXECUTION and DELTA, not about buying lottery tickets.
+    """
+    bs = _load("blackswan_scan.json")
+    # mag scales |return| onto the half-track, 90% = full. The picture IS the
+    # finding: the tails lose huge, the 16-30 delta band is the only real payer.
+    findings = [
+        {"k": "far tail", "v": "−90%", "dir": "-", "mag": 50, "severity": "stop"},
+        {"k": "unfiltered far-OTM", "v": "−45.6%", "dir": "-", "mag": 25, "severity": "stop"},
+        {"k": "spread ≤ 20% only", "v": "+5.6%", "dir": "+", "mag": 3},
+        {"k": "16–30 delta band", "v": "+26.1%", "dir": "+", "mag": 15},
+    ]
+    rows = []
+    note = ("Buying the cheapest contract is the worst version of this trade. The spread "
+            "filter mattered more than any signal tested for choosing which contract to buy.")
+    if bs and bs.get("candidates"):
+        for c in bs["candidates"][:6]:
+            rows.append({"k": c.get("ticker", "?"), "v": c.get("why", "")})
+    else:
+        note += " No live scan has been written, so only the standing findings are shown."
+    return panel("blackswan", "Far-OTM convexity", state=OK,
+                 body={"rows": rows, "findings": findings}, note=note,
+                 source="02_findings/FINDINGS_BLACKSWAN.md, blackswan_scan.json")

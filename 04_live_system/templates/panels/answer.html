@@ -1,0 +1,39 @@
+{# The decision as an instrument cluster: verb left, tiles right, blockers as
+   pills, all prose folded behind disclosures. #}
+<section class="answer {{ p.severity or '' }}" id="panel-{{ p.key }}">
+  <div class=kicker>{{ p.body.label }}</div>
+  <div class=herorow>
+    <div>
+      <h2 class=verb>{{ p.body.verb }}</h2>
+      <p class=because>{{ p.body.because }}</p>
+    </div>
+    {% if p.body.tiles %}
+    <div class="stats herotiles">
+      {% for s in p.body.tiles %}
+      <div class="stat {{ s.severity or '' }}"><div class=n>{{ s.n }}</div><div class=l>{{ s.l }}</div></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if p.body.blockers %}
+  <div class=blockpills>
+    {% for b in p.body.blockers %}
+    <span class=bpill><span class=g>{{ b.gate }}</span><span class=r>{{ b.reason }}</span></span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.body.rows %}
+  <dl class=ticket>
+    {% for r in p.body.rows %}
+    <div class="trow {{ r.severity or '' }}"><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div>
+    {% endfor %}
+  </dl>
+  {% endif %}
+
+  {% if p.body.detail %}
+  <details class=moredetail><summary>Full thesis</summary><p>{{ p.body.detail }}</p></details>
+  {% endif %}
+  <details class=trust><summary>How much of this is measured</summary><p>{{ p.body.trust }}</p></details>
+</section>

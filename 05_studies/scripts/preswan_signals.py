@@ -20,13 +20,14 @@ The comparison is a LIFT ratio against the base rate, and a signal only counts
 if it separates movers from non-movers by a meaningful margin. Reported with
 the n on both sides so a thin cell cannot masquerade as a finding.
 """
-import os, subprocess, warnings
+import subprocess, warnings
 from io import StringIO
 import numpy as np, pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOLT = os.path.join(ROOT, "data", "dolt")
+DOLT = paths.data("dolt")
 
 
 def q(sql, timeout=1800):

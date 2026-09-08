@@ -19,17 +19,16 @@ Measured on SPY close-to-open, which is exactly the window: ISM releases at
 so NFP here is a WEAKER proxy than the paper's 16:00->08:25 window and should
 be expected to underperform their number.
 """
-import os
-import sys
 import warnings
 from datetime import date, timedelta
 
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PANEL = os.path.join(ROOT, "data", "swing", "panel.parquet")
+PANEL = paths.data("swing", "panel.parquet")
 
 
 def first_business_day(y, m):
@@ -80,7 +79,7 @@ def fomc_dates(index):
 
 
 def run():
-    p = pd.read_parquet(PANEL)
+    p = pd.read_parquet(paths.require_data(PANEL))
     spy = p[p.ticker == "SPY"].set_index("date").sort_index()
     # The overnight window: previous close -> today's open.
     on = (spy["open"] / spy["close"].shift(1) - 1.0).dropna() * 1e4   # in bps
@@ -115,7 +114,7 @@ def run():
     print("=" * 84)
     print(f"  sample {idx[0].date()} -> {idx[-1].date()}")
     print(f"  NON-ANNOUNCEMENT baseline: n={len(base)}  mean={base.mean():+.2f}bps")
-    print(f"  (paper's benchmark: +0.69bps)")
+    print("  (paper's benchmark: +0.69bps)")
 
     print("\n" + "-" * 84)
     print("SPECIFICATION CHECK — FOMC must be strong pre-2016 and dead after.")

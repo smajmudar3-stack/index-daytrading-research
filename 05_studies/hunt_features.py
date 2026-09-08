@@ -21,12 +21,14 @@ import pandas as pd
 
 import backtest_0dte_rules as B
 
+from idt import paths
+
 SPY_MULT, QQQ_MULT = 10.0, 41.0
 SPX_TICKS, NDX_TICKS = 25.0, 80.0
 
 
 def load(sym):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     df = pd.concat([pd.read_parquet(f) for f in fs])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df["date"] = df.index.normalize().tz_localize(None)

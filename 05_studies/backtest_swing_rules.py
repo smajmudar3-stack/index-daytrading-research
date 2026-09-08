@@ -40,11 +40,14 @@ from scipy import stats
 
 import bt_options as bo
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
 pd.set_option("display.width", 220)
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(HERE, "data", "btswing_panel.parquet")
+# Same as backtest_0dte_rules: the cache pointed inside the source tree, at a
+# directory that does not exist, so it was written nowhere and read never.
+CACHE = paths.data("cache", "btswing_panel.parquet")
 
 UNIVERSE = ["XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY", "XLRE", "XLC",
             "QQQ", "IWM"]
@@ -74,6 +77,7 @@ def build_panel(force=False):
     close = px["Close"].copy()
     close.index = pd.to_datetime(close.index).tz_localize(None)
     close = close.dropna(how="all")
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     close.to_parquet(CACHE)
     print(f"panel {close.shape} {close.index.min().date()} -> {close.index.max().date()}")
     return close
@@ -461,7 +465,7 @@ def section_walkforward(close, F):
         p = portfolio_returns(A)
         bo.summarize(A.ret, f"WALK-FWD swing (per-trade) vrp={vrp:.2f}", n_trials=len(GRID),
                      risk_frac=0.20)
-        bo.summarize(p.values, f"   ... as a PORTFOLIO (per 21d period) ", n_trials=len(GRID),
+        bo.summarize(p.values, "   ... as a PORTFOLIO (per 21d period) ", n_trials=len(GRID),
                      periods=12, risk_frac=0.50)
         if vrp == VRP_BASE:
             print("     picks:", ", ".join(f"{y}:n{n}K{k}{'R' if r else '-'}" for y, n, k, r, _ in picks))

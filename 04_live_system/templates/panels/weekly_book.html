@@ -1,0 +1,85 @@
+{# The ledger. Losers must be as visible as winners, so the P&L column carries the colour
+   and nothing else on the row competes with it. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    {% if not p.body.live %}<span class="chip watch">indicative · market shut</span>{% endif %}
+  </h3>
+
+  {% if p.body.summary and p.body.summary.n %}
+  <div class="bk-sum">
+    <span><b>closed</b> {{ p.body.summary.n }}</span>
+    {% if p.body.summary.hit_rate is not none %}<span><b>hit</b> {{ p.body.summary.hit_rate }}% of {{ p.body.summary.n_scored }}</span>{% endif %}
+    {% if p.body.summary.avg_pnl_pct is not none %}<span><b>avg</b> {{ p.body.summary.avg_pnl_pct }}%</span>{% endif %}
+    {% if p.body.summary.total_usd is not none %}<span><b>total</b> ${{ p.body.summary.total_usd }}</span>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if p.body.owned %}
+  <div class="bk-own">
+    <div class="bk-own-hd">positions you said you entered — {{ p.body.owned|length }}</div>
+    {% for r in p.body.owned %}
+    <div class="bk-orow">
+      <span class="bk-pos"><b>{{ r.ticker }}</b> <em>{{ r.legs }}</em></span>
+      <span class="bk-exp {{ 'soon' if (r.dte_left is not none and r.dte_left <= 2) else '' }}">
+        {{ r.expiry }}<em>{{ r.dte_left }}d left</em></span>
+      <span class="bk-num {{ 'up' if ((r.get('pnl_pct_at_fill') if r.get('pnl_pct_at_fill') is not none else r.get('pnl_pct')) or 0) > 0 else 'down' }}">
+        {% set pc = r.get('pnl_pct_at_fill') if r.get('pnl_pct_at_fill') is not none else r.get('pnl_pct') %}
+        {% if pc is not none %}{{ '%+.1f'|format(pc) }}%{% else %}—{% endif %}
+        <em>{{ '%.2f'|format(r.fill_net) if r.fill_net is not none else '%.2f'|format(r.entry_net) }} → {{ '%.2f'|format(r.cur_net) if r.cur_net is not none else '—' }}{% if r.fill_net is not none %} (your fill){% endif %}</em>
+      </span>
+      <span class="bk-verdict {{ r.verdict.urgency or 'hold' }}">{{ r.verdict.action }}</span>
+      <span class="bk-why2">{{ r.verdict.why }}
+        <a class="wk-btn" style="margin-left:8px" href="/exited?ticker={{ r.ticker }}&expiry={{ r.expiry }}&view=markets">I closed it</a>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.body.open %}
+  <div class="bk-tbl">
+    <div class="bk-hd">
+      <span>position</span><span>expires</span><span>entry</span><span>mark</span>
+      <span>P&L</span><span>underlying</span><span>issued</span>
+    </div>
+    {% for r in p.body.open %}
+    <div class="bk-row">
+      <span class="bk-pos"><b>{{ r.ticker }}</b>{% if r.owned %} <span class="chip">held</span>{% endif %} <em>{{ r.legs }}</em></span>
+      <span class="bk-exp {{ 'soon' if (r.dte_left is not none and r.dte_left <= 2) else '' }}">
+        {{ r.expiry }}{% if r.dte_left is not none %}<em>{{ r.dte_left }}d left</em>{% endif %}
+      </span>
+      <span class="bk-num">{{ '%.2f'|format(r.entry_net) if r.entry_net is not none else '—' }}</span>
+      <span class="bk-num">{{ '%.2f'|format(r.cur_net) if r.cur_net is not none else '—' }}</span>
+      <span class="bk-num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">
+        {% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%<em>{{ '%+.0f'|format(r.pnl_usd) }}</em>{% else %}—{% endif %}
+      </span>
+      <span class="bk-num bk-dim">
+        {% if r.cur_spot %}{{ '%.2f'|format(r.cur_spot) }}{% if r.move_pct is not none %} <em>{{ '%+.1f'|format(r.move_pct) }}%</em>{% endif %}{% else %}—{% endif %}
+      </span>
+      <span class="bk-num bk-dim">{{ r.issued }}{% if r.days_held is not none %}<em>held {{ r.days_held }}d</em>{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="note">Nothing open.</p>
+  {% endif %}
+
+  {% if p.body.closed %}
+  <div class="bk-closed">
+    <div class="bk-hd2">closed</div>
+    {% for r in p.body.closed %}
+    <div class="bk-crow">
+      <span class="bk-pos"><b>{{ r.ticker }}</b> <em>{{ r.legs }}</em></span>
+      <span class="bk-why {{ r.close_reason }}">{{ r.close_reason }}</span>
+      <span class="bk-num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">
+        {% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}
+      </span>
+      <span class="bk-dim">exp {{ r.expiry }} · held {{ r.days_held }}d</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>

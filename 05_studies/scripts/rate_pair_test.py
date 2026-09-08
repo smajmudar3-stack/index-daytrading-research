@@ -23,16 +23,15 @@ Two methodological corrections applied, both flagged against my earlier work:
   - The multiple-testing bar uses the number of INDEPENDENT tests, not the raw
     cell count -- 18 correlated sectors are nowhere near 18 independent trials.
 """
-import os
-import sys
 import warnings
 
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PANEL = os.path.join(ROOT, "data", "swing", "panel.parquet")
+PANEL = paths.data("swing", "panel.parquet")
 
 SPLITS = {"2006-2013": ("2006-01-01", "2013-12-31"),
           "2014-2019": ("2014-01-01", "2019-12-31"),
@@ -43,7 +42,7 @@ H = 5
 
 
 def load():
-    p = pd.read_parquet(PANEL)
+    p = pd.read_parquet(paths.require_data(PANEL))
     return p.pivot(index="date", columns="ticker", values="close").sort_index()
 
 

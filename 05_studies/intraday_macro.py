@@ -1,15 +1,12 @@
 """Does ANY intraday signal work inside a specific MACRO/regime pocket? Condition the core
 momentum & mean-reversion signals on VIX regime, time-of-day, trend-vs-range day, gap, and
 day-of-week. Looking for a POSITIVE t>=2 pocket that also holds out-of-sample (2024-25 vs 2026)."""
-import glob
 import numpy as np
 import pandas as pd
 import yfinance as yf
 import intraday_patterns as ip
 
 RT = 0.0003
-vix_d = yf.download("^VIX", start="2024-01-01", progress=False, auto_adjust=False,
-                    multi_level_index=False).rename(columns=str.lower)["close"]
 
 
 def enrich(tk):
@@ -88,5 +85,17 @@ def report(tk):
         print("  >>> NO positive t>=2 conditional pocket found.")
 
 
-for tk in ["SPY", "QQQ"]:
-    report(tk)
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global vix_d
+
+    vix_d = yf.download("^VIX", start="2024-01-01", progress=False, auto_adjust=False,
+                        multi_level_index=False).rename(columns=str.lower)["close"]
+
+    for tk in ["SPY", "QQQ"]:
+        report(tk)
+
+
+if __name__ == "__main__":
+    main()

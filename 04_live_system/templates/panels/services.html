@@ -1,0 +1,19 @@
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  <div class=chips2>
+    {% for r in p.body.rows %}
+    <span class="chip2 {{ r.severity or 'ok' }}" title="{{ r.sub }}"><span class=cs></span><b>{{ r.k }}</b>&nbsp;{{ r.v }}</span>
+    {% endfor %}
+  </div>
+  <details>
+    <summary>What each state means here</summary>
+    <div class=rows>
+      {% for r in p.body.rows %}
+      <div class=row><div class=rmain><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}</span></div>{% if r.sub %}<p class=rsub>{{ r.sub }}</p>{% endif %}</div>
+      {% endfor %}
+    </div>
+  </details>
+  {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

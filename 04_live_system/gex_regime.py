@@ -48,7 +48,10 @@ def condor_survives(row, w):
     return (row["high"] < up) and (row["low"] > dn)
 
 for w in (0.005, 0.0075, 0.010):
-    df[f"cond_{int(w*10000)}"] = df.apply(lambda r: condor_survives(r, w), axis=1)
+    # w is bound as a default: apply() happens inside this iteration so late binding
+    # is harmless today, but a lambda that closes over a loop variable is one
+    # refactor away from silently using the last value for every column.
+    df[f"cond_{int(w*10000)}"] = df.apply(lambda r, w=w: condor_survives(r, w), axis=1)
 
 d = df.dropna(subset=["gex_z", "rng", "eff"]).copy()
 print(f"sample: {len(d)} days, {d.date.min().date()} -> {d.date.max().date()}")

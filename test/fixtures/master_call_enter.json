@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "as_of": "2026-08-24 11:05 ET",
+  "action": "ENTER",
+  "symbol": "SPY",
+  "structure": "IRON_CONDOR",
+  "strikes": "596/598P \u00b7 606/608C",
+  "entry_price": 0.62,
+  "take_profit_price": 0.1,
+  "stop_price": 1.31,
+  "conviction": 71,
+  "headline": "High-gamma pin, condor at 1.25 SD.",
+  "thesis": "Prior-close GEX z is +1.24 and the entry window is open.",
+  "schema_version": 1
+}

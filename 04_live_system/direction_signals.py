@@ -6,7 +6,6 @@ tradeable-at-open signals and their combos, split by BULLISH vs BEARISH, ranked 
   1-day reversal, 3-day momentum. Target = today's OPEN->CLOSE return (naked 0DTE captures this).
 All predictors from PRIOR close = zero look-ahead. Reports win rate + avg + t for each.
 """
-import numpy as np
 import pandas as pd
 from scipy import stats
 import yfinance as yf
@@ -66,5 +65,7 @@ for r in res:
     edge = "★BULL" if r["avg_oc"] > 0 and r["p"] < 0.05 else ("★BEAR" if r["avg_oc"] < 0 and r["p"] < 0.05 else "—")
     print(f"{r['signal']:<44}{r['n']:>5}{r['avg_oc']:>+9.3f}{r['win']:>7.0f}{r['t']:>+7.2f}{r['p']:>8.3f}  {edge}")
 
-print("\n★ = statistically significant (p<0.05). Bullish = buy calls; Bearish = buy puts.")
-print("Conviction ~ |t| and how far win% is from the ~54% base rate.")
+print("\n★ = statistically significant (p<0.05) on the UNDERLYING's open-to-close move.")
+print("That is NOT a trade. Every attempt to express a signal this size in 0DTE options measured")
+print("-10% to -11% per trade out of sample: a +13bp expected move cannot pay for an option that")
+print("costs ~0.37% of spot. See docs/VERDICT_LOG.md. Read this table as a measurement, not a signal.")

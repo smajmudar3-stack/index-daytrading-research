@@ -16,13 +16,15 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 
-PATH = "data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 COLS = ["quote_date", "quote_time", "option_type", "mnes_rel", "mid", "bas",
         "active_underlying_price", "open_interest"]
 
 
 def load():
-    df = pd.read_parquet(PATH, columns=COLS)
+    df = pd.read_parquet(paths.require_data(PATH), columns=COLS)
     df["t"] = df.quote_time.astype(str)
     df["tmin"] = pd.to_datetime(df.t).dt.hour * 60 + pd.to_datetime(df.t).dt.minute
     return df

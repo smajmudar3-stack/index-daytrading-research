@@ -23,23 +23,23 @@ Conditions tested, all knowable at entry:
 For each, the comparison is against the SAME delta bucket unconditionally. A
 condition only counts if it beats that baseline, not if it beats zero.
 """
-import os
 import warnings
 
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
-UND = os.path.join(ROOT, "data", "opt_eod", "SPY_underlying.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
+UND = paths.data("opt_eod", "SPY_underlying.parquet")
 
 BUCKETS = [(0.02, 0.05, "2-5d"), (0.05, 0.10, "5-10d"), (0.10, 0.16, "10-16d")]
 
 
 def main():
-    und = pd.read_parquet(UND)
+    und = pd.read_parquet(paths.require_data(UND))
     dc = [c for c in und.columns if "date" in c.lower()]
     uc = [c for c in und.columns if c.lower() in ("close", "adjclose")][0]
     und.index = pd.to_datetime(und[dc[0]]) if dc else und.index
@@ -53,11 +53,11 @@ def main():
 
     rows = []
     for y in range(2010, 2026):
-        t = pq.read_table(OPT, columns=["date", "expiration", "strike", "type",
-                                        "bid", "ask", "delta", "open_interest",
-                                        "implied_volatility"],
-                          filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
-                                   ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
+        t = pq.read_table(paths.require_data(OPT), columns=["date", "expiration", "strike", "type",
+                                                            "bid", "ask", "delta", "open_interest",
+                                                            "implied_volatility"],
+                                              filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
+                                                       ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
         if t.empty:
             continue
         t["date"] = pd.to_datetime(t["date"])
@@ -96,7 +96,7 @@ def main():
                                 .apply(lambda w: (w[:-1] < w[-1]).mean(), raw=True)))
     d["iv_under_rv"] = d.iv < d.rv
     d = d.dropna(subset=["rv_pct", "iv_pct"])
-    d.to_parquet(os.path.join(ROOT, "data", "blackswan_select.parquet"), index=False)
+    d.to_parquet(paths.data("blackswan_select.parquet"), index=False)
 
     conds = {
         "IVRANK_LOW": d.iv_pct < 0.33,

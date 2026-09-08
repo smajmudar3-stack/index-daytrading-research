@@ -116,7 +116,7 @@ def main():
         print("\nNo combination clears the bar on both TRAIN and VALIDATE.")
         return
     cands.sort(key=lambda r: -r[5])
-    print(f"\ntop 12 by mean(train,val) win rate:")
+    print("\ntop 12 by mean(train,val) win rate:")
     print(f"  {'conditions':56}{'TRn':>5}{'TRw':>7}{'VAn':>5}{'VAw':>7}")
     for combo, na, wa, nb, wb, _ in cands[:12]:
         print(f"  {' + '.join(combo):56}{na:>5}{wa*100:>6.1f}%{nb:>5}{wb*100:>6.1f}%")

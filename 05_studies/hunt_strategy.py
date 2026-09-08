@@ -15,7 +15,6 @@ Measured the way the owner actually trades: signal -> buy the option -> take pro
 target, stop at a premium stop, hard time stop. Options priced per minute with Black-Scholes on the
 remaining session so theta is charged properly. Train/test split is time-ordered.
 """
-import glob
 import numpy as np
 import pandas as pd
 

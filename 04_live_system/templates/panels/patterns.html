@@ -1,0 +1,45 @@
+{% set b = p.body %}
+{% if b.fires %}
+  {% for f in b.fires %}
+  <div class="fire">
+    <div class="fire-top">
+      <span class="fire-flag">PATTERN IDENTIFIED</span>
+      <span class="fire-name">{{ f.name }}</span>
+    </div>
+    <div class="fire-read">{{ f.reading }}</div>
+
+    <div class="fire-block">
+      <div class="fire-h">What it means for price</div>
+      <p>{{ f.means }}</p>
+    </div>
+
+    <div class="fire-block fire-act">
+      <div class="fire-h">How to capitalise</div>
+      <p>{{ f.capitalise }}</p>
+    </div>
+
+    <div class="fire-not"><b>Not this:</b> {{ f.not }}</div>
+    <div class="fire-ev">{{ f.evidence }}</div>
+
+    {% if f.names %}
+    <div class="fire-names">
+      <table class="tbl">
+        <tr><th>ticker</th><th>short float</th><th>last</th><th>swing read</th></tr>
+        {% for n in f.names %}
+        <tr><td><b>{{ n.ticker }}</b></td>
+            <td class="num hot">{{ n.short_float }}%</td>
+            <td class="num">{{ n.last if n.last else '—' }}</td>
+            <td class="{{ 'dn' if n.direction == 'bearish' else 'mut' }}">{{ n.direction or '—' }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% else %}
+  <table class="tbl quiet-tbl">
+    {% for name, why in b.quiet %}
+    <tr><td class="qn">{{ name }}</td><td class="qw">{{ why }}</td></tr>
+    {% endfor %}
+  </table>
+{% endif %}

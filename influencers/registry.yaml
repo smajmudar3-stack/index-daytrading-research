@@ -1,0 +1,374 @@
+# Influencer registry — Engine D.
+#
+# SCOPE. Public strategy content and public track-record claims only: what someone teaches,
+# sells, or posts about trading US index intraday or swing options. No personal information
+# about anyone, on any record, ever. `teaches` describes published METHOD, not the person.
+#
+# extraction_status:
+#   seeded     — identified and categorised; setups not yet pulled from source material
+#   extracted  — every published setup pulled into influencers/strategies/*.yaml with citations
+#   tested     — extracted setups have been through the gauntlet
+#
+# The status field exists so `engine_d_influencers.coverage()` can always state how much of
+# the intended population a report actually covers. Every record below is `seeded`: this is
+# the discovery pass. Extraction is transcript-by-transcript work and is queued, not done.
+#
+# `consensus_families` is the field that matters most. Many of these teach the same handful
+# of setups in different vocabularies, and the engine deduplicates on it so a setup taught by
+# thirty people is tested once rather than thirty times with the best result reported.
+
+meta:
+  created: 2026-09-02
+  discovery_method: >
+    Seeded from named educators whose rules are published, then expanded by category:
+    intraday equity/index educators, options-premium educators, volatility and dealer-flow
+    analysts, technical-pattern educators, and swing/momentum educators. Systematic
+    expansion across YouTube view-ranked strategy keywords, TradingView top authors,
+    Substack finance, podcast guest lists (Chat With Traders, Better System Trader, Top
+    Traders Unplugged, Flirting With Models, The Derivative), and trading-book bestsellers
+    is the next discovery tranche and is not yet run.
+  population_target: several hundred
+  honest_note: >
+    This file is a discovery pass, not a survey. It records who publishes what so that
+    extraction can be prioritised by consensus family rather than by follower count.
+
+# The setup families. Deduplication happens here: this is the list of distinct hypotheses,
+# and it is far shorter than the list of people teaching them.
+consensus_families:
+  orb:
+    label: Opening-range breakout
+    also_taught_as: >
+      "the 9:45 break", "break of the first 15-minute candle", ICT "judas swing then
+      displacement", "initial balance break", most TradingView ORB scripts
+    testable: yes
+    status: TESTED
+  vwap_reversion:
+    label: VWAP bounce / return to VWAP
+    also_taught_as: >
+      "anchored VWAP reversion" (Brian Shannon's AVWAP is a distinct, more specific claim),
+      "mean reversion to the volume-weighted average"
+    testable: yes
+    status: TESTED
+  gap_fill:
+    label: Gap fill / gap-and-go
+    also_taught_as: '"fade the gap", "gap fill by lunch", "gap and go continuation"'
+    testable: yes
+    status: TESTED
+  premium_selling_iv_rank:
+    label: Sell premium when IV rank is high, manage at 21 DTE / 50% profit
+    also_taught_as: >
+      tastylive's core mechanics, Option Alpha's automations, most "wheel" instruction
+    testable: yes
+    status: QUEUED — needs the option chain store, not minute bars
+  dte45_management:
+    label: Open at ~45 DTE, manage at 21 DTE or 50% max profit
+    testable: yes
+    status: QUEUED
+  squeeze:
+    label: Bollinger/Keltner squeeze fires
+    also_taught_as: John Carter's "squeeze", TTM Squeeze indicator
+    testable: yes
+    status: QUEUED
+  ict_killzone:
+    label: Time-window entries (10-11am "silver bullet", London/NY kill zones)
+    testable: partially
+    status: QUEUED
+    formalization_note: >
+      The time window is concrete and testable. The entry trigger inside it ("liquidity
+      sweep then market-structure shift then fair-value-gap entry") needs 2-5 separate
+      formalizations and some of it may end up UNFORMALIZABLE.
+  strat_combos:
+    label: '"The Strat" bar-type combinations (2-1-2, 3-1-2)'
+    testable: yes
+    status: QUEUED
+    formalization_note: Bar types are mechanically defined, so this formalizes cleanly.
+  sepa_momentum:
+    label: Stage-2 momentum with a volatility-contraction base
+    also_taught_as: Minervini SEPA/VCP, Qullamaggie's episodic pivot, Zanger patterns
+    testable: yes
+    status: QUEUED
+  dealer_gamma:
+    label: Dealer gamma / positioning as a range or direction forecast
+    testable: yes
+    status: ALREADY TESTED IN THIS REPO — range yes, direction no (1,001 cells, zero survived)
+
+influencers:
+  # --- intraday equity / index education -------------------------------------------------
+  - id: warrior_trading
+    name: Ross Cameron (Warrior Trading)
+    platforms: [youtube, course]
+    teaches: momentum small-cap intraday; gap-and-go; bull-flag continuation
+    sells: courses, chatroom
+    consensus_families: [gap_fill, orb]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: bear_bull_traders
+    name: Andrew Aziz (Bear Bull Traders)
+    platforms: [youtube, books, chatroom]
+    teaches: ORB, VWAP reversion, ABCD, reversal at support/resistance
+    sells: books, chatroom, courses
+    consensus_families: [orb, vwap_reversion]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: smb_capital
+    name: SMB Capital (Mike Bellafiore)
+    platforms: [youtube, books]
+    teaches: prop-desk playbook trades, opening drive, relative strength pairs
+    consensus_families: [orb, vwap_reversion]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: humbled_trader
+    name: Humbled Trader
+    platforms: [youtube]
+    teaches: intraday momentum, risk management, VWAP
+    consensus_families: [vwap_reversion, orb]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: ict
+    name: ICT / Michael Huddleston
+    platforms: [youtube]
+    teaches: kill zones, liquidity sweeps, fair value gaps, market-structure shift, PO3
+    consensus_families: [ict_killzone, orb]
+    index_relevant: yes
+    extraction_status: seeded
+    formalization_risk: high
+  - id: al_brooks
+    name: Al Brooks
+    platforms: [books, courses]
+    teaches: price-action bar-by-bar, trading ranges vs breakouts
+    consensus_families: [orb]
+    index_relevant: yes
+    extraction_status: seeded
+    formalization_risk: high
+  - id: rob_smith_strat
+    name: Rob Smith ("The Strat")
+    platforms: [youtube, x]
+    teaches: bar-type combinations, timeframe continuity
+    consensus_families: [strat_combos]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: brian_shannon
+    name: Brian Shannon
+    platforms: [books, x, course]
+    teaches: anchored VWAP from significant events; multiple-timeframe trend
+    consensus_families: [vwap_reversion]
+    index_relevant: yes
+    extraction_status: seeded
+
+  # --- options premium education ---------------------------------------------------------
+  - id: tastylive
+    name: tastylive (Tom Sosnoff and research team)
+    platforms: [youtube, web, research segments]
+    teaches: >
+      sell premium at high IV rank, 45 DTE entry, manage at 21 DTE or 50% max profit,
+      small and frequent, strangles and defined-risk spreads
+    sells: brokerage
+    consensus_families: [premium_selling_iv_rank, dte45_management]
+    index_relevant: yes
+    extraction_status: seeded
+    note: publishes its own backtests, which makes claim-vs-reality unusually checkable
+  - id: option_alpha
+    name: Option Alpha (Kirk Du Plessis)
+    platforms: [youtube, web, software]
+    teaches: IV-rank premium selling, automated bots, delta-neutral adjustments
+    consensus_families: [premium_selling_iv_rank, dte45_management]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: project_option
+    name: projectoption / projectfinance
+    platforms: [youtube, web]
+    teaches: option-structure education with published study results
+    consensus_families: [premium_selling_iv_rank]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: inthemoney
+    name: InTheMoney (Adam)
+    platforms: [youtube]
+    teaches: wheel, covered calls, long-option mechanics
+    consensus_families: [premium_selling_iv_rank]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: sheridan
+    name: Sheridan Options Mentoring
+    platforms: [web, courses]
+    teaches: calendars, butterflies, income-portfolio adjustment
+    consensus_families: [dte45_management]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: theotrade
+    name: TheoTrade (Don Kaufman)
+    platforms: [youtube, courses]
+    teaches: broken-wing butterflies, volatility structures
+    consensus_families: [dte45_management]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: optionsplay
+    name: Tony Zhang (OptionsPlay)
+    platforms: [tv, web]
+    teaches: options overlays on technical setups
+    index_relevant: yes
+    extraction_status: seeded
+  - id: market_rebellion
+    name: Market Rebellion (Najarian brothers)
+    platforms: [tv, web]
+    teaches: unusual option activity as a directional signal
+    consensus_families: [dealer_gamma]
+    index_relevant: yes
+    extraction_status: seeded
+
+  # --- volatility / dealer flow ----------------------------------------------------------
+  - id: spotgamma
+    name: SpotGamma (Brent Kochuba)
+    platforms: [web, podcast]
+    teaches: dealer gamma positioning, gamma flip, call/put walls
+    consensus_families: [dealer_gamma]
+    index_relevant: yes
+    extraction_status: seeded
+    note: this repo has already tested the direction claim (null) and the range claim (real)
+  - id: cem_karsan
+    name: Cem Karsan
+    platforms: [x, podcast]
+    teaches: vanna/charm flows, monthly opex cycles, volatility supply
+    consensus_families: [dealer_gamma]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: benn_eifert
+    name: Benn Eifert
+    platforms: [x, letters]
+    teaches: volatility structure commentary; frequently debunks retail vol claims
+    index_relevant: yes
+    extraction_status: seeded
+  - id: euan_sinclair
+    name: Euan Sinclair
+    platforms: [books]
+    teaches: volatility trading, edge estimation, position sizing
+    index_relevant: yes
+    extraction_status: seeded
+  - id: kris_abdelmessih
+    name: Kris Abdelmessih
+    platforms: [substack]
+    teaches: option pricing intuition, vol surface reasoning
+    index_relevant: yes
+    extraction_status: seeded
+  - id: unusual_whales
+    name: Unusual Whales
+    platforms: [x, web, data]
+    teaches: flow interpretation, dark pool prints
+    index_relevant: yes
+    extraction_status: seeded
+    note: this repo already consumes their data; flow_lean is registered as UNMEASURED
+
+  # --- swing / momentum ------------------------------------------------------------------
+  - id: minervini
+    name: Mark Minervini (SEPA)
+    platforms: [books, workshops]
+    teaches: stage analysis, volatility contraction pattern, trend template
+    consensus_families: [sepa_momentum]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: qullamaggie
+    name: Kristjan Qullamaggie
+    platforms: [youtube, web]
+    teaches: episodic pivots, breakout continuation, ADR-based sizing
+    consensus_families: [sepa_momentum]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: dan_zanger
+    name: Dan Zanger
+    platforms: [web]
+    teaches: chart-pattern breakouts on high volume
+    consensus_families: [sepa_momentum]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: oliver_kell
+    name: Oliver Kell
+    platforms: [x, book]
+    teaches: price-cycle framework
+    consensus_families: [sepa_momentum]
+    index_relevant: partial
+    extraction_status: seeded
+  - id: peter_brandt
+    name: Peter Brandt
+    platforms: [x, substack, books]
+    teaches: classical chart patterns, futures swing
+    index_relevant: yes
+    extraction_status: seeded
+  - id: linda_raschke
+    name: Linda Raschke
+    platforms: [books, courses]
+    teaches: short-term patterns (Holy Grail, 80-20, Turtle Soup), futures
+    consensus_families: [orb]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: adam_grimes
+    name: Adam Grimes
+    platforms: [books, blog]
+    teaches: statistically framed technical trading; publishes his own null results
+    index_relevant: yes
+    extraction_status: seeded
+  - id: rayner_teo
+    name: Rayner Teo
+    platforms: [youtube]
+    teaches: trend following, support/resistance, position sizing
+    index_relevant: partial
+    extraction_status: seeded
+  - id: john_carter
+    name: John Carter (Simpler Trading)
+    platforms: [youtube, courses]
+    teaches: TTM squeeze, 0DTE index options
+    consensus_families: [squeeze]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: danielle_shay
+    name: Danielle Shay
+    platforms: [youtube, courses]
+    teaches: squeeze-based options entries
+    consensus_families: [squeeze]
+    index_relevant: yes
+    extraction_status: seeded
+  - id: raghee_horner
+    name: Raghee Horner
+    platforms: [youtube, courses]
+    teaches: GRaB indicator, 34EMA wave
+    index_relevant: yes
+    extraction_status: seeded
+  - id: tom_hougaard
+    name: Tom Hougaard
+    platforms: [youtube, book]
+    teaches: high-conviction index spread betting, trading psychology
+    index_relevant: yes
+    extraction_status: seeded
+  - id: anton_kreil
+    name: Anton Kreil
+    platforms: [courses]
+    teaches: institutional-style portfolio construction, long/short
+    index_relevant: partial
+    extraction_status: seeded
+  - id: steve_burns
+    name: Steve Burns (New Trader U)
+    platforms: [x, books]
+    teaches: moving-average trend systems, risk rules
+    index_relevant: yes
+    extraction_status: seeded
+  - id: oliver_velez
+    name: Oliver Velez
+    platforms: [youtube, courses]
+    teaches: micro price-action patterns, 20MA bounces
+    index_relevant: partial
+    extraction_status: seeded
+  - id: chris_camillo
+    name: Chris Camillo
+    platforms: [youtube]
+    teaches: social-arbitrage information edge, not a rule-based system
+    index_relevant: no
+    extraction_status: seeded
+    formalization_risk: high
+  - id: mad_money
+    name: Jim Cramer (Mad Money)
+    platforms: [tv]
+    teaches: discretionary single-name calls
+    index_relevant: no
+    extraction_status: seeded
+    note: >
+      Included only as a public CALL record for claim-vs-reality, not as a formalizable
+      strategy. Any test would be of the call series, never of a person.

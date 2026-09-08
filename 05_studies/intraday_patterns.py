@@ -10,11 +10,13 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 RT = 0.0003  # 3 bps round trip on the underlying
 
 
 def load5(tk):
-    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(f"data/minute/{tk}/*.parquet"))])
+    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df.index = df.index.tz_convert("America/New_York")
     df = df.between_time("09:30", "16:00")
@@ -115,5 +117,10 @@ def run(tk):
         print(f"  {r['name']:40} {r['n']:>5}   {f('30m'):>16} {f('60m'):>16} {f('EOD'):>16}{flag}")
 
 
-for tk in ["SPY", "QQQ"]:
-    run(tk)
+def main():
+    for tk in ["SPY", "QQQ"]:
+        run(tk)
+
+
+if __name__ == "__main__":
+    main()

@@ -14,7 +14,7 @@
 Honest bar: momentum is a ~55-60% directional edge over weeks, not certainty. Conviction is
 capped accordingly. Writes data/swing_snapshot.json. Paper-trade first.
 """
-import json
+from idt import snapshots
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -387,7 +387,18 @@ def run():
             if _prof.get("short_float_pct") is not None:
                 # NEGATIVE by measurement (IC -0.068 @21d): heavily shorted
                 # names underperform.
-                _votes["short"] = -min(float(_prof["short_float_pct"]) / 20.0, 1.0)
+                _sf = float(_prof["short_float_pct"])
+                _votes["short"] = -min(_sf / 20.0, 1.0)
+                # PERSIST it. The vote was computed and then thrown away, so the
+                # strongest measured signal in this repo (IC -0.107 at 63d) was
+                # invisible to every downstream reader -- the dashboard could
+                # never fire on it because the field did not exist in the
+                # snapshot. Values above 60 are a vendor error, not a signal:
+                # BYND has printed 758%.
+                if 0 <= _sf <= 60:
+                    s["short_float_pct"] = round(_sf, 2)
+            if _prof.get("dp_buy_share") is not None:
+                s["dp_buy_share"] = _prof.get("dp_buy_share")
         except Exception:
             pass
 
@@ -431,7 +442,7 @@ def run():
     out = {"as_of": datetime.now(ET).strftime("%Y-%m-%d %H:%M ET"), "epoch": datetime.now(ET).timestamp(),
            "market_context": ctx, "signals": top, "n_scanned": len(scanned)}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(out, open(OUT, "w"), indent=2, default=str)
+    snapshots.write(os.path.basename(OUT), out)
     print(f"swing scan {out['as_of']}: {len(top)} signals from {len(scanned)} names")
     for s in top:
         print(f"  {s['ticker']:5} {s['direction']:8} conv {s['conviction']:>2} | {s['structure']['play']}")

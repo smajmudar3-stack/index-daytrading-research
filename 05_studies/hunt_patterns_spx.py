@@ -11,13 +11,14 @@ The question is whether it is exploitable after put skew, or already in the pric
 """
 import numpy as np
 import pandas as pd
-from scipy import stats as st
 
-PATH = "data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 
 
 def spx_series():
-    df = pd.read_parquet(PATH, columns=["quote_date", "quote_time", "active_underlying_price"])
+    df = pd.read_parquet(paths.require_data(PATH), columns=["quote_date", "quote_time", "active_underlying_price"])
     s = df.groupby(["quote_date", "quote_time"]).active_underlying_price.first().reset_index()
     s["dt"] = pd.to_datetime(s.quote_date.astype(str) + " " + s.quote_time.astype(str))
     s = s.sort_values("dt").reset_index(drop=True)

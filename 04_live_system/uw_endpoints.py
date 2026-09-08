@@ -28,7 +28,6 @@ and the measurements decide what is worth an API call:
 Gated on this tier and therefore unavailable: market/movers, companies/*,
 analytics/*, futures, options-pulse, vix-term-structure.
 """
-import os
 import warnings
 
 import pandas as pd

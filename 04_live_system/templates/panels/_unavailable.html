@@ -1,0 +1,6 @@
+<section class="card stop is-unavailable" id="panel-{{ p.key }}">
+  <h3>{{ p.title }} <span class="chip stop">unavailable</span></h3>
+  <p class=note>{{ p.note }}</p>
+  {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% if p.body.traceback %}<details><summary>Traceback</summary><pre>{{ p.body.traceback }}</pre></details>{% endif %}
+</section>

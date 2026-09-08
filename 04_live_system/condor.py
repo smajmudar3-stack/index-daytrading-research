@@ -5,26 +5,26 @@ entry time × width. The live signal reads today's regime + the current ET time 
 condor with real survival odds and wall-matched strikes — or None when a condor is NOT favorable
 (trend/low-gamma days, or too early for the width).
 """
-import math
+
+from idt import bs
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
 ET = ZoneInfo("America/New_York")
 
 
+# Pricing lives in idt.bs now. There were four copies of Black-Scholes in this repo
+# with two different risk-free rates, so the same structure priced differently
+# depending on which module happened to price it. Given that a MODELLED price
+# overstating a credit was the entire apparent 0DTE edge, four copies of the model
+# was not a style problem.
 def _ncdf(x):
-    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+    return bs.ncdf(x)
 
 
-def _bs(S, K, T, iv, r=0.04, call=True):
-    """Black-Scholes price (per 1 index point; ×100 for $/contract)."""
-    if T <= 0 or iv <= 0:
-        return max(0.0, (S - K) if call else (K - S))
-    d1 = (math.log(S / K) + (r + 0.5 * iv * iv) * T) / (iv * math.sqrt(T))
-    d2 = d1 - iv * math.sqrt(T)
-    if call:
-        return S * _ncdf(d1) - K * math.exp(-r * T) * _ncdf(d2)
-    return K * math.exp(-r * T) * _ncdf(-d2) - S * _ncdf(-d1)
+def _bs(S, K, T, iv, r=bs.RISK_FREE, call=True):
+    """Black-Scholes price (per 1 index point; x100 for $/contract)."""
+    return float(bs.price(S, K, T, iv, r=r, call=call))
 
 # backtested survival % on HIGH-gamma pin days: {entry_minute_ET: {width_pct: survival%}}
 SURV = {

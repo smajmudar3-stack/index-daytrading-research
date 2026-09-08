@@ -21,9 +21,9 @@ import urllib.request
 
 import pandas as pd
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "data", "stocks")
-ENV = os.path.expanduser("~/quant-factory/.env")
+from idt import keys, paths
+
+OUT = paths.data("stocks")
 
 START = "2005-01-01"
 
@@ -57,11 +57,13 @@ UNIVERSE = sorted(set(MEGA + TECH + CONSUMER + FIN + HEALTH + ENERGY + INDUST + 
 
 
 def token():
-    with open(ENV) as f:
-        for line in f:
-            if line.startswith("TIINGO_API_KEY"):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("no TIINGO_API_KEY")
+    # Was read from ~/quant-factory/.env, i.e. one machine. idt.keys reads the
+    # environment first and then this repo's .env, so the key travels with the repo.
+    t = keys.get("TIINGO_API_KEY")
+    if not t:
+        raise SystemExit("no TIINGO_API_KEY: put it in the environment or in <repo>/.env "
+                         "(see .env.example)")
+    return t
 
 
 def fetch_one(tk, tok, start=START):

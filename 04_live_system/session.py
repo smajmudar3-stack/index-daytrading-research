@@ -75,8 +75,8 @@ def status_line(n=None):
                 "label": f"WARM-UP · opens in {OPEN_MIN - m} min — board refreshing"}
     # how long until the next boot at 09:20
     if p == "weekend":
-        days = 7 - n.weekday()
-        nxt = f"Monday 09:20 ET"
+        7 - n.weekday()
+        nxt = "Monday 09:20 ET"
     elif m >= CLOSE_MIN:
         nxt = "tomorrow 09:20 ET" if n.weekday() < 4 else "Monday 09:20 ET"
     else:

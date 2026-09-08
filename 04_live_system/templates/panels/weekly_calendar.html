@@ -1,0 +1,36 @@
+{# The dated macro prints, and what the OPEN BOOK is exposed to.
+
+   The exposure block is the reason this panel exists. The upcoming-dates list is reference;
+   "28 positions expire on CPI morning" is an instruction, and burying it inside a generic
+   rows list would have hidden the one fact worth acting on. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}{% if p.state == "stale" %} <span class="chip watch">stale</span>{% endif %}</h3>
+
+  {% if p.body.exposed %}
+  <div class=rows>
+    <div class="row stop"><div class=rmain><span class=k>Open book exposure</span><span class=v></span></div>
+      <p class=rsub>A print landing on an expiry outranks every thesis below it.</p></div>
+    {% for r in p.body.exposed %}
+    <div class="row {{ r.severity or '' }}">
+      <div class=rmain><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}</span></div>
+      {% if r.sub %}<p class=rsub>{{ r.sub }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.body.rows %}
+  <div class=rows>
+    {% for r in p.body.rows %}
+    <div class="row {{ r.severity or '' }}">
+      <div class=rmain><span class=k>{{ r.k }}</span><span class=v>{{ r.v }}</span></div>
+      {% if r.sub %}<p class=rsub>{{ r.sub }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>

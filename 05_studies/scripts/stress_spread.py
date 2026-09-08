@@ -10,23 +10,21 @@ This measures the real SPY spread by VIX regime over 2008-2025, including
 short put you sold at 20 delta is bought back as a 70-90 delta option, which is
 a different and more expensive instrument.
 """
-import os
-import sys
 import warnings
 
-import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
+SWING = paths.data("swing", "panel.parquet")
 
 
 def main():
-    p = pd.read_parquet(SWING)
+    p = pd.read_parquet(paths.require_data(SWING))
     close = p.pivot(index="date", columns="ticker", values="close").sort_index()
     vix = close["^VIX"].dropna()
 
@@ -35,7 +33,7 @@ def main():
 
     frames = []
     for year in range(2008, 2026):
-        t = pq.read_table(OPT, columns=cols, filters=[
+        t = pq.read_table(paths.require_data(OPT), columns=cols, filters=[
             ("date", ">=", pd.Timestamp(f"{year}-01-01")),
             ("date", "<=", pd.Timestamp(f"{year}-12-31"))]).to_pandas()
         if t.empty:

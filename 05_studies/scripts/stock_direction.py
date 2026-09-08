@@ -35,15 +35,16 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 warnings.filterwarnings("ignore")
 
-from swing_lab import SPLITS, deflated_sharpe, pch, slice_dates, zscore_past  # noqa: E402
+from swing_lab import SPLITS, pch, slice_dates  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STOCKS = os.path.join(ROOT, "data", "stocks", "panel.parquet")
-SWING = os.path.join(ROOT, "data", "swing", "panel.parquet")
-OUT = os.path.join(ROOT, "data", "swing")
+STOCKS = paths.data("stocks", "panel.parquet")
+SWING = paths.data("swing", "panel.parquet")
+OUT = paths.data("swing")
 
 BETA_WIN = 126   # ~6 months, the standard estimation window
 HORIZONS = [5, 10]  # "days to 2 weeks"
@@ -51,8 +52,8 @@ COST_BPS = 5.0
 
 
 def load():
-    st = pd.read_parquet(STOCKS)
-    sw = pd.read_parquet(SWING)
+    st = pd.read_parquet(paths.require_data(STOCKS))
+    sw = pd.read_parquet(paths.require_data(SWING))
 
     close = st.pivot(index="date", columns="ticker", values="close").sort_index()
     open_ = st.pivot(index="date", columns="ticker", values="open").sort_index()
@@ -212,17 +213,17 @@ def main():
     # How market-driven is the universe? This is the owner's question, answered.
     med_r2 = r2.median(axis=1).dropna()
     med_beta = beta.median(axis=1).dropna()
-    print(f"\n  HOW MUCH DO THESE STOCKS 'COPY THE MARKET'?")
+    print("\n  HOW MUCH DO THESE STOCKS 'COPY THE MARKET'?")
     print(f"    median R^2 to SPY: {med_r2.mean():.2f}  "
           f"(i.e. ~{med_r2.mean()*100:.0f}% of the typical stock's daily variance IS the market)")
     print(f"    median beta:       {med_beta.mean():.2f}")
 
     last_r2 = r2.iloc[-1].dropna().sort_values()
     last_b = beta.iloc[-1].dropna()
-    print(f"\n    MOST market-driven right now (highest R^2 -> a market call in disguise):")
+    print("\n    MOST market-driven right now (highest R^2 -> a market call in disguise):")
     for tk in last_r2.tail(8).index[::-1]:
         print(f"      {tk:6s} R2={last_r2[tk]:.2f}  beta={last_b.get(tk, np.nan):.2f}")
-    print(f"    LEAST market-driven (lowest R^2 -> genuinely stock-specific):")
+    print("    LEAST market-driven (lowest R^2 -> genuinely stock-specific):")
     for tk in last_r2.head(8).index:
         print(f"      {tk:6s} R2={last_r2[tk]:.2f}  beta={last_b.get(tk, np.nan):.2f}")
 

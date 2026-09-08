@@ -1,0 +1,14 @@
+{
+  "as_of": "2026-08-24 09:15 ET",
+  "ok": true,
+  "regime": "HIGH GAMMA (Q5/5)",
+  "call": "TIGHT range expected \u2014 pin",
+  "stance": "tight_range",
+  "note": "Dealers are LONG gamma, so their hedging runs against the move and pins the index.",
+  "exp_oc": 0.42,
+  "exp_range": 0.71,
+  "gex_z": 1.24,
+  "quintile": 5,
+  "regime_source": "SqueezeMetrics prior close (15-yr baseline)",
+  "schema_version": 2
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Scheduled ingest of the Crown Macro Letter desk notes.
+
+  INSTALL:
+    cp 04_live_system/com.daytrading.desknotes.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.daytrading.desknotes.plist
+
+  REMOVE:
+    launchctl unload ~/Library/LaunchAgents/com.daytrading.desknotes.plist
+    rm ~/Library/LaunchAgents/com.daytrading.desknotes.plist
+
+  RUN ONE NOW, without waiting for a slot:
+    /bin/zsh 04_live_system/ingest_desk_notes.sh
+
+  It lives in the repo rather than only in LaunchAgents so the schedule is reviewable
+  next to the script it runs, and so a fresh machine can reinstate it in one copy.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.daytrading.desknotes</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system/ingest_desk_notes.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system</string>
+  <key>StandardOutPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/desknotes.out</string>
+  <key>StandardErrorPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/desknotes.err</string>
+
+  <!-- The notes land in three waves on a weekday: a Morning note between roughly 07:15
+       and 09:30 ET, a midday note after the 10:00 and 12:00 data releases, and a Market
+       Wrap after the close. These three times sit just after each wave. Weekdays only:
+       the desk does not publish at the weekend, so a weekend run would spend a session
+       to find nothing. The script is idempotent — a note already ingested is refused on
+       its (subject, date) pair — so an extra run costs nothing but is never wrong. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>47</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>47</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>47</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>47</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>47</integer></dict>
+
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>37</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>37</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>37</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>37</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>37</integer></dict>
+
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>22</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>22</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>22</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>22</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>22</integer></dict>
+  </array>
+
+  <!-- Deliberately NOT RunAtLoad: loading this should not spend a Claude session, and
+       the next scheduled slot is never more than a few hours away. -->
+</dict>
+</plist>

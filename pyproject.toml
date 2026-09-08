@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "index-daytrading-research"
+version = "0.1.0"
+description = "SPX/NDX index options research bundle: findings, live dashboard, and backtest harnesses"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scipy",
+    "requests",
+    "yfinance",
+    "anthropic",
+    "jinja2",
+]
+
+[project.optional-dependencies]
+# 05_studies/dl_ensemble.py only. ~1 GB; not part of a normal install.
+dl = ["torch"]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+idt = "idt.cli:main"
+
+[tool.setuptools]
+packages = ["idt"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# The research code is intentionally dense and uses single-letter names for maths.
+# Enforce the rules that hide BUGS, not the ones that hide style.
+#
+# Two of these earned their place immediately. F823 caught two scripts that could not
+# run at all: a local dict named `paths` shadowed the idt.paths module for a whole
+# function, and a set of module-level accumulators mutated with `+=` inside main().
+# Both were introduced by the Phase 3 main-guard refactor and neither had a test.
+select = ["E9", "F", "B"]
+ignore = ["E501", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+# The 115 research harnesses are one-shot scripts that print a table. An unused loop
+# variable or an f-string without a placeholder in one of those is noise, and a linter
+# that is 90% noise gets switched off, taking the 10% that matters with it. The rules
+# that catch real breakage stay on everywhere.
+"05_studies/**" = ["B007", "B023", "B905", "F841", "F541", "B904"]
+"test/**" = ["F841"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "-q"

@@ -4,10 +4,13 @@ Data: Chen & Zimmermann Open Source Asset Pricing, monthly long-short returns
       (PredictorLSretWide.csv), Oct 2025 release.
 Original paper (OP): Cusatis, Miles & Woolridge (1993 JFE), sample 1965-1988.
 """
-import csv, math, os, statistics as st
+import csv, math, statistics as st
 
-SCRATCH = "/private/tmp/claude-501/-Users-sahilmajmudar/c703fa96-a221-4df1-a82d-b31b1bf84807/scratchpad"
-PATH = os.path.join(SCRATCH, "PredictorLSretWide.csv")
+from idt import paths
+
+# Under DATA_ROOT/scratch. This was a /private/tmp scratchpad belonging to the
+# session that wrote the file, so the open() below failed everywhere, always.
+PATH = "scratch/PredictorLSretWide.csv"
 
 def tstat(xs):
     n = len(xs)
@@ -18,7 +21,7 @@ def tstat(xs):
     return m, m / (s / math.sqrt(n)), n
 
 def load():
-    with open(PATH) as f:
+    with open(paths.require_data(PATH)) as f:
         rows = list(csv.DictReader(f))
     return rows
 
@@ -91,7 +94,7 @@ def main():
     post = window(sp, 1994, 2100)
     if ins and post:
         mi = st.mean(ins); mp = st.mean(post)
-        print(f"\n===== Decay =====")
+        print("\n===== Decay =====")
         print(f"  in-sample mean      : {mi:+.3f}%/mo")
         print(f"  post-pub mean       : {mp:+.3f}%/mo")
         print(f"  decay               : {(1 - mp/mi)*100:.1f}% of in-sample mean")

@@ -15,16 +15,17 @@ NEXT 30 to 120 minutes, and with what hit rate?
 """
 import numpy as np
 import pandas as pd
-from scipy import stats as st
 
-PATH = "data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 COLS = ["quote_date", "quote_time", "option_type", "mnes_rel", "bas", "implied_volatility",
         "delta", "active_underlying_price", "trade_volume", "open_interest",
         "trade_volume_delta_usd", "trade_volume_gamma_usd", "oi_gamma_usd"]
 
 
 def build():
-    df = pd.read_parquet(PATH, columns=COLS)
+    df = pd.read_parquet(paths.require_data(PATH), columns=COLS)
     df["dt"] = pd.to_datetime(df.quote_date.astype(str) + " " + df.quote_time.astype(str))
     # collapse the strike dimension: per (session, time) aggregate the flow and the surface
     g = df.groupby(["quote_date", "quote_time"])

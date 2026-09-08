@@ -1,0 +1,18 @@
+{% import "panels/_viz.html" as viz %}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  <div class=rings>
+    {% for m in p.body.meters %}
+    <div class=ringblock>
+      {{ viz.ring(m.pct, m.num if m.num is defined else (m.pct|string + "%"), m.severity) }}
+      <div class=ringmeta>
+        <span class=mlabel>{{ m.label }}</span>
+        <span class="mvalue {{ m.severity or '' }}">{{ m.value }}</span>
+        <p class=mwhy>{{ m.why }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

@@ -11,12 +11,17 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import numpy as np
-import pandas as pd
 import yfinance as yf
 
+from idt import paths
+
 ET = ZoneInfo("America/New_York")
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "mes_snapshot.json")
+
+# One resolver, because the two halves of this pair used to disagree. This file
+# lived in 05_studies/ and wrote its snapshot next to itself, while
+# mes_dashboard.py read 04_live_system/data/ — so the dashboard showed nothing no
+# matter how often the signals ran. Both ends now read paths.STATE_ROOT.
+OUT = os.path.join(paths.STATE_ROOT, "mes_snapshot.json")
 PAIRS = [("SPY", "MES", "S&P 500", 5.0), ("QQQ", "MNQ", "Nasdaq 100", 2.0)]
 
 

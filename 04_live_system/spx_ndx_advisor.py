@@ -454,7 +454,7 @@ def main():
         print(f"\n  ENTRY SIGNAL: {'ON' if a['signal_on'] else 'OFF'}  ({SIGNAL_NOTE[:60]}...)")
         print(f"\n  >>> {a['headline']}")
         if a["below_floor"]:
-            print(f"      (below floor, NOT recommended: "
+            print("      (below floor, NOT recommended: "
                   + ", ".join(f"{r['structure']} conv {r['conviction']}"
                               for r in a["below_floor"]) + ")")
         print(f"\n  {'structure':22s} {'legs':34s} {'win':>6s} {'exp':>8s} {'conv':>5s}")

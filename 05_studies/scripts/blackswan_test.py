@@ -21,17 +21,16 @@ Held to expiry, so terminal value is intrinsic and no exit-liquidity assumption
 is needed. Every bucket reports mean, median, win rate, the biggest winner, and
 how much of the total P&L came from the single best trade.
 """
-import os
-import sys
 import warnings
 
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OPT = os.path.join(ROOT, "data", "opt_eod", "SPY_options.parquet")
+OPT = paths.data("opt_eod", "SPY_options.parquet")
 
 BUCKETS = [(0.001, 0.02, "ultra <2d"), (0.02, 0.05, "2-5 delta"),
            (0.05, 0.10, "5-10 delta"), (0.10, 0.16, "10-16 delta"),
@@ -40,10 +39,10 @@ DTE_LO, DTE_HI = 20, 60
 
 
 def load_year(y):
-    t = pq.read_table(OPT, columns=["date", "expiration", "strike", "type",
-                                    "bid", "ask", "delta", "open_interest"],
-                      filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
-                               ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
+    t = pq.read_table(paths.require_data(OPT), columns=["date", "expiration", "strike", "type",
+                                                        "bid", "ask", "delta", "open_interest"],
+                                          filters=[("date", ">=", pd.Timestamp(f"{y}-01-01")),
+                                                   ("date", "<=", pd.Timestamp(f"{y}-12-31"))]).to_pandas()
     if t.empty:
         return t
     t["date"] = pd.to_datetime(t["date"])
@@ -58,8 +57,8 @@ def main():
     print("  bought at ASK, settled at intrinsic. Worthless = -100%, never dropped.")
     print("=" * 96)
 
-    und = pd.read_parquet(os.path.join(ROOT, "data", "opt_eod",
-                                       "SPY_underlying.parquet"))
+    und = pd.read_parquet(paths.data("opt_eod",
+                                     "SPY_underlying.parquet"))
     ucol = [c for c in und.columns if c.lower() in ("close", "adjclose")][0]
     dcol = [c for c in und.columns if "date" in c.lower()]
     und = und.set_index(pd.to_datetime(und[dcol[0]]) if dcol else und.index)
@@ -95,7 +94,7 @@ def main():
         print(f"    {y}: {len(rows):,} cumulative trades", flush=True)
 
     d = pd.DataFrame(rows)
-    d.to_parquet(os.path.join(ROOT, "data", "blackswan_trades.parquet"), index=False)
+    d.to_parquet(paths.data("blackswan_trades.parquet"), index=False)
 
     print(f"\n  {len(d):,} option purchases tested\n")
     print(f"  {'bucket':12s} {'kind':5s} {'n':>7s} {'win%':>6s} {'MEAN':>9s} "

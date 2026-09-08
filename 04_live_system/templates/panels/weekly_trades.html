@@ -1,0 +1,121 @@
+{# One card per trade. The order is the order you need it in: what it is, why the macro
+   argues for it, why this expiry, what it costs, and what proves it wrong. The
+   invalidation is last and always present -- it is the field the old panel never had. #}
+<section class="card is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
+    <span class="chip">unproven</span>
+  </h3>
+  {% if p.body.macro_as_of %}
+  <p class="wk-src">Macro read from {{ p.body.macro_as_of }}{% if p.body.macro_age_h %} · newest note {{ p.body.macro_age_h }}h old{% endif %}</p>
+  {% endif %}
+
+  {% for c in p.body.cards %}
+  <article class="wk {{ 'wk-bull' if c.direction == 'bullish' else 'wk-bear' }}">
+    <div class="wk-top">
+      <span class="wk-tk">{{ c.ticker }}</span>
+      <span class="wk-dir">{{ c.direction }}</span>
+      <span class="wk-spot">{{ c.spot }}</span>
+      <span class="wk-exp">{{ c.expiry }} · {{ c.dte }}d</span>
+      {% if c.vol_only %}<span class="chip watch">volatility, not direction</span>{% endif %}
+      {% if c.cap_tier %}<span class="chip">{{ c.cap_tier }} cap</span>{% endif %}
+      {% if c.no_macro_basis %}<span class="chip watch">no macro basis</span>
+      {% elif c.theme_inherited %}<span class="chip">theme inherited from sector</span>{% endif %}
+    </div>
+
+    <div class="wk-struct">{{ c.structure }}</div>
+    <div class="wk-legs">{{ c.legs }}</div>
+
+    <div class="wk-nums">
+      <span><b>{{ 'debit' if c.is_debit else 'credit' }}</b> {{ c.net }}</span>
+      <span><b>risk</b> ${{ c.max_risk|round|int }}</span>
+      {% if c.max_reward %}<span><b>reward</b> ${{ c.max_reward|round|int }}</span>{% endif %}
+      {% if c.rr %}<span><b>r:r</b> {{ c.rr }}</span>{% endif %}
+      {% if c.cost_pct %}<span><b>spread cost</b> {{ c.cost_pct }}% of risk</span>{% endif %}
+      {% if c.iv_front %}<span><b>IV</b> {{ c.iv_front }}%{% if c.iv_back %} vs {{ c.iv_back }}% back{% endif %}{% if c.rvol %} · realised {{ c.rvol }}%{% endif %}</span>{% endif %}
+      {% if c.implied_move %}<span><b>week is pricing</b> ±{{ c.implied_move }}%</span>{% endif %}
+    </div>
+
+    {% if c.backing %}
+    <div class="wk-back">
+      <div class="wk-back-hd">what is behind this — {{ c.n_backing }} pillars</div>
+      {% for b in c.backing %}
+      <div class="wk-pill">
+        <span class="wk-kind {{ b.kind }}">{{ b.kind }}</span>
+        <span class="wk-pl"><b>{{ b.label }}</b>{% if b.strength %} <em>{{ b.strength }}</em>{% endif %}
+          {% if b.detail %}<span class="wk-pd">{{ b.detail }}</span>{% endif %}</span>
+      </div>
+      {% endfor %}
+      <p class="wk-back-ft">A macro theme is required, not preferred, and at least three
+        distinct inputs must agree. A card resting on the macro read plus a moving average is
+        two things agreeing with themselves, and nothing corroborating either.</p>
+    </div>
+    {% endif %}
+
+    {% for t in c.themes %}
+    <div class="wk-theme">
+      <span class="wk-stance {{ t.stance }}">{{ t.stance }}</span>
+      <b>{{ t.label }}</b> — {{ t.why }}
+      {% if t.basis %}<em class="wk-basis">Basis: {{ t.basis }}.</em>{% endif %}
+    </div>
+    {% endfor %}
+
+    {% if c.vote_detail %}
+    <details class="wk-vote">
+      <summary>Weighted vote {{ '%+.2f'|format(c.vote_score) }} ·
+        {{ (c.unmeasured_share * 100)|round|int }}% of that weight is still unmeasured</summary>
+      <table class="wk-vt">
+        <tr><th>input</th><th>value</th><th>weight</th><th>contribution</th><th>evidence tier</th></tr>
+        {% for d in c.vote_detail %}
+        <tr>
+          <td>{{ d.input }}</td>
+          <td class="n">{{ '%+.2f'|format(d.value) }}</td>
+          <td class="n">{{ d.sign }}{{ '%.2f'|format(d.weight) }}</td>
+          <td class="n {{ 'up' if (d.contribution or 0) > 0 else ('down' if (d.contribution or 0) < 0 else '') }}">{{ '%+.3f'|format(d.contribution or 0) }}</td>
+          <td class="t">{{ d.tier }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p class="wk-vn">Weights come from <code>signal_weights</code>, the one authority, and are
+        set by measurement. Sector rotation and dealer gamma as direction are absent because
+        they measured at zero, not because they were forgotten.</p>
+    </details>
+    {% endif %}
+
+    <div class="wk-line"><b>Why this structure:</b> {{ c.structure_why }}</div>
+    {% if c.evidence %}<div class="wk-ev">{{ c.evidence }}</div>{% endif %}
+    {% if c.breakevens %}<div class="wk-line"><b>Breakeven{{ 's' if c.breakevens|length > 1 else '' }}:</b> {{ c.breakevens|join(' and ') }}</div>{% endif %}
+    {% if c.sector %}<div class="wk-line"><b>Sector:</b> {{ c.sector.note }}</div>{% endif %}
+    {% if c.insider_open_buys %}<div class="wk-line"><b>Insiders:</b> {{ c.insider_open_buys }} open-market buys (transaction code P, 10b5-1 plans excluded){% if c.short_float_pct is not none %} · short interest {{ c.short_float_pct }}% of float{% endif %}.</div>{% endif %}
+    <div class="wk-line"><b>Why this expiry:</b> {{ c.expiry_why }}.</div>
+    {% if c.trend and c.trend.w12 is not none %}
+    <div class="wk-tech">
+      <b>Weekly technicals</b>
+      <span>4w {{ '%+.1f'|format(c.trend.w4) }}%</span>
+      <span>12w {{ '%+.1f'|format(c.trend.w12) }}%</span>
+      {% if c.trend.w26 is not none %}<span>26w {{ '%+.1f'|format(c.trend.w26) }}%</span>{% endif %}
+      {% if c.trend.rs12 is not none %}<span>vs SPY {{ '%+.1f'|format(c.trend.rs12) }}%</span>{% endif %}
+      <span>RSI {{ c.trend.rsi|round|int }}</span>
+      <span>{{ '%+.1f'|format(c.trend.from_hi) }}% from 52w high</span>
+      <span>{{ 'above' if c.trend.above50 else 'below' }} 10w · {{ 'above' if c.trend.above200 else 'below' }} 40w</span>
+    </div>
+    {% endif %}
+    <div class="wk-line"><b>Tape:</b> {{ c.tape }}.</div>
+    {% if c.warn %}<div class="wk-warn">{{ c.warn }}</div>{% endif %}
+
+    <div class="wk-act">
+      <a class="wk-btn" href="/entered?ticker={{ c.ticker }}&expiry={{ c.expiry }}&structure={{ c.structure|urlencode }}&view=markets">I entered this trade</a>
+      <span class="wk-actnote">Marks it in the ledger below and starts telling you when to get out. Places no order.</span>
+    </div>
+
+    <div class="wk-exits">
+      <div><b>Target</b> {{ c.target }}</div>
+      <div><b>Stop</b> {{ c.stop }}</div>
+      <div class="wk-inval"><b>Wrong if</b> {{ c.invalidation }}</div>
+    </div>
+  </article>
+  {% endfor %}
+
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>Source: {{ p.source }}</div>{% endif %}
+</section>

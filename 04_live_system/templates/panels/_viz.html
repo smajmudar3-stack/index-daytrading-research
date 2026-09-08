@@ -1,0 +1,27 @@
+{# Drawing macros. Geometry in ink; severity is the only hue. #}
+
+{% macro ring(pct, num, sev) -%}
+{% set r = 32 %}{% set c = 201.06 %}
+<span class=ringwrap>
+  <svg class="ring {{ sev or '' }}" viewBox="0 0 78 78" aria-hidden=true>
+    <circle class=track cx=39 cy=39 r={{ r }} />
+    <circle class=arc cx=39 cy=39 r={{ r }}
+      stroke-dasharray="{{ (c * (pct or 0) / 100)|round(1) }} {{ c }}" />
+  </svg>
+  <span class=ringnum>{{ num }}</span>
+</span>
+{%- endmacro %}
+
+{% macro hbar(pct, sev, dir) -%}
+<span class=btrack>
+  <span class=zero></span>
+  <span class="bfill {{ 'neg' if dir == '-' else 'pos' }} {{ sev or '' }}"
+        style="width:{{ ([0, (pct or 0), 50]|sort)[1] }}%"></span>
+</span>
+{%- endmacro %}
+
+{% macro linbar(pct, sev) -%}
+<span class="btrack lin">
+  <span class="bfill {{ sev or '' }}" style="width:{{ ([0, (pct or 0), 100]|sort)[1] }}%"></span>
+</span>
+{%- endmacro %}

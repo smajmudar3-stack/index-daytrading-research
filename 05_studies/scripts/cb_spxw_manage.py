@@ -15,30 +15,18 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 
-PATH = "/Users/sahilmajmudar/index-daytrading/data/spxw/data_opt.parquet"
+from idt import paths
+
+PATH = "spxw/data_opt.parquet"  # path under DATA_ROOT, resolved at the read site
 ALLT = ["10:00:00", "10:30:00", "11:00:00", "11:30:00", "12:00:00", "12:30:00",
         "13:00:00", "13:30:00", "14:00:00", "14:30:00", "15:00:00", "15:30:00"]
 
-df = pd.read_parquet(PATH, columns=["quote_date", "quote_time", "option_type", "mnes_rel",
-                                    "mid", "bas", "delta", "implied_volatility", "sret",
-                                    "active_underlying_price"])
-df["t"] = df.quote_time.astype(str)
-df = df[df.t.isin(ALLT) & (df.mid > 0) & (df.bas > 0)]
 
 
 def wide(field, typ):
     return df[df.option_type == typ].pivot_table(index=["quote_date", "t"], columns="mnes_rel", values=field)
 
 
-MID = {"C": wide("mid", "C"), "P": wide("mid", "P")}
-BAS = {"C": wide("bas", "C"), "P": wide("bas", "P")}
-DLT = {"C": wide("delta", "C"), "P": wide("delta", "P")}
-SPOT = df.groupby(["quote_date", "t"]).active_underlying_price.first()
-SRET = df.groupby(["quote_date", "t"]).sret.first()
-IVATM = (df[np.isclose(df.mnes_rel, 1.0) & (df.option_type == "C")]
-         .set_index(["quote_date", "t"]).implied_volatility)
-GRID = np.array(MID["C"].columns, dtype=float)
-DATES = MID["C"].index.get_level_values("quote_date").unique()
 
 # per-time arrays keyed by date
 def tarr(tbl, t):
@@ -46,13 +34,6 @@ def tarr(tbl, t):
     return s.reindex(DATES)
 
 
-MIDT = {(ty, t): tarr(MID[ty], t).values for ty in "CP" for t in ALLT}
-BAST = {(ty, t): tarr(BAS[ty], t).values for ty in "CP" for t in ALLT}
-DLTT = {(ty, t): tarr(DLT[ty], t).values for ty in "CP" for t in ALLT}
-SPOTT = {t: SPOT.xs(t, level="t").reindex(DATES).values for t in ALLT}
-SRETT = {t: SRET.xs(t, level="t").reindex(DATES).values for t in ALLT}
-IVT = {t: IVATM.xs(t, level="t").reindex(DATES).values for t in ALLT}
-N = len(DATES)
 
 
 def interp_row(vals, targets):
@@ -175,62 +156,105 @@ def summ(o, label):
 
 pd.set_option("display.width", 260)
 
-print("=" * 100)
-print("A. HOLD-TO-SETTLEMENT, clean guards. P&L in bp of SPOT (net of 4 half-spreads at entry).")
-print("=" * 100)
-rows = []
-for t in ["10:00:00", "10:30:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00"]:
-    for w in [0.005, 0.010, 0.020]:
-        o = simulate(t, "fly", w)
-        s = summ(o, f"FLY {t[:5]} w={w*100:.1f}%")
-        if s:
-            rows.append(s)
-    for sd in [0.10, 0.16, 0.30]:
-        o = simulate(t, "condor", 0.010, sdelta=sd)
-        s = summ(o, f"CND {t[:5]} d={sd} w=1.0%")
-        if s:
-            rows.append(s)
-print(pd.DataFrame(rows).to_string(index=False))
 
-print("\n" + "=" * 100)
-print("B. MANAGEMENT RULES, real quotes. 11:00 entry. Profit target / stop pay 4 more half-spreads.")
-print("=" * 100)
-rows = []
-for kind, wing, sd, nm in [("fly", 0.010, None, "FLY w=1.0%"), ("fly", 0.020, None, "FLY w=2.0%"),
-                           ("condor", 0.010, 0.16, "CND d=.16"), ("condor", 0.010, 0.30, "CND d=.30")]:
-    for pt, sl, lbl in [(None, None, "hold to expiry"), (0.25, None, "PT 25%"), (0.50, None, "PT 50%"),
-                        (None, 2.0, "stop 2x credit"), (0.50, 2.0, "PT50 + stop2x"),
-                        (0.25, 2.0, "PT25 + stop2x")]:
-        o = simulate("11:00:00", kind, wing, sdelta=sd, pt=pt, stop_mult=sl)
-        s = summ(o, f"{nm} | {lbl}")
-        if s:
-            rows.append(s)
-print(pd.DataFrame(rows).to_string(index=False))
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global BAST
+    global DATES
+    global DLTT
+    global GRID
+    global IVT
+    global MIDT
+    global N
+    global SPOTT
+    global SRETT
+    global df
 
-print("\n" + "=" * 100)
-print("C. REGIME CONDITIONING on entry ATM IV quintile (IV rank proxy), 11:00, hold to settlement")
-print("=" * 100)
-for kind, wing, sd, nm in [("fly", 0.010, None, "FLY w=1.0%"), ("condor", 0.010, 0.16, "CND d=.16")]:
-    o = simulate("11:00:00", kind, wing, sdelta=sd)
-    o = o.assign(q=pd.qcut(o.iv, 5, labels=[1, 2, 3, 4, 5]))
-    g = o.groupby("q", observed=True).apply(
-        lambda x: pd.Series(dict(n=len(x), iv=round(x.iv.mean(), 3),
-                                 credit_bp=round(1e4 * x.credit.mean(), 1),
-                                 win=round(100 * (x.pnl > 0).mean(), 1),
-                                 bp=round(1e4 * x.pnl.mean(), 2),
-                                 t=round(st.ttest_1samp(1e4 * x.pnl, 0).statistic, 2))), include_groups=False)
-    print(f"\n{nm}\n{g.to_string()}")
+    df = pd.read_parquet(paths.require_data(PATH), columns=["quote_date", "quote_time", "option_type", "mnes_rel",
+                                                            "mid", "bas", "delta", "implied_volatility", "sret",
+                                                            "active_underlying_price"])
+    df["t"] = df.quote_time.astype(str)
+    df = df[df.t.isin(ALLT) & (df.mid > 0) & (df.bas > 0)]
 
-print("\n" + "=" * 100)
-print("D. TAIL: worst 15 sessions, 11:00 iron butterfly w=1.0%  (P&L in % of capital at risk)")
-print("=" * 100)
-o = simulate("11:00:00", "fly", 0.010)
-o = o.assign(pct_risk=100 * o.pnl / o.risk, move_pct=100 * (o.sret - 1))
-print(o.nsmallest(15, "pct_risk")[["date", "move_pct", "credit", "risk", "pct_risk"]]
-      .assign(credit_bp=lambda x: (1e4 * x.credit).round(1), risk_bp=lambda x: (1e4 * x.risk).round(1))
-      .drop(columns=["credit", "risk"]).round(2).to_string(index=False))
-print("\nby calendar year (11:00 fly w=1.0%, hold, net of entry spread):")
-o2 = o.assign(yr=o.date.dt.year)
-print(o2.groupby("yr").apply(lambda x: pd.Series(dict(
-    n=len(x), win=round(100 * (x.pnl > 0).mean(), 1), bp=round(1e4 * x.pnl.mean(), 2),
-    t=round(st.ttest_1samp(1e4 * x.pnl, 0).statistic, 2))), include_groups=False).to_string())
+    MID = {"C": wide("mid", "C"), "P": wide("mid", "P")}
+    BAS = {"C": wide("bas", "C"), "P": wide("bas", "P")}
+    DLT = {"C": wide("delta", "C"), "P": wide("delta", "P")}
+    SPOT = df.groupby(["quote_date", "t"]).active_underlying_price.first()
+    SRET = df.groupby(["quote_date", "t"]).sret.first()
+    IVATM = (df[np.isclose(df.mnes_rel, 1.0) & (df.option_type == "C")]
+             .set_index(["quote_date", "t"]).implied_volatility)
+    GRID = np.array(MID["C"].columns, dtype=float)
+    DATES = MID["C"].index.get_level_values("quote_date").unique()
+
+    MIDT = {(ty, t): tarr(MID[ty], t).values for ty in "CP" for t in ALLT}
+    BAST = {(ty, t): tarr(BAS[ty], t).values for ty in "CP" for t in ALLT}
+    DLTT = {(ty, t): tarr(DLT[ty], t).values for ty in "CP" for t in ALLT}
+    SPOTT = {t: SPOT.xs(t, level="t").reindex(DATES).values for t in ALLT}
+    SRETT = {t: SRET.xs(t, level="t").reindex(DATES).values for t in ALLT}
+    IVT = {t: IVATM.xs(t, level="t").reindex(DATES).values for t in ALLT}
+    N = len(DATES)
+
+    print("=" * 100)
+    print("A. HOLD-TO-SETTLEMENT, clean guards. P&L in bp of SPOT (net of 4 half-spreads at entry).")
+    print("=" * 100)
+    rows = []
+    for t in ["10:00:00", "10:30:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00"]:
+        for w in [0.005, 0.010, 0.020]:
+            o = simulate(t, "fly", w)
+            s = summ(o, f"FLY {t[:5]} w={w*100:.1f}%")
+            if s:
+                rows.append(s)
+        for sd in [0.10, 0.16, 0.30]:
+            o = simulate(t, "condor", 0.010, sdelta=sd)
+            s = summ(o, f"CND {t[:5]} d={sd} w=1.0%")
+            if s:
+                rows.append(s)
+    print(pd.DataFrame(rows).to_string(index=False))
+
+    print("\n" + "=" * 100)
+    print("B. MANAGEMENT RULES, real quotes. 11:00 entry. Profit target / stop pay 4 more half-spreads.")
+    print("=" * 100)
+    rows = []
+    for kind, wing, sd, nm in [("fly", 0.010, None, "FLY w=1.0%"), ("fly", 0.020, None, "FLY w=2.0%"),
+                               ("condor", 0.010, 0.16, "CND d=.16"), ("condor", 0.010, 0.30, "CND d=.30")]:
+        for pt, sl, lbl in [(None, None, "hold to expiry"), (0.25, None, "PT 25%"), (0.50, None, "PT 50%"),
+                            (None, 2.0, "stop 2x credit"), (0.50, 2.0, "PT50 + stop2x"),
+                            (0.25, 2.0, "PT25 + stop2x")]:
+            o = simulate("11:00:00", kind, wing, sdelta=sd, pt=pt, stop_mult=sl)
+            s = summ(o, f"{nm} | {lbl}")
+            if s:
+                rows.append(s)
+    print(pd.DataFrame(rows).to_string(index=False))
+
+    print("\n" + "=" * 100)
+    print("C. REGIME CONDITIONING on entry ATM IV quintile (IV rank proxy), 11:00, hold to settlement")
+    print("=" * 100)
+    for kind, wing, sd, nm in [("fly", 0.010, None, "FLY w=1.0%"), ("condor", 0.010, 0.16, "CND d=.16")]:
+        o = simulate("11:00:00", kind, wing, sdelta=sd)
+        o = o.assign(q=pd.qcut(o.iv, 5, labels=[1, 2, 3, 4, 5]))
+        g = o.groupby("q", observed=True).apply(
+            lambda x: pd.Series(dict(n=len(x), iv=round(x.iv.mean(), 3),
+                                     credit_bp=round(1e4 * x.credit.mean(), 1),
+                                     win=round(100 * (x.pnl > 0).mean(), 1),
+                                     bp=round(1e4 * x.pnl.mean(), 2),
+                                     t=round(st.ttest_1samp(1e4 * x.pnl, 0).statistic, 2))), include_groups=False)
+        print(f"\n{nm}\n{g.to_string()}")
+
+    print("\n" + "=" * 100)
+    print("D. TAIL: worst 15 sessions, 11:00 iron butterfly w=1.0%  (P&L in % of capital at risk)")
+    print("=" * 100)
+    o = simulate("11:00:00", "fly", 0.010)
+    o = o.assign(pct_risk=100 * o.pnl / o.risk, move_pct=100 * (o.sret - 1))
+    print(o.nsmallest(15, "pct_risk")[["date", "move_pct", "credit", "risk", "pct_risk"]]
+          .assign(credit_bp=lambda x: (1e4 * x.credit).round(1), risk_bp=lambda x: (1e4 * x.risk).round(1))
+          .drop(columns=["credit", "risk"]).round(2).to_string(index=False))
+    print("\nby calendar year (11:00 fly w=1.0%, hold, net of entry spread):")
+    o2 = o.assign(yr=o.date.dt.year)
+    print(o2.groupby("yr").apply(lambda x: pd.Series(dict(
+        n=len(x), win=round(100 * (x.pnl > 0).mean(), 1), bp=round(1e4 * x.pnl.mean(), 2),
+        t=round(st.ttest_1samp(1e4 * x.pnl, 0).statistic, 2))), include_groups=False).to_string())
+
+
+if __name__ == "__main__":
+    main()

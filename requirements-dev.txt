@@ -1,0 +1,5 @@
+# Development and verification only. `install.sh` installs these too, because a recipient who
+# cannot run the test suite has no way to confirm the install actually worked — and "it seems
+# to start" is not the same claim as "141 tests pass".
+pytest
+ruff

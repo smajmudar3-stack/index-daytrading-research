@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}
+{% for html in rendered_panels %}{{ html|safe }}{% endfor %}
+{% endblock %}

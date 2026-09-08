@@ -45,37 +45,42 @@ def stats(name, ret, exposure=None):
           f"win {(r>0).mean()*100:4.1f}%{exp}")
 
 
-d = load()
-print(f"===== SPY/ES overnight, {d.index.min().date()}..{d.index.max().date()} ({len(d)} nights) =====")
-on = d["overnight"]
-stats("buy & hold (all day)", d["close"].pct_change())
-stats("A. raw overnight (every night)", on - COST)
-# B. trend filter
-onB = np.where(d["above200"], on - COST, 0.0)
-stats("B. overnight ONLY if >200d SMA", pd.Series(onB, index=d.index), d["above200"].mean())
-# C. + vol filter (skip when VIX > its 20d avg * 1.3, i.e. vol spiking)
-calm = d["above200"] & (d["vix"] < d["vix_ma"] * 1.3)
-onC = np.where(calm, on - COST, 0.0)
-stats("C. + skip vol spikes", pd.Series(onC, index=d.index), calm.mean())
-# also: overnight when BELOW 200 (bear) — should be bad
-onbear = np.where(~d["above200"], on - COST, 0.0)
-stats("(overnight in downtrends only)", pd.Series(onbear, index=d.index), (~d["above200"]).mean())
+def main():
+    d = load()
+    print(f"===== SPY/ES overnight, {d.index.min().date()}..{d.index.max().date()} ({len(d)} nights) =====")
+    on = d["overnight"]
+    stats("buy & hold (all day)", d["close"].pct_change())
+    stats("A. raw overnight (every night)", on - COST)
+    # B. trend filter
+    onB = np.where(d["above200"], on - COST, 0.0)
+    stats("B. overnight ONLY if >200d SMA", pd.Series(onB, index=d.index), d["above200"].mean())
+    # C. + vol filter (skip when VIX > its 20d avg * 1.3, i.e. vol spiking)
+    calm = d["above200"] & (d["vix"] < d["vix_ma"] * 1.3)
+    onC = np.where(calm, on - COST, 0.0)
+    stats("C. + skip vol spikes", pd.Series(onC, index=d.index), calm.mean())
+    # also: overnight when BELOW 200 (bear) — should be bad
+    onbear = np.where(~d["above200"], on - COST, 0.0)
+    stats("(overnight in downtrends only)", pd.Series(onbear, index=d.index), (~d["above200"]).mean())
 
-# D. walk-forward: the trend filter has no fitted params, but test stability by decade
-print("\n  --- strategy B by period (stability) ---")
-for lo, hi in [("2005","2010"),("2010","2015"),("2015","2020"),("2020","2026")]:
-    seg = d[(d.index >= lo) & (d.index < hi)]
-    r = pd.Series(np.where(seg["above200"], seg["overnight"] - COST, 0.0), index=seg.index)
-    stats(f"  {lo}-{hi}", r, seg["above200"].mean())
+    # D. walk-forward: the trend filter has no fitted params, but test stability by decade
+    print("\n  --- strategy B by period (stability) ---")
+    for lo, hi in [("2005","2010"),("2010","2015"),("2015","2020"),("2020","2026")]:
+        seg = d[(d.index >= lo) & (d.index < hi)]
+        r = pd.Series(np.where(seg["above200"], seg["overnight"] - COST, 0.0), index=seg.index)
+        stats(f"  {lo}-{hi}", r, seg["above200"].mean())
 
-# MES $ translation for strategy B
-print("\n  --- MES dollar terms (strategy B, 1 contract) ---")
-spx_now = float(d["close"].iloc[-1]) * 10  # SPY*10 ~ SPX; MES = $5 x SPX point
-onB_ser = pd.Series(onB, index=d.index)
-r = onB_ser[onB_ser != 0]
-per_night_pts = onB_ser.mean() * spx_now / 10 * 10  # avg % * SPX level
-avg_pt = onB_ser.mean() * spx_now
-print(f"  SPX ~{spx_now:.0f}, 1 MES = ${5*spx_now:,.0f} notional, ${5:.0f}/point")
-print(f"  avg per-night: {onB_ser.mean()*100:+.3f}% = {onB_ser.mean()*spx_now:+.1f} SPX pts = ${onB_ser.mean()*spx_now*5:+.2f}/contract")
-print(f"  nights/yr traded ~{d['above200'].mean()*252:.0f}; est $/yr per MES ~${onB_ser.mean()*spx_now*5*252:+,.0f}")
-print(f"  (raw % return {(np.prod(1+onB_ser)**(252/len(onB_ser))-1)*100:+.1f}%/yr on ~${5*spx_now:,.0f} notional)")
+    # MES $ translation for strategy B
+    print("\n  --- MES dollar terms (strategy B, 1 contract) ---")
+    spx_now = float(d["close"].iloc[-1]) * 10  # SPY*10 ~ SPX; MES = $5 x SPX point
+    onB_ser = pd.Series(onB, index=d.index)
+    r = onB_ser[onB_ser != 0]
+    per_night_pts = onB_ser.mean() * spx_now / 10 * 10  # avg % * SPX level
+    avg_pt = onB_ser.mean() * spx_now
+    print(f"  SPX ~{spx_now:.0f}, 1 MES = ${5*spx_now:,.0f} notional, ${5:.0f}/point")
+    print(f"  avg per-night: {onB_ser.mean()*100:+.3f}% = {onB_ser.mean()*spx_now:+.1f} SPX pts = ${onB_ser.mean()*spx_now*5:+.2f}/contract")
+    print(f"  nights/yr traded ~{d['above200'].mean()*252:.0f}; est $/yr per MES ~${onB_ser.mean()*spx_now*5*252:+,.0f}")
+    print(f"  (raw % return {(np.prod(1+onB_ser)**(252/len(onB_ser))-1)*100:+.1f}%/yr on ~${5*spx_now:,.0f} notional)")
+
+
+if __name__ == "__main__":
+    main()

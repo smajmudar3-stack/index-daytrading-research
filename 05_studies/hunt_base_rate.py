@@ -13,13 +13,15 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 SPY_MULT = 10.0        # SPY ~ SPX/10
 QQQ_MULT = 41.0        # QQQ ~ NDX/41
 SPX_TICKS, NDX_TICKS = 25.0, 80.0
 
 
 def load(sym):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     if not fs:
         return None
     df = pd.concat([pd.read_parquet(f) for f in fs])
@@ -82,7 +84,7 @@ def report(sym, mult, ticks):
     clean = (u & ~d) | (d & ~u)
     print(f"\n  at 15m: a CLEAN one-sided {ticks:.0f}-pt move occurs on {clean.mean()*100:.1f}% of bars.")
     print(f"  Given a clean move happened, it was UP {((u & ~d).sum()/max(clean.sum(),1))*100:.1f}% of the time")
-    print(f"  -> guessing 'up' every time on those bars scores that %. THAT is the number to beat,")
+    print("  -> guessing 'up' every time on those bars scores that %. THAT is the number to beat,")
     print(f"     not 50%. And a signal must ALSO pick the {clean.mean()*100:.1f}% of bars that move at all.")
 
 

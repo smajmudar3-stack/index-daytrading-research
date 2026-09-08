@@ -1,7 +1,11 @@
 """Fill remaining gaps: recent works citing Cusatis-Miles-Woolridge, plus targeted title searches."""
+import os
 import json, time, urllib.parse, urllib.request
 
-MAIL = "smajmudar886@gmail.com"
+# CONTACT EMAIL FROM THE ENVIRONMENT, not baked in. OpenAlex and the SEC both ask callers to
+# identify themselves, and both are perfectly reasonable requests -- but a real address
+# committed to a public repository is a scraped address. Set CONTACT_EMAIL in your .env.
+MAIL = os.environ.get("CONTACT_EMAIL", "")
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": f"research ({MAIL})"})
@@ -36,13 +40,6 @@ def show(w):
     if ab:
         print(f"    ABSTRACT: {ab[:1800]}")
 
-# 1. Recent (2010+) works citing CMW 1993, sorted by citations
-print("########## RECENT WORK CITING Cusatis-Miles-Woolridge 1993 (2010+)")
-d = get("https://api.openalex.org/works?filter=cites:W1539020160,from_publication_date:2010-01-01"
-        f"&sort=cited_by_count:desc&per_page=25&mailto={MAIL}")
-print(f"total citing works 2010+: {d.get('meta',{}).get('count')}")
-for w in d.get("results", []):
-    show(w)
 
 # 2. Targeted title searches
 TITLES = {
@@ -55,12 +52,27 @@ TITLES = {
     "ChenZimm": "open source cross-sectional asset pricing",
     "PostEarnBank": "the aggregate performance of bankrupt firms",
 }
-for k, t in TITLES.items():
-    print(f"\n########## TITLE SEARCH {k}: {t}")
-    d = get(f"https://api.openalex.org/works?filter=title.search:{urllib.parse.quote(t)}"
-            f"&per_page=6&mailto={MAIL}")
-    print(f"count={d.get('meta',{}).get('count')}")
+
+
+def main():
+    # 1. Recent (2010+) works citing CMW 1993, sorted by citations
+    print("########## RECENT WORK CITING Cusatis-Miles-Woolridge 1993 (2010+)")
+    d = get("https://api.openalex.org/works?filter=cites:W1539020160,from_publication_date:2010-01-01"
+            f"&sort=cited_by_count:desc&per_page=25&mailto={MAIL}")
+    print(f"total citing works 2010+: {d.get('meta',{}).get('count')}")
     for w in d.get("results", []):
         show(w)
-    time.sleep(1)
-print("\nDONE")
+
+    for k, t in TITLES.items():
+        print(f"\n########## TITLE SEARCH {k}: {t}")
+        d = get(f"https://api.openalex.org/works?filter=title.search:{urllib.parse.quote(t)}"
+                f"&per_page=6&mailto={MAIL}")
+        print(f"count={d.get('meta',{}).get('count')}")
+        for w in d.get("results", []):
+            show(w)
+        time.sleep(1)
+    print("\nDONE")
+
+
+if __name__ == "__main__":
+    main()

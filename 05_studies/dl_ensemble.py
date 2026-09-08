@@ -10,22 +10,22 @@ RIGOR (this is the whole point — DL on daily direction overfits trivially):
   - honest baselines: majority class (~54%), and we compare the ensemble OOS to it.
 Only worth wiring into the live signal if the ENSEMBLE OOS accuracy clearly beats the baseline.
 """
-import os
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 
+from idt import paths
+
 torch.manual_seed(0); np.random.seed(0)
 DEV = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-HERE = os.path.dirname(os.path.abspath(__file__))
 LOOK = 20            # sequence length (days)
 FEATS = ["dix_z", "gex_z", "ret1", "ret5", "rvol", "vix", "vix_ts", "trend", "dow_s", "dow_c"]
 
 
 def build_data():
     import yfinance as yf
-    G = pd.read_csv(os.path.join(HERE, "data", "squeeze_dix_gex.csv"), parse_dates=["date"]).sort_values("date")
+    G = pd.read_csv(paths.require_data("squeeze_dix_gex.csv"), parse_dates=["date"]).sort_values("date")
     px = yf.download(["SPY", "^VIX", "^VIX9D"], start="2011-05-01", interval="1d", progress=False, auto_adjust=True)
     d = pd.DataFrame({"date": px.index})
     for c in ("Open", "Close"):

@@ -16,11 +16,13 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 RT = 0.0003
 
 
 def load_minute(tk):
-    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(f"data/minute/{tk}/*.parquet"))])
+    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df.index = df.index.tz_convert("America/New_York")
     df = df.between_time("09:30", "15:59")
@@ -94,17 +96,22 @@ def report(name, R):
           f"~{ann:+.0f}R/yr  n={len(R)}")
 
 
-for tk in ["QQQ", "SPY"]:
-    df = load_minute(tk)
-    print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — ORB in R-multiples =====")
-    print("  --- baseline (EOD exit, stop opposite side) ---")
-    report("ORB15 both", orb_R(df, 15, "both"))
-    report("ORB30 both", orb_R(df, 30, "both"))
-    print("  --- with TREND filter (align with gap direction) ---")
-    report("ORB15 both + trend", orb_R(df, 15, "both", trend_filter=True))
-    report("ORB30 both + trend", orb_R(df, 30, "both", trend_filter=True))
-    print("  --- with profit TARGET (10R) + trend ---")
-    report("ORB15 both +trend +10R", orb_R(df, 15, "both", target_R=10, trend_filter=True))
-    report("ORB30 both +trend +5R", orb_R(df, 30, "both", target_R=5, trend_filter=True))
-    print("  --- long-only + trend (bull-market realistic) ---")
-    report("ORB15 long +trend", orb_R(df, 15, "long", trend_filter=True))
+def main():
+    for tk in ["QQQ", "SPY"]:
+        df = load_minute(tk)
+        print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — ORB in R-multiples =====")
+        print("  --- baseline (EOD exit, stop opposite side) ---")
+        report("ORB15 both", orb_R(df, 15, "both"))
+        report("ORB30 both", orb_R(df, 30, "both"))
+        print("  --- with TREND filter (align with gap direction) ---")
+        report("ORB15 both + trend", orb_R(df, 15, "both", trend_filter=True))
+        report("ORB30 both + trend", orb_R(df, 30, "both", trend_filter=True))
+        print("  --- with profit TARGET (10R) + trend ---")
+        report("ORB15 both +trend +10R", orb_R(df, 15, "both", target_R=10, trend_filter=True))
+        report("ORB30 both +trend +5R", orb_R(df, 30, "both", target_R=5, trend_filter=True))
+        print("  --- long-only + trend (bull-market realistic) ---")
+        report("ORB15 long +trend", orb_R(df, 15, "long", trend_filter=True))
+
+
+if __name__ == "__main__":
+    main()

@@ -15,15 +15,15 @@ Q2. THE 5000x. "$200 -> $1M" needs a 5,000x. The previous run found single
 Both computed from the same 10.5M real-quote purchases, bought at the ask,
 settled at intrinsic, worthless = -100%.
 """
-import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TR = os.path.join(ROOT, "data", "blackswan_trades.parquet")
+TR = paths.data("blackswan_trades.parquet")
 
 BUCKETS = [(0.001, 0.02, "ultra <2d"), (0.02, 0.05, "2-5d"),
            (0.05, 0.10, "5-10d"), (0.10, 0.16, "10-16d"), (0.16, 0.30, "16-30d")]
@@ -34,7 +34,7 @@ SPREAD = {"ultra <2d": 0.222, "2-5d": 0.087, "5-10d": 0.043,
 
 
 def main():
-    d = pd.read_parquet(TR)
+    d = pd.read_parquet(paths.require_data(TR))
     print("=" * 100)
     print("Q1. THE OPPOSITE SIDE — SELLING the far-OTM options instead of buying")
     print("=" * 100)

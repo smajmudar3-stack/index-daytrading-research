@@ -27,12 +27,13 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 warnings.filterwarnings("ignore")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRADES = os.path.join(ROOT, "data", "swing", "structure_trades.parquet")
-GEX = os.path.join(ROOT, "data", "squeeze_dix_gex.csv")
+TRADES = paths.data("swing", "structure_trades.parquet")
+GEX = paths.data("squeeze_dix_gex.csv")
 
 LONG_PREMIUM = ["long straddle", "long strangle 30d", "long call 0.50d"]
 SHORT_PREMIUM = ["iron condor 30/16", "iron condor 16/05", "iron butterfly ATM",
@@ -40,7 +41,7 @@ SHORT_PREMIUM = ["iron condor 30/16", "iron condor 16/05", "iron butterfly ATM",
 
 
 def gamma_state():
-    g = pd.read_csv(GEX)
+    g = pd.read_csv(paths.require_data(GEX))
     dc = [c for c in g.columns if c.lower().startswith("date")][0]
     g[dc] = pd.to_datetime(g[dc])
     g = g.set_index(dc).sort_index()
@@ -73,7 +74,7 @@ def stat(r):
 
 
 def main():
-    d = pd.read_parquet(TRADES).drop_duplicates(
+    d = pd.read_parquet(paths.require_data(TRADES)).drop_duplicates(
         subset=["date", "structure", "dte", "hold_frac"])
     z = gamma_state()
     if z is None:

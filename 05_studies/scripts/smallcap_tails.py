@@ -27,10 +27,11 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOLT = os.path.join(ROOT, "data", "dolt")
-OUT = os.path.join(ROOT, "data", "bigmove")
+DOLT = paths.data("dolt")
+OUT = paths.data("bigmove")
 
 H = 42                       # the horizon that tested strongest
 PRICE_BUCKETS = [(0, 2, "<$2 (penny)"), (2, 5, "$2-5"), (5, 10, "$5-10"),
@@ -72,7 +73,7 @@ def main():
 
     # ---- tail by price bucket, from the daily bars -----------------------
     print("\n  pulling daily history for the tail measurement ...", flush=True)
-    ohlc = dolt(f"""select act_symbol, `date`, `close`
+    ohlc = dolt("""select act_symbol, `date`, `close`
                     from stocks.ohlcv where `date` >= '2021-01-01'""")
     if ohlc.empty:
         print("  no ohlcv"); return

@@ -10,32 +10,12 @@ import pandas as pd
 import pyarrow.parquet as pq
 from scipy import stats as st
 
-OPT = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_options.parquet"
-UND = "/Users/sahilmajmudar/index-daytrading/data/opt_eod/SPY_underlying.parquet"
+from idt import paths
+
+OPT = "opt_eod/SPY_options.parquet"  # path under DATA_ROOT, resolved at the read site
+UND = "opt_eod/SPY_underlying.parquet"
 COLS = ["expiration", "strike", "type", "bid", "ask", "delta", "date", "implied_volatility"]
 
-und = pd.read_parquet(UND)
-und["date"] = pd.to_datetime(und["date"])
-close = und.set_index("date").sort_index()["close"]
-
-f = pq.ParquetFile(OPT)
-parts = []
-for i in range(f.metadata.num_row_groups):
-    t = f.read_row_group(i, columns=COLS).to_pandas()
-    t["dte"] = (t.expiration - t.date).dt.days
-    parts.append(t[(t.dte >= 0) & (t.dte <= 45) & (t.bid > 0) & (t.ask > t.bid)])
-opt = pd.concat(parts, ignore_index=True)
-del parts
-opt["mid"] = 0.5 * (opt.bid + opt.ask)
-opt["half"] = 0.5 * (opt.ask - opt.bid)
-opt["adelta"] = opt.delta.abs()
-print("rows", len(opt))
-
-# fast lookup: (date, expiration, type, strike) -> mid, half
-opt = opt.sort_values(["date", "expiration", "type", "strike"])
-LK = opt.set_index(["date", "expiration", "type", "strike"])[["mid", "half"]].sort_index()
-LK = LK[~LK.index.duplicated()]
-DATES = np.array(sorted(opt.date.unique()))
 
 
 def chain(dt, dte_lo, dte_hi):
@@ -125,35 +105,72 @@ def summ(t, label):
 
 
 pd.set_option("display.width", 240)
-rows = []
-tapes = {}
-for sd, wp in [(0.10, 0.04), (0.16, 0.04), (0.16, 0.02), (0.30, 0.04)]:
-    for pt, sl, lbl in [(None, None, "hold"), (0.50, None, "PT50"), (0.25, None, "PT25"),
-                        (None, 2.0, "stop2x"), (0.50, 2.0, "PT50+stop2x")]:
-        t = run(sd, wp, pt=pt, sl=sl)
-        s = summ(t, f"WEEKLY d={sd} w={wp*100:.0f}% | {lbl}")
+
+
+def main():
+    # these were module-level before the guard; the functions above
+    # still read them, so they stay global — only the work moved.
+    global DATES
+    global LK
+    global close
+    global opt
+
+    und = pd.read_parquet(paths.require_data(UND))
+    und["date"] = pd.to_datetime(und["date"])
+    close = und.set_index("date").sort_index()["close"]
+
+    f = pq.ParquetFile(paths.require_data(OPT))
+    parts = []
+    for i in range(f.metadata.num_row_groups):
+        t = f.read_row_group(i, columns=COLS).to_pandas()
+        t["dte"] = (t.expiration - t.date).dt.days
+        parts.append(t[(t.dte >= 0) & (t.dte <= 45) & (t.bid > 0) & (t.ask > t.bid)])
+    opt = pd.concat(parts, ignore_index=True)
+    del parts
+    opt["mid"] = 0.5 * (opt.bid + opt.ask)
+    opt["half"] = 0.5 * (opt.ask - opt.bid)
+    opt["adelta"] = opt.delta.abs()
+    print("rows", len(opt))
+
+    # fast lookup: (date, expiration, type, strike) -> mid, half
+    opt = opt.sort_values(["date", "expiration", "type", "strike"])
+    LK = opt.set_index(["date", "expiration", "type", "strike"])[["mid", "half"]].sort_index()
+    LK = LK[~LK.index.duplicated()]
+    DATES = np.array(sorted(opt.date.unique()))
+
+    rows = []
+    tapes = {}
+    for sd, wp in [(0.10, 0.04), (0.16, 0.04), (0.16, 0.02), (0.30, 0.04)]:
+        for pt, sl, lbl in [(None, None, "hold"), (0.50, None, "PT50"), (0.25, None, "PT25"),
+                            (None, 2.0, "stop2x"), (0.50, 2.0, "PT50+stop2x")]:
+            t = run(sd, wp, pt=pt, sl=sl)
+            s = summ(t, f"WEEKLY d={sd} w={wp*100:.0f}% | {lbl}")
+            if s:
+                rows.append(s)
+                tapes[(sd, wp, lbl)] = t
+    for sd, wp in [(0.10, 0.04), (0.16, 0.04)]:
+        t = run(sd, wp, dte_lo=25, dte_hi=40)
+        s = summ(t, f"MONTHLY d={sd} w={wp*100:.0f}% | hold")
         if s:
             rows.append(s)
-            tapes[(sd, wp, lbl)] = t
-for sd, wp in [(0.10, 0.04), (0.16, 0.04)]:
-    t = run(sd, wp, dte_lo=25, dte_hi=40)
-    s = summ(t, f"MONTHLY d={sd} w={wp*100:.0f}% | hold")
-    if s:
-        rows.append(s)
-        tapes[(sd, wp, "monthly")] = t
-print("NON-OVERLAPPING (one Wednesday entry per week), SPY, real EOD bid/ask, 2008-2025")
-print("mean_r = mean % of capital at risk per trade\n")
-print(pd.DataFrame(rows).to_string(index=False))
+            tapes[(sd, wp, "monthly")] = t
+    print("NON-OVERLAPPING (one Wednesday entry per week), SPY, real EOD bid/ask, 2008-2025")
+    print("mean_r = mean % of capital at risk per trade\n")
+    print(pd.DataFrame(rows).to_string(index=False))
 
-t = tapes.get((0.10, 0.04, "hold"))
-if t is not None:
-    print("\n--- weekly 10-delta 4%-wing, hold: equity at 5% of account risked per trade ---")
-    eq = (1 + 0.05 * t.r.values / 100).cumprod()
-    yrs = (t.date.iloc[-1] - t.date.iloc[0]).days / 365.25
-    print(f"n={len(t)} over {yrs:.1f}y  final={eq[-1]:.3f}  CAGR={100*(eq[-1]**(1/yrs)-1):.2f}%  "
-          f"maxDD={100*(eq/np.maximum.accumulate(eq)-1).min():.1f}%  "
-          f"Sharpe={t.r.mean()/t.r.std()*np.sqrt(52):.2f}")
-    print("\nby year:")
-    print(t.assign(yr=t.date.dt.year).groupby("yr").apply(lambda x: pd.Series(dict(
-        n=len(x), win=round(100 * (x.pnl > 0).mean(), 1), mean_r=round(x.r.mean(), 2),
-        sum_r=round(x.r.sum() / 100, 2))), include_groups=False).to_string())
+    t = tapes.get((0.10, 0.04, "hold"))
+    if t is not None:
+        print("\n--- weekly 10-delta 4%-wing, hold: equity at 5% of account risked per trade ---")
+        eq = (1 + 0.05 * t.r.values / 100).cumprod()
+        yrs = (t.date.iloc[-1] - t.date.iloc[0]).days / 365.25
+        print(f"n={len(t)} over {yrs:.1f}y  final={eq[-1]:.3f}  CAGR={100*(eq[-1]**(1/yrs)-1):.2f}%  "
+              f"maxDD={100*(eq/np.maximum.accumulate(eq)-1).min():.1f}%  "
+              f"Sharpe={t.r.mean()/t.r.std()*np.sqrt(52):.2f}")
+        print("\nby year:")
+        print(t.assign(yr=t.date.dt.year).groupby("yr").apply(lambda x: pd.Series(dict(
+            n=len(x), win=round(100 * (x.pnl > 0).mean(), 1), mean_r=round(x.r.mean(), 2),
+            sum_r=round(x.r.sum() / 100, 2))), include_groups=False).to_string())
+
+
+if __name__ == "__main__":
+    main()

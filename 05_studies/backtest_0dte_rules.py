@@ -35,11 +35,14 @@ from scipy import stats
 
 import bt_options as bo
 
+from idt import paths
+
 warnings.filterwarnings("ignore")
 pd.set_option("display.width", 200)
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(HERE, "data", "bt0dte_panel.parquet")
+# The panel cache used to land in 05_studies/data/, a directory that has never
+# existed in this bundle, so every run re-downloaded and then failed to save.
+CACHE = paths.data("cache", "bt0dte_panel.parquet")
 
 TRAIN_END = "2015-12-31"      # first OOS year is 2016
 OOS_START = "2016-01-01"
@@ -80,7 +83,7 @@ def build_panel(force=False) -> pd.DataFrame:
     d = d.reset_index().rename(columns={"Date": "date"})
     d["date"] = pd.to_datetime(d["date"]).dt.tz_localize(None)
 
-    G = pd.read_csv(os.path.join(HERE, "data", "squeeze_dix_gex.csv"), parse_dates=["date"])
+    G = pd.read_csv(paths.require_data("squeeze_dix_gex.csv"), parse_dates=["date"])
     d = d.merge(G[["date", "dix", "gex"]], on="date", how="left").sort_values("date").reset_index(drop=True)
 
     # ---- causal features (all shifted so they are known at the PRIOR close) ----
@@ -118,6 +121,7 @@ def build_panel(force=False) -> pd.DataFrame:
     d = d.reset_index()
 
     d = d.dropna(subset=["dz", "gz", "oc", "trend", "ts", "sig_hat", "sig_iv9"]).reset_index(drop=True)
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     d.to_parquet(CACHE)
     print(f"panel: {len(d)} days {d.date.min().date()} -> {d.date.max().date()}  "
           f"vix_frac(train)={vf:.3f}  vix9d_dayfrac(train)={frac9:.3f}")
@@ -628,7 +632,7 @@ def section_premium(d):
 # ============================================================================ intraday layer
 def load_minute(sym="SPY"):
     frames = []
-    for f in sorted(glob.glob(os.path.join(HERE, "data", "minute", sym, "*.parquet"))):
+    for f in sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet")):
         frames.append(pd.read_parquet(f))
     m = pd.concat(frames).sort_index()
     return m

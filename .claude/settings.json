@@ -1,0 +1,82 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/wip-autocommit.cjs"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/verify-gate.cjs"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/secrets-guard.cjs"
+          }
+        ],
+        "matcher": "Write|Edit"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/route-gate.cjs pre"
+          }
+        ],
+        "matcher": "Task|Agent|Workflow"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/tidy-gate.cjs"
+          }
+        ],
+        "matcher": "Write"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/route-gate.cjs post"
+          }
+        ],
+        "matcher": "Task|Agent"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/sweep-report.cjs"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .tars/hooks/route-gate.cjs prompt"
+          }
+        ]
+      }
+    ]
+  }
+}

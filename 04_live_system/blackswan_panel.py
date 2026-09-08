@@ -19,7 +19,7 @@ use: several small convex bets where one large winner carries the rest.
 """
 import json
 import os
-from datetime import date, timedelta
+from datetime import date
 
 import numpy as np
 import pandas as pd

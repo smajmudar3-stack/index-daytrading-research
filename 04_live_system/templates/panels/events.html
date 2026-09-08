@@ -1,0 +1,15 @@
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  <div class=stats>
+    {% for s in p.body.stats %}
+    <div class="stat {{ s.severity or '' }}"><div class=n>{{ s.n }}</div><div class=l>{{ s.l }}</div></div>
+    {% endfor %}
+  </div>
+  {% if p.body.runout is not none and p.body.runout is defined %}
+  <div class=meter style="margin-top:12px"><span style="width:{{ p.body.runout }}%"></span></div>
+  <p class=mwhy>{{ p.body.runout_note }}</p>
+  {% endif %}
+  {% if p.fix %}<div class=fix>{{ p.fix }}</div>{% endif %}
+  {% include "panels/_note.html" %}
+  {% if p.source %}<div class=src>{{ p.source }}</div>{% endif %}
+</section>

@@ -4,31 +4,126 @@ UW gives what a free option-volume proxy CANNOT: real buy-vs-sell classified flo
 whether big money is BUYING calls (bullish) or BUYING puts (bearish) — the strongest direction
 signal available. When a key is present this REPLACES the yfinance volume proxy in the periscope.
 
-Activate: put your key in ~/quant-factory/.env or ~/index-daytrading/.env as:
-    UNUSUALWHALES_API_KEY=your_token_here
-(or export UNUSUALWHALES_API_KEY / UW_API_KEY in the environment)
+Activate: put UNUSUALWHALES_API_KEY (or UW_API_KEY) in the environment or in <repo>/.env.
+The lookup is `idt.keys`; this module no longer carries its own .env search, because the copy
+it used to carry looked in the original author's home directory first and fell through to
+nothing on every other machine.
 
 Endpoints are UW's documented REST paths; if any 404 once your key is live, tell me and I'll
 pull the current UW API docs and adjust the paths — the scaffolding (auth, parsing, fallback) is done.
+
+This module also carries the SERVICE-HEALTH vocabulary and the HTTP RETRY POLICY that the other
+outside-service modules import (ai_desk, analyst, fetch_minutes, committee, master_call). They
+live here because this is the module where the three failure states were first told apart: a
+missing key, a rejected key and a dead service are not the same thing, and `available()`
+reporting one "no" for all three is what let every caller believe UW was live while every
+endpoint returned nulls. They are imported, never copied — four copy-pasted `_key()` loaders
+are how one machine's home directory ended up hardcoded in four files. Their real home is
+`idt/`, next to keys.py, once someone owns that package.
 """
 import json
 import os
-import urllib.request
+import threading
+import time
+import urllib.error
 import urllib.parse
+import urllib.request
+
+from idt import keys
 
 BASE = "https://api.unusualwhales.com"
 
+# ── service health, shared by every module that talks to an outside service ────
+# Five states, one sentence, one shape. A panel loops over status() from each
+# module and renders the rows without knowing what any of them do.
+#
+#   available    the service answered, or has not been asked yet and can be
+#   no-key       no credential at all. This is the state that reads to a user as
+#                "no credits" or "subscription lapsed" when it is not reported.
+#   auth-failed  a credential WAS sent and was REJECTED — lapsed subscription,
+#                revoked key, exhausted credit balance. Deliberately separate
+#                from no-key: they need opposite fixes.
+#   outage       credential fine, the service is unreachable or erroring (5xx,
+#                timeout, DNS). Nothing to fix at this end; wait.
+#   disabled     switched off on purpose by an environment flag.
+STATE_AVAILABLE = "available"
+STATE_NO_KEY = "no-key"
+STATE_AUTH_FAILED = "auth-failed"
+STATE_OUTAGE = "outage"
+STATE_DISABLED = "disabled"
+STATES = (STATE_AVAILABLE, STATE_NO_KEY, STATE_AUTH_FAILED, STATE_OUTAGE, STATE_DISABLED)
 
-def _key():
-    for p in ("/Users/sahilmajmudar/quant-factory/.env",
-              os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")):
-        if os.path.exists(p):
-            for line in open(p):
-                for name in ("UNUSUALWHALES_API_KEY", "UW_API_KEY"):
-                    if line.startswith(name + "="):
-                        return line.strip().split("=", 1)[1].strip().strip('"').strip("'")
-    return os.environ.get("UNUSUALWHALES_API_KEY") or os.environ.get("UW_API_KEY")
 
+def service_status(module, service, state, detail):
+    """The one row shape every status() returns: exactly these five keys, always,
+    so the dashboard can loop. `detail` is a sentence meant to be printed as-is."""
+    if state not in STATES:
+        raise ValueError(f"unknown service state {state!r}; expected one of {STATES}")
+    return {"module": module, "service": service, "state": state,
+            "ok": state == STATE_AVAILABLE, "detail": detail}
+
+
+# ── HTTP retry policy, shared with fetch_minutes ──────────────────────────────
+# Retry TRANSPORT errors, 5xx and 429 only. A 401 or 403 is a rejected key and
+# will be rejected identically on every attempt: retrying it burns the rate
+# limit and, worse, delays the honest "auth-failed" the panel needs. The rest of
+# 4xx (404 a wrong path, 422 a bad parameter) is a bug at this end and repeating
+# it cannot fix it.
+#
+# The budget is small on purpose. These calls happen inside a page render, so a
+# request that keeps failing has to give up in seconds. Two sleeps of 0.4s and
+# 0.8s is the whole cost of a retry storm here.
+HTTP_TIMEOUT_S = 15.0        # hard per-attempt timeout; no call may hang a render
+HTTP_ATTEMPTS = 3
+HTTP_BACKOFF_S = 0.4         # first sleep; doubles each attempt
+HTTP_BACKOFF_CAP_S = 2.0
+HTTP_TOTAL_BUDGET_S = 25.0   # wall clock across all attempts, sleeps included
+
+# Rate-limit handling is deliberately separate from the generic backoff above. That one is
+# sized for a single page load; a 1,550-name scan being throttled needs to slow the whole
+# scan, not retry faster. The lock is global so one worker's pause stalls the others too --
+# without it, every thread just races back into the same limit.
+_RATE_LIMIT_PAUSE_S = 5.0
+_RATE_LIMIT_MAX_S = 60.0
+_RATE_LIMIT_LOCK = threading.Lock()
+
+
+class Transient(Exception):
+    """A failure worth trying again: a timeout, a dropped connection, a 5xx or a
+    429. Anything raised that is NOT this is permanent and is re-raised at once."""
+
+
+def retryable_status(code):
+    """True for the HTTP codes that can succeed on a second try. See the comment
+    above: 401/403 are excluded deliberately, not by oversight."""
+    try:
+        code = int(code)
+    except (TypeError, ValueError):
+        return False
+    return code == 429 or 500 <= code <= 599
+
+
+def with_backoff(attempt, attempts=HTTP_ATTEMPTS, base=HTTP_BACKOFF_S,
+                 cap=HTTP_BACKOFF_CAP_S, budget=HTTP_TOTAL_BUDGET_S, label=""):
+    """Run `attempt()` with bounded exponential backoff.
+
+    `attempt` raises Transient for the retryable failures and anything else for
+    the permanent ones. Returns the attempt's value, or re-raises the last
+    Transient once the attempts or the wall-clock budget run out."""
+    deadline = time.monotonic() + budget
+    last = None
+    for i in range(max(1, attempts)):
+        try:
+            return attempt()
+        except Transient as e:
+            last = e
+            if i == attempts - 1:
+                break
+            delay = min(cap, base * (2 ** i))
+            if time.monotonic() + delay >= deadline:
+                break                      # out of budget: fail now, honestly
+            time.sleep(delay)
+    raise last if last is not None else Transient(f"{label or 'request'}: no attempt was made")
 
 # Master switch. The UW subscription is lapsed: the key is still present in
 # .env but every endpoint returns nulls, which propagated into the dashboard as
@@ -58,10 +153,59 @@ def _note_auth_failure():
 
 
 def available():
-    """True only if UW is usable — enabled, key present, and not auth-tripped."""
+    """True only if UW is usable — enabled, key present, and not auth-tripped.
+    `status()` says WHICH of those it is; this is the one-bit answer for callers
+    that only need to pick between UW and the yfinance proxy."""
     if UW_DISABLED or _AUTH_FAILS["tripped"]:
         return False
-    return bool(_key())
+    return bool(keys.get("UNUSUALWHALES_API_KEY"))
+
+
+# Last transport failure, so status() can report an OUTAGE instead of the client
+# quietly returning None and the panel showing an empty flow section. Cleared by
+# the next healthy call.
+_LAST_TRANSPORT_ERROR = {"detail": "", "ts": 0.0, "said": 0.0}
+_OUTAGE_WINDOW_S = 300       # after five quiet minutes, stop calling it an outage
+
+
+def _note_transport_error(detail):
+    """Record and SAY a failed request. It used to return {"_error": ...} into a
+    caller that dropped it on the floor, so a dead network looked like a quiet
+    day with no flow. Printing is rate-limited to one line a minute per message
+    so an outage does not bury the log it is supposed to explain."""
+    detail = str(detail)[:120]
+    now = time.time()
+    prev = _LAST_TRANSPORT_ERROR
+    if detail != prev["detail"] or now - prev["said"] > 60:
+        print(f"uw_client: request failed — {detail}")
+        prev["said"] = now
+    prev["detail"] = detail
+    prev["ts"] = now
+
+
+def status():
+    """Which of the five states UW is in, as one printable row. See STATES."""
+    svc = ("uw_client", "unusualwhales")
+    if UW_DISABLED:
+        return service_status(*svc, STATE_DISABLED,
+                              "Unusual Whales is switched off (UW_DISABLED=1). Flow panels use the "
+                              "yfinance volume proxy, which cannot tell buying from selling.")
+    if _AUTH_FAILS["tripped"]:
+        return service_status(*svc, STATE_AUTH_FAILED,
+                              f"Unusual Whales rejected the key {_AUTH_FAILS['n']} times in a row. That is "
+                              "what a lapsed subscription looks like: the key is present and every call "
+                              "returns 401. Disabled for this process; panels use the yfinance proxy.")
+    if not keys.get("UNUSUALWHALES_API_KEY"):
+        return service_status(*svc, STATE_NO_KEY,
+                              "No UNUSUALWHALES_API_KEY in the environment or in the repo .env. Real "
+                              "buy-vs-sell flow is off; panels use the yfinance volume proxy.")
+    err = _LAST_TRANSPORT_ERROR
+    if err["ts"] and time.time() - err["ts"] < _OUTAGE_WINDOW_S:
+        return service_status(*svc, STATE_OUTAGE,
+                              f"Key accepted, but the last call failed after {HTTP_ATTEMPTS} tries: "
+                              f"{err['detail']}. Nothing to fix at this end.")
+    return service_status(*svc, STATE_AVAILABLE,
+                          "Key present and no failed call in this process.")
 
 
 _CACHE = {}          # {url: (expiry_ts, payload)} — short TTL to protect the UW rate limit
@@ -75,36 +219,80 @@ def _get(path, params=None):
     # disables the whole client and saves the network round-trips too.
     if UW_DISABLED or _AUTH_FAILS["tripped"]:
         return None
-    key = _key()
+    key = keys.get("UNUSUALWHALES_API_KEY")
     if not key:
         return None
     url = BASE + path + ("?" + urllib.parse.urlencode(params) if params else "")
-    import time as _t
     hit = _CACHE.get(url)
-    if hit and hit[0] > _t.time():
+    if hit and hit[0] > time.time():
         return hit[1]
     req = urllib.request.Request(url, headers={
         "Authorization": f"Bearer {key}", "Accept": "application/json",
         "User-Agent": "index-daytrading/1.0"})
+
+    def attempt():
+        try:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_S) as r:
+                return json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                # A RATE LIMIT IS NOT A TRANSIENT ERROR, and treating it as one is why the
+                # first 1,550-name scan logged 48 of these. The generic backoff is tuned for a
+                # page load — 0.4s doubling to 2s — so under sustained throttling every name
+                # simply burned its budget and returned nothing. 325 names were then refused
+                # for "only 2 input(s) had anything to say", which reads as a market condition
+                # and was really a rate limit wearing its costume.
+                #
+                # The server usually says how long to wait. Honour it, and hold the global gate
+                # while doing so, so the whole scan slows down instead of every worker racing
+                # back into the same wall.
+                wait = _RATE_LIMIT_PAUSE_S
+                try:
+                    ra = (getattr(e, "headers", None) or {}).get("Retry-After")
+                    if ra:
+                        wait = max(wait, min(float(ra), _RATE_LIMIT_MAX_S))
+                except (TypeError, ValueError):
+                    pass
+                with _RATE_LIMIT_LOCK:
+                    time.sleep(wait)
+                raise Transient(f"HTTP 429 rate limited, waited {wait:.0f}s") from e
+            if retryable_status(e.code):
+                raise Transient(f"HTTP {e.code} {e.reason}") from e
+            raise                                   # 401/403/404: permanent, stop now
+        except urllib.error.URLError as e:          # DNS, refused, TLS, timeout
+            raise Transient(f"{type(e).__name__}: {str(e.reason)[:80]}") from e
+        except (TimeoutError, OSError) as e:        # socket timeout, connection reset
+            raise Transient(f"{type(e).__name__}: {str(e)[:80]}") from e
+        except json.JSONDecodeError as e:
+            # A 200 carrying non-JSON is almost always a proxy or maintenance
+            # page, which clears. Bounded by the attempt count either way.
+            raise Transient(f"malformed JSON from {path}: {str(e)[:60]}") from e
+
     try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            payload = json.loads(r.read().decode())
-        _CACHE[url] = (_t.time() + _TTL, payload)      # cache only successful pulls
-        _AUTH_FAILS["n"] = 0                            # healthy call clears the streak
-        return payload
+        payload = with_backoff(attempt, label=path)
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
             # A lapsed subscription drops every x-uw-* header, which is a
             # positive signal rather than an inference from repeated failure.
-            try:
-                if not any(k.lower().startswith("x-uw-") for k in e.headers.keys()):
-                    _AUTH_FAILS["n"] = _AUTH_TRIP_AFTER - 1
-            except Exception:
-                pass
+            headers = getattr(e, "headers", None) or {}
+            if not any(str(k).lower().startswith("x-uw-") for k in headers.keys()):
+                _AUTH_FAILS["n"] = _AUTH_TRIP_AFTER - 1
             _note_auth_failure()
+        else:
+            _note_transport_error(f"HTTP {e.code}: {e.reason}")
         return {"_error": f"HTTPError: HTTP Error {e.code}: {e.reason}"}
+    except Transient as e:
+        _note_transport_error(str(e))
+        return {"_error": f"Transient: {str(e)[:80]}"}
     except Exception as e:
+        # Not silence: an unexpected type here is a bug worth seeing in the log,
+        # and the caller still gets an _error rather than a plausible-looking None.
+        _note_transport_error(f"{type(e).__name__}: {str(e)[:80]}")
         return {"_error": f"{type(e).__name__}: {str(e)[:80]}"}
+    _CACHE[url] = (time.time() + _TTL, payload)     # cache only successful pulls
+    _AUTH_FAILS["n"] = 0                            # healthy call clears the streak
+    _LAST_TRANSPORT_ERROR["ts"] = 0.0               # ...and clears the outage flag
+    return payload
 
 
 def flow_alerts(ticker):
@@ -132,12 +320,19 @@ def gex_by_strike(ticker, spot=None):
     call_gex>0 (dealers long calls), put_gex<0 (short puts); net per strike = call_gex+put_gex."""
     rows = _rows(_get(f"/api/stock/{ticker}/greek-exposure/strike"))
     pts = []
+    bad = 0
     for r in rows:
         try:
             k = float(r["strike"]); cg = float(r.get("call_gex", 0)); pg = float(r.get("put_gex", 0))
             pts.append((k, cg + pg, cg, pg))
-        except Exception:
+        except (KeyError, TypeError, ValueError):
+            # One malformed strike row is normal; a payload where MOST rows fail
+            # is a schema change, and dropping it silently is how a lapsed feed
+            # of nulls reached the render looking like a thin ladder.
+            bad += 1
             continue
+    if bad and bad >= max(1, len(rows) // 2):
+        print(f"uw_client: {bad} of {len(rows)} {ticker} strike rows unparseable — check the UW schema")
     if not pts:
         return None
     pts.sort()
@@ -181,12 +376,17 @@ def max_pain(ticker):
     """Nearest-expiry max pain = the pin magnet target for 0DTE."""
     rows = _rows(_get(f"/api/stock/{ticker}/max-pain"))
     exps = []
+    bad = 0
     for r in rows:
         try:
             exps.append((r["expiry"], float(r["max_pain"]), float(r.get("next_lower_strike", 0)),
                          float(r.get("next_upper_strike", 0))))
-        except Exception:
+        except (KeyError, TypeError, ValueError):
+            bad += 1
             continue
+    if bad and not exps:
+        print(f"uw_client: every {ticker} max-pain row was unparseable ({bad} rows) — returning nothing "
+              "rather than a made-up pin level")
     if not exps:
         return None
     exps.sort()
@@ -198,15 +398,19 @@ def implied_move(ticker):
     """The market's own 1-day (0DTE-ish) implied move % from UW's interpolated IV term structure."""
     rows = _rows(_get(f"/api/stock/{ticker}/interpolated-iv"))
     best = None
+    bad = 0
     for r in rows:
         try:
             days = int(r.get("days", 0)); mv = float(r.get("implied_move_perc", 0)); vol = float(r.get("volatility", 0))
-        except Exception:
+        except (TypeError, ValueError):
+            bad += 1
             continue
         if days >= 1 and (best is None or days < best[0]):
             # if the raw implied_move rounds to 0 (very short dte), derive from vol: vol*sqrt(days/252)
             mvp = mv * 100 if mv > 0 else (vol / (252 ** 0.5) * (days ** 0.5)) * 100
             best = (days, round(mvp, 2), round(vol * 100, 1))
+    if best is None and bad:
+        print(f"uw_client: {bad} of {len(rows)} {ticker} interpolated-IV rows unparseable — no implied move")
     return {"days": best[0], "move_pct": best[1], "iv": best[2]} if best else None
 
 
@@ -263,14 +467,18 @@ def _is_call(a):
     return "call" in typ or typ == "c"
 
 
-def _f(a, *keys):
-    for k in keys:
+def _f(a, *names):
+    # `names`, not `keys`: this module imports idt.keys, and a parameter of that
+    # name shadows it for anyone who later needs the key inside this function.
+    for k in names:
         v = a.get(k)
         if v not in (None, ""):
             try:
                 return float(v)
-            except Exception:
-                pass
+            except (TypeError, ValueError):
+                # A single non-numeric premium field is normal in this payload;
+                # try the next alias rather than failing the whole alert.
+                continue
     return 0.0
 
 
@@ -312,6 +520,10 @@ def summarize_flow(ticker):
                 w = 0.33
                 closing += 1
         except (TypeError, ValueError):
+            # No usable volume/OI on this alert. Weight it fully (w stays 1.0)
+            # rather than guessing it is closing flow: the opening-vs-closing
+            # test is the whole reason this field is read, and a guess here
+            # mutes real directional flow.
             pass
         ask = _f(a, "total_ask_side_prem", "ask_side_prem")      # premium hitting the ASK = buyers
         bid = _f(a, "total_bid_side_prem", "bid_side_prem")      # premium hitting the BID = sellers
@@ -339,8 +551,10 @@ def summarize_flow(ticker):
 if __name__ == "__main__":
     import sys
     tk = sys.argv[1] if len(sys.argv) > 1 else "SPX"
+    st = status()
+    print(f"UW {st['state']}: {st['detail']}")
     if not available():
-        print("No UW key found. Add UNUSUALWHALES_API_KEY to ~/quant-factory/.env or ~/index-daytrading/.env")
+        print("Add UNUSUALWHALES_API_KEY to the environment or to the repo .env (see .env.example).")
     else:
         print("UW key found. Testing flow summary for", tk)
         print(json.dumps(summarize_flow(tk), indent=2))

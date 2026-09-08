@@ -6,7 +6,6 @@
 """
 import numpy as np
 import pandas as pd
-import yfinance as yf
 import momentum_stocks as ms
 
 WINNERS = {"NVDA","TSLA","MSTR","PLTR","AVGO","SMCI","COIN","ARM"}
@@ -35,22 +34,27 @@ def rep(name, r, cost=0.0015):
           + ("  <== holds" if t >= 2 else "  <== FAILS"))
 
 
-g = build()
-print(f"gap>3% & RVOL>1.5 long-intraday: {len(g)} trades, {g.ticker.nunique()} stocks\n")
-print("=== 1. OUT-OF-SAMPLE ===")
-rep("train 2019-2023", g[g.index < "2024-01-01"]["r_go"])
-rep("test  2024-2026 (OOS)", g[g.index >= "2024-01-01"]["r_go"])
-print("=== 2. SURVIVORSHIP — exclude mega-winners ===")
-rep("all names", g["r_go"])
-rep("EX mega-winners", g[~g.ticker.isin(WINNERS)]["r_go"])
-print("=== 3. COST STRESS (round trip) ===")
-for c in (0.0015, 0.0025, 0.0040):
-    rep(f"{c*1e4:.0f} bps cost", g["r_go"], cost=c)
-print("=== 4. PER-YEAR consistency ===")
-for y in sorted(set(g.index.year)):
-    rep(f"  {y}", g[g.index.year == y]["r_go"])
-print("=== concentration: top-5 names' share of total P&L ===")
-pnl = (g["r_go"] - 0.0015)
-by = pnl.groupby(g.ticker).sum().sort_values(ascending=False)
-tot = pnl.sum()
-print("  " + ", ".join(f"{t}:{v/tot*100:.0f}%" for t, v in by.head(5).items()) + f"  (total {tot*100:.0f}%)")
+def main():
+    g = build()
+    print(f"gap>3% & RVOL>1.5 long-intraday: {len(g)} trades, {g.ticker.nunique()} stocks\n")
+    print("=== 1. OUT-OF-SAMPLE ===")
+    rep("train 2019-2023", g[g.index < "2024-01-01"]["r_go"])
+    rep("test  2024-2026 (OOS)", g[g.index >= "2024-01-01"]["r_go"])
+    print("=== 2. SURVIVORSHIP — exclude mega-winners ===")
+    rep("all names", g["r_go"])
+    rep("EX mega-winners", g[~g.ticker.isin(WINNERS)]["r_go"])
+    print("=== 3. COST STRESS (round trip) ===")
+    for c in (0.0015, 0.0025, 0.0040):
+        rep(f"{c*1e4:.0f} bps cost", g["r_go"], cost=c)
+    print("=== 4. PER-YEAR consistency ===")
+    for y in sorted(set(g.index.year)):
+        rep(f"  {y}", g[g.index.year == y]["r_go"])
+    print("=== concentration: top-5 names' share of total P&L ===")
+    pnl = (g["r_go"] - 0.0015)
+    by = pnl.groupby(g.ticker).sum().sort_values(ascending=False)
+    tot = pnl.sum()
+    print("  " + ", ".join(f"{t}:{v/tot*100:.0f}%" for t, v in by.head(5).items()) + f"  (total {tot*100:.0f}%)")
+
+
+if __name__ == "__main__":
+    main()

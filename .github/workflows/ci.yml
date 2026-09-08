@@ -1,0 +1,50 @@
+name: verify
+
+# Runs the same two commands the TARS verify manifest runs locally
+# (.tars/profile.json), so "green on my machine" and "green in CI" cannot mean
+# different things. Both are offline: the 16 GB of market data is not in git, and a
+# job that needed it would be skipped on every run.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Gate — compile, imports, and the four ratchets
+        run: python scripts/verify.py
+
+      - name: Tests
+        run: python -m pytest test/ -q
+
+      - name: Lint
+        run: ruff check .
+
+      - name: The dashboard must serve on a clean clone
+        # A fresh clone used to return HTTP 000 and zero bytes because data/ did not
+        # exist. This is that regression, as a job step.
+        run: |
+          python -m idt.cli bootstrap
+          (cd 04_live_system && python dashboard_app.py &)
+          sleep 8
+          for path in /today /evidence /markets /risk /docs; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "http://127.0.0.1:8094$path")
+            echo "$path -> $code"
+            [ "$code" = "200" ] || exit 1
+          done

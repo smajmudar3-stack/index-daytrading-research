@@ -20,15 +20,22 @@ import sys
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 
-import numpy as np
 import pandas as pd
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from idt import paths
+
+# uw_client is a LIVE module, in 04_live_system/. The line this replaces inserted
+# 05_studies/ instead, which does not contain it, so the import below failed on
+# every machine including the one it was written on. live_path knows where the
+# live system is; nothing else here needs to.
+sys.path.insert(0, paths.STUDIES_DIR)       # so `import live_path` resolves
+import live_path  # noqa: E402
+
+live_path.enable()                          # so `import uw_client` resolves
 warnings.filterwarnings("ignore")
 
 import uw_client as uw  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 H = 5
 UNIVERSE = """AAPL MSFT NVDA AMZN META GOOGL TSLA AVGO AMD INTC MU QCOM ADBE CRM
 ORCL CSCO IBM NOW PANW SNOW UBER ABNB PLTR SMCI MRVL COIN PYPL WMT COST TGT HD
@@ -41,7 +48,7 @@ PINS SNAP TTD ZM CRWD ZS OKTA SPOT DASH""".split()
 
 def prices():
     import yfinance as yf
-    p = os.path.join(ROOT, "data", "bigmove", "prices.parquet")
+    p = paths.data("bigmove", "prices.parquet")
     if os.path.exists(p):
         d = pd.read_parquet(p)
         return d.pivot(index="date", columns="ticker", values="close").sort_index()

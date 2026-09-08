@@ -28,6 +28,8 @@ import pandas as pd
 import bt_options as bo
 import backtest_0dte_rules as B
 
+from idt import paths
+
 SPREAD = 0.010          # half-spread each way on the option
 FEE = 0.05
 OPEN_RANGE_MIN = 30     # 9:30-10:00 defines the range
@@ -37,7 +39,7 @@ START = 2000.0
 
 
 def load_minutes(sym="SPY"):
-    fs = sorted(glob.glob(f"data/minute/{sym}/*.parquet"))
+    fs = sorted(glob.glob(paths.require_data("minute", sym) + "/*.parquet"))
     if not fs:
         return None
     df = pd.concat([pd.read_parquet(f) for f in fs])

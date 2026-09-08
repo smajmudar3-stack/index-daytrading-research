@@ -1,0 +1,18 @@
+{
+  "kitVersion": "0.1.0",
+  "project": "index-daytrading-research",
+  "adoptedAt": "2026-08-24T19:54:46.599Z",
+  "updatedAt": "2026-08-24T19:54:46.599Z",
+  "stack": {
+    "languages": [
+      "python"
+    ],
+    "frameworks": [],
+    "summary": "python"
+  },
+  "verify": {
+    "verify": "venv/bin/python scripts/verify.py",
+    "test": "venv/bin/python -m pytest test/ -q",
+    "lint": "venv/bin/ruff check ."
+  }
+}

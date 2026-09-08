@@ -9,11 +9,13 @@ import glob
 import numpy as np
 import pandas as pd
 
+from idt import paths
+
 RT = 0.0003
 
 
 def load_minute(tk):
-    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(f"data/minute/{tk}/*.parquet"))])
+    df = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(paths.require_data("minute", tk) + "/*.parquet"))])
     df = df[~df.index.duplicated(keep="first")].sort_index()
     df.index = df.index.tz_convert("America/New_York")
     df = df.between_time("09:30", "15:59")
@@ -68,11 +70,16 @@ def report(name, r, R):
           f"t {t:+4.1f}  ~{r.mean()*len(r)/2*100:+.0f}%/yr  n={len(r)}")
 
 
-for tk in ["QQQ", "SPY"]:
-    df = load_minute(tk)
-    print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — VWAP MOMENTUM (trade with the stretch) =====")
-    for k in (1.0, 1.5, 2.0):
-        r, R = vwap_momentum(df, k=k, one_trade=True)
-        report(f"k={k}, 1 trade/day", r, R)
-    r, R = vwap_momentum(df, k=1.5, one_trade=False)
-    report("k=1.5, multi-trade/day", r, R)
+def main():
+    for tk in ["QQQ", "SPY"]:
+        df = load_minute(tk)
+        print(f"\n===== {tk}  ({df['day'].nunique()} sessions) — VWAP MOMENTUM (trade with the stretch) =====")
+        for k in (1.0, 1.5, 2.0):
+            r, R = vwap_momentum(df, k=k, one_trade=True)
+            report(f"k={k}, 1 trade/day", r, R)
+        r, R = vwap_momentum(df, k=1.5, one_trade=False)
+        report("k=1.5, multi-trade/day", r, R)
+
+
+if __name__ == "__main__":
+    main()
