@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**392 files, 83,494 lines.**
+**392 files, 83,503 lines.**
 
 ## Repo root
 
-*11 files, 1,985 lines*
+*11 files, 1,984 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `.env.example` | 69 | 4 KB |
+| `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 394 | 29 KB |
-| `MANIFEST.md` | 606 | 23 KB |
+| `MANIFEST.md` | 600 | 23 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -96,7 +96,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*73 files, 22,028 lines*
+*73 files, 22,038 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -132,7 +132,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/gex_signal.py` | 422 | 25 KB |
 | `04_live_system/graduation.py` | 413 | 21 KB |
 | `04_live_system/growth_plan.py` | 135 | 7 KB |
-| `04_live_system/ingest_desk_notes.sh` | 116 | 6 KB |
+| `04_live_system/ingest_desk_notes.sh` | 126 | 6 KB |
 | `04_live_system/insider_score.py` | 255 | 12 KB |
 | `04_live_system/intraday_live.py` | 103 | 5 KB |
 | `04_live_system/lessons.py` | 196 | 9 KB |

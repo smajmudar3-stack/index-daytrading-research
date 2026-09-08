@@ -59,13 +59,23 @@ SEEN="$("$PY" desk_notes.py --ingested-list 2>/dev/null)"
 echo "already ingested:" >>"$LOG"
 echo "${SEEN:-  (none)}" >>"$LOG"
 
+# WHO SENDS THE NOTES IS CONFIGURATION, NOT SOURCE. The address of the person forwarding
+# them is a third party's personal information; committing it to a public repository
+# publishes their address for anyone to scrape, and they never agreed to that. It lives in
+# .env instead, which is git-ignored.
+DESK_NOTE_SENDER="${DESK_NOTE_SENDER:-$("$PY" -c 'import sys; sys.path.insert(0, "'"$REPO"'"); from idt import keys; print(keys.get("DESK_NOTE_SENDER") or "")' 2>/dev/null)}"
+DESK_NOTE_SUBJECT="${DESK_NOTE_SUBJECT:-Desk note}"
+if [ -z "$DESK_NOTE_SENDER" ]; then
+  echo "DESK_NOTE_SENDER is not set in .env — nothing to search for, skipping ingest" >>"$LOG"
+  exit 0
+fi
+
 read -r -d '' PROMPT <<PROMPT_END || true
-Ingest any new Crown Macro Letter desk notes into this repo's macro overlay.
+Ingest any new macro desk notes into this repo's macro overlay.
 
 1. Search Gmail for threads matching:
-     from:bpreed@gmail.com subject:"Desk note" newer_than:4d
-   The notes are written by Nicholas Crown and forwarded by Brian Reed. Ignore anything
-   that is not a "Desk note".
+     from:${DESK_NOTE_SENDER} subject:"${DESK_NOTE_SUBJECT}" newer_than:4d
+   Ignore anything that is not a "${DESK_NOTE_SUBJECT}".
 
 2. These notes are ALREADY in the overlay (tab-separated, note send time then subject):
 ${SEEN:-   (none yet - ingest everything you find)}
