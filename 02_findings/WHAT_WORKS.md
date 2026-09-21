@@ -51,6 +51,12 @@ of a 214,803 name-week panel. Small — below the multiple-testing bar on its ow
 registered at 0.10 for that reason. The only weekly-horizon input that kept its published
 sign everywhere. [weekly_predictors.md](weekly_predictors.md).
 
+**Earnings surprise drift and capital return** (added 2026-09-21) — on stock, over a
+quarter, not a week. Q5−Q1 earnings surprise +2.84% at 63 sessions (t 4.3, 33,755 events,
+all three splits); buyback yield and FCF yield IC +0.03 to +0.055 at 21–63 days (t 3.4–3.5,
+faded in 2024–26). Registered with a quarterly horizon tag and kept OUT of the weekly vote.
+[fundamentals.md](fundamentals.md).
+
 ## Partial credit
 
 **Compressed volatility + volume surge** → 1.55× lift on P(3σ move) at 42 days,

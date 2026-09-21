@@ -356,6 +356,13 @@ Rules:
   options-implied features; `xsec_predictors_test.py`, `xsec_vertical_test.py`,
   `xsec_straddle_test.py` are the studies. Load the chain ONE YEAR AT A TIME: all 90 months
   at once is ~8 GB and swapped the machine.
+- **The factors from the "everything that moves a stock" list that measured real are QUARTERLY
+  stock effects**: earnings-surprise drift (+2.84% Q5−Q1 at 63 sessions, t 4.3, nothing at 5),
+  buyback/FCF yield and net issuance (t 3–3.5, strong 2022–23, flat 2024–26). They are in the
+  registry with weight 0 and a `measured-quarterly` tier so the weekly vote cannot consume
+  them; the place they belong is a stock tilt on the index overlay. Intraday, the vendor's
+  signed flow is worth 1–2 bp a trade in every test, including conditioned on gamma; no 0DTE
+  direction edge exists in any data on this machine. `02_findings/fundamentals.md`, `uw_flow.md`.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

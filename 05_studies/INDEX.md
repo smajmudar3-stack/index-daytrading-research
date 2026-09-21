@@ -153,3 +153,4 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `scripts/build_opt_panel.py` | build_opt_panel.py — dump the Dolt chains, OHLCV, splits, earnings and vol history to parquet, once. |
 | `scripts/uw_history_pull.py` | uw_history_pull.py — pull every Unusual Whales endpoint that returns dated history, for a universe, to parquet. |
 | `uw_intraday_flow_test.py` | uw_intraday_flow_test.py — does the vendor's per-minute signed options flow predict SPY/QQQ/IWM over the next 30-120 minutes? 103 sessions: suggestive, 10x too small to trade. |
+| `xsec_fundamentals_test.py` | xsec_fundamentals_test.py — earnings surprise size, margins, cash flow, buybacks, dilution, dividends: event-time drift and monthly cross-sections, 2020-2026. |

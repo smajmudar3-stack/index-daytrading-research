@@ -71,6 +71,12 @@ PAGED = {
 }
 PAGES = 12
 
+# MARKET-LEVEL SERIES, one call each, not per name: ETF creations/redemptions (passive flow, the
+# "index rebalancing / ETF inflow" mechanism) for the index and sector vehicles the book uses.
+ETFS = ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLRE",
+        "XLC", "SMH", "KRE", "XOP", "TLT", "HYG", "GLD"]
+MARKET = {"etf_flows": ("/api/etfs/{t}/in-outflow", {})}
+
 
 def pull_paged(ticker, name, path, params, tskey):
     f = os.path.join(OUT, f"{name}__{ticker}.parquet")
@@ -154,6 +160,9 @@ def main():
                 print(f"\n{tk}: rate limited after {calls} calls — stopping; rerun to resume", flush=True)
                 return
         print(f"{i:4d} {tk:6s} {time.time()-t0:5.0f}s  " + "  ".join(line), flush=True)
+    for tk in ETFS:
+        for name, (path, params) in MARKET.items():
+            print(f"     {tk:6s} {name}={pull(tk, name, path, params)}", flush=True)
     print("--- paged endpoints ---", flush=True)
     for i, tk in enumerate(names):
         line = []

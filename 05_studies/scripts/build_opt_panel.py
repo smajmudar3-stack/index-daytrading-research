@@ -106,6 +106,16 @@ def dump_small():
     if not os.path.exists(f):
         dolt("stocks", "select * from split").to_parquet(f, index=False)
         print("wrote splits.parquet", flush=True)
+    for tbl, cols in (("eps_history", "act_symbol, period_end_date, reported, estimate"),
+                      ("income_statement", "act_symbol, date, period, sales, gross_profit, net_income, "
+                                           "average_shares, diluted_net_eps"),
+                      ("cash_flow_statement", "act_symbol, date, period, net_cash_from_operating_activities, "
+                                              "property_and_equipment, issuance_of_capital_stock, "
+                                              "payment_of_dividends_and_other_distributions, issuance_of_debt")):
+        f = os.path.join(OUT, f"{tbl}.parquet")
+        if not os.path.exists(f):
+            dolt("earnings", f"select {cols} from {tbl}", timeout=1800).to_parquet(f, index=False)
+            print(f"wrote {tbl}.parquet", flush=True)
     f = os.path.join(OUT, "volhist.parquet")
     if not os.path.exists(f):
         dolt("options", "select date, act_symbol, hv_current, iv_current, iv_year_high, iv_year_low "

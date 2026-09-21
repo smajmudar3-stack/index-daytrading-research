@@ -1,0 +1,70 @@
+# Company-specific factors — earnings surprise, cash flow, buybacks, dilution
+
+**Status: CURRENT. Measured 2026-09-21** on the Dolt earnings and statement tables joined to
+the option-panel universe (close ≥ $10, dollar volume ≥ $10m), prices split-adjusted,
+returns in EXCESS of SPY from the next session's open. Reproduce:
+`05_studies/xsec_fundamentals_test.py`.
+
+The one-line verdict: **these are one-to-three-month STOCK effects.** None of them says
+anything at five days, so none of them belongs in the weekly options vote, and every one
+of them is worth more as a tilt on the index overlay than as an option trade.
+
+## 1. Earnings surprise size (post-earnings-announcement drift)
+
+SUE = (reported EPS − consensus) / price on the announcement day. 33,755 announcements,
+1,962 names, 223 weeks, 2020-01 → 2026-07. Quintiles within each week's cohort of
+announcers; the spread is a same-week comparison, t over weeks.
+
+| horizon | Q5 (best beat) − Q1 (worst miss) | t | weeks > 0 | A 2019-21 | B 2022-23 | C 2024-26 |
+|---|---:|---:|---:|---:|---:|---:|
+| 5 sessions | +0.14% | 0.7 | 52% | −0.53% | +0.55% | +0.31% |
+| 10 sessions | +0.23% | 0.8 | 55% | −0.96% | +0.85% | +0.63% |
+| 21 sessions | +0.75% | 2.0 | 58% | −0.05% | +0.86% | +1.25% |
+| **63 sessions** | **+2.84%** | **4.3** | **63%** | +2.39% (t 1.6) | +2.95% (t 2.6) | +3.10% (t 3.4) |
+
+Bernard & Thomas (1989) reproduced: the drift is real, it is the SIZE of the surprise, and
+it takes a quarter to play out. At a week it is nothing. This is the strongest effect found
+in this whole exercise and it is a 63-day stock effect, which is why `pead` in the weekly
+vote stays at 0.10 (that is the sign-of-reaction version at 5 days, IC 0.018) and why the
+surprise itself is registered at the quarterly horizon, not the weekly one.
+
+## 2. Capital allocation and quality, monthly cross-sections
+
+Quarterly statements lagged 60 days from period end (the table carries period end, not the
+filing date; unlagged it is look-ahead). Rank IC per month-end against the next 21 and 63
+sessions' excess return. 104 months, ~2,100 names. 18 tests, noise bar |t| ≈ 2.4.
+
+| feature | sign | IC @21d | t | IC @63d | t | A | B | C 2024-26 |
+|---|:-:|---:|---:|---:|---:|---:|---:|---:|
+| **buyback yield** (net repurchases / mcap) | + | +0.028 | 3.4 | +0.028 | 3.5 | +0.011 | **+0.084** | −0.011 |
+| **FCF yield** (2022→ only) | + | +0.038 | 3.0 | +0.055 | 3.5 | — | +0.059 | +0.007 |
+| net share issuance | − | +0.018 | 2.2 | +0.025 | 3.0 | +0.036 | **+0.078** | −0.015 |
+| margin change, y/y (gross / net) | + | +0.007 | 1.0 | +0.008 | 1.3 | ≈0 | ≈0 | +0.025 to +0.037 |
+| net margin, sales growth, dividend yield | + | ≤ +0.009 | < 1.1 | ≤ +0.009 | < 1 | | | |
+| gross margin | + | −0.003 | −0.3 | −0.010 | −1.2 | | −0.061 | |
+
+Three clear the bar: buyback yield, FCF yield, and (negatively) net issuance — the same
+family, "is the company returning cash or raising it", and the published sign (Ikenberry et
+al; Pontiff & Woodgate 2008). But read the splits: the family did its work in 2022–23 (the
+value year) and went flat to negative in 2024–26. A factor that pays in one regime and not
+the next is a regime, not a constant. Margin improvement shows the opposite pattern:
+nothing until 2024–26, when it is the one that works. That is growth-versus-value in a
+table, and it is why neither gets a large fixed weight.
+
+## What this changes
+
+- `signal_weights` gains `sue` (earnings surprise, 63-day) and `capital_return` (buyback
+  yield / FCF yield / net issuance, 21–63-day) as measured entries with **horizon tags**, and
+  `combine()` is not the place they act: the weekly vote must not consume a quarterly signal
+  (the registry already says this about short interest). They are for the index overlay's
+  stock tilt, which is the next thing to build: hold the 2× index per `goal_feasibility.md`,
+  and overweight the top surprise / top capital-return names in the stock sleeve.
+- Nothing here changes the weekly options book, and nothing here is a 0DTE input.
+
+## What it does NOT establish
+
+- The SUE quintiles' absolute excess returns are all negative except Q5 because an
+  equal-weighted mid-cap cohort lagged SPY over 2020–2026; the SPREAD is the result.
+- Free-cash-flow coverage starts in 2022 in this table, so its A split is empty.
+- No transaction costs are charged; at monthly turnover in liquid names that is ~10–20 bp a
+  month against a 63-day spread of 2.8%, which does not change the answer.

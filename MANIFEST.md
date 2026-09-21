@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**407 files, 85,624 lines.**
+**409 files, 85,938 lines.**
 
 ## Repo root
 
-*11 files, 2,027 lines*
+*11 files, 2,036 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 424 | 31 KB |
-| `MANIFEST.md` | 613 | 24 KB |
+| `CLAUDE.md` | 431 | 32 KB |
+| `MANIFEST.md` | 615 | 24 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*15 files, 2,295 lines*
+*16 files, 2,371 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -54,9 +54,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/VEHICLE_CHOICE.md` | 74 | 3 KB |
 | `02_findings/VOLATILITY.md` | 138 | 5 KB |
 | `02_findings/WHAT_FAILED.md` | 117 | 5 KB |
-| `02_findings/WHAT_WORKS.md` | 95 | 4 KB |
+| `02_findings/WHAT_WORKS.md` | 101 | 5 KB |
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
+| `02_findings/fundamentals.md` | 70 | 4 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
 | `02_findings/uw_flow.md` | 46 | 3 KB |
@@ -100,7 +101,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*74 files, 22,249 lines*
+*74 files, 22,261 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -160,7 +161,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
 | `04_live_system/signal_tracker.py` | 392 | 20 KB |
-| `04_live_system/signal_weights.py` | 294 | 17 KB |
+| `04_live_system/signal_weights.py` | 306 | 18 KB |
 | `04_live_system/signals_all.py` | 20 | 560 B |
 | `04_live_system/sizing.py` | 177 | 9 KB |
 | `04_live_system/sleeves.py` | 157 | 6 KB |
@@ -253,11 +254,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*59 files, 9,541 lines*
+*60 files, 9,739 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `05_studies/INDEX.md` | 155 | 16 KB |
+| `05_studies/INDEX.md` | 156 | 16 KB |
 | `05_studies/backtest_0dte_rules.py` | 943 | 48 KB |
 | `05_studies/backtest_daily.py` | 156 | 7 KB |
 | `05_studies/backtest_directional.py` | 114 | 5 KB |
@@ -312,6 +313,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/vwap_momentum.py` | 85 | 3 KB |
 | `05_studies/vwap_reversion.py` | 80 | 3 KB |
 | `05_studies/xsec_composite_test.py` | 62 | 3 KB |
+| `05_studies/xsec_fundamentals_test.py` | 197 | 10 KB |
 | `05_studies/xsec_options_panel.py` | 144 | 7 KB |
 | `05_studies/xsec_predictors_test.py` | 254 | 12 KB |
 | `05_studies/xsec_straddle_test.py` | 146 | 8 KB |
@@ -319,7 +321,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies/scripts — research harnesses
 
-*97 files, 13,972 lines*
+*97 files, 13,991 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -334,7 +336,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scripts/build_bundle.py` | 111 | 4 KB |
 | `05_studies/scripts/build_indexes.py` | 87 | 3 KB |
 | `05_studies/scripts/build_iv_features.py` | 111 | 5 KB |
-| `05_studies/scripts/build_opt_panel.py` | 123 | 5 KB |
+| `05_studies/scripts/build_opt_panel.py` | 133 | 6 KB |
 | `05_studies/scripts/bwb_and_box.py` | 164 | 8 KB |
 | `05_studies/scripts/cb_cboe_idx.py` | 109 | 4 KB |
 | `05_studies/scripts/cb_cndr_decay.py` | 49 | 2 KB |
@@ -413,7 +415,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scripts/ticket_decay.py` | 72 | 3 KB |
 | `05_studies/scripts/ticket_edge.py` | 123 | 5 KB |
 | `05_studies/scripts/uw_backtest_weights.py` | 172 | 7 KB |
-| `05_studies/scripts/uw_history_pull.py` | 170 | 7 KB |
+| `05_studies/scripts/uw_history_pull.py` | 179 | 8 KB |
 | `05_studies/scripts/vehicle_choice.py` | 123 | 5 KB |
 | `05_studies/scripts/vol_gate.py` | 118 | 4 KB |
 | `05_studies/scripts/vol_har.py` | 154 | 6 KB |

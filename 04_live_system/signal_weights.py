@@ -137,6 +137,18 @@ REGISTRY = {
     "pead":              (0.10, "measured-weak", +1,
                           "sign of the earnings-day move, <=14 sessions old: IC +0.018@5d, "
                           "+0.039@10d, positive in all three splits — 05_studies/xsec_predictors_test.py"),
+    # QUARTERLY-HORIZON STOCK FACTORS, measured 2026-09-21 (02_findings/fundamentals.md). Real,
+    # and NOT for the weekly vote: the earnings-surprise drift is +2.84% Q5-Q1 at 63 sessions
+    # (t +4.3, all three splits) and +0.14% at 5 (t 0.7). A weekly options card consuming a
+    # 63-day signal is the horizon mismatch the short-interest note above warns about, so these
+    # carry weight 0 HERE and are tagged for the index overlay's stock sleeve. `combine()` will
+    # ignore them; a panel that wants them reads REGISTRY directly.
+    "sue_63d":           (0.00, "measured-quarterly", +1,
+                          "earnings surprise / price: Q5-Q1 +2.84% @63d, t +4.3, 33,755 events, "
+                          "all splits positive; nothing at 5d — stock sleeve only"),
+    "capital_return_63d": (0.00, "measured-quarterly", +1,
+                          "buyback yield IC +0.028 (t 3.5), FCF yield +0.055 (t 3.5), net issuance "
+                          "-0.025 (t 3.0) @63d; strong 2022-23, flat 2024-26 — stock sleeve only"),
     # hard zeros
     "iv_rel":            (0.00, "measured-null", 0, "lift 1.01x / 810,300 days"),
     "iv_trend":          (0.00, "measured-null", 0, "lift 0.98-1.02x"),
