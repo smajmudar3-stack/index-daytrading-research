@@ -238,6 +238,9 @@ def test_every_structure_gets_a_target_a_stop_and_a_price_that_kills_it():
         struct = {"debit": debit, "width": 5.0, "net": 2.0, "short_strike": 105.0}
         e = ws._exits(struct, trend, "bullish" if debit else "bearish", 100.0, 3.2)
         assert e["target"] and e["stop"] and e["invalidation"]
+        # A debit's stop is the thesis and the calendar, never a mark: the -50% price stop
+        # fired on 70% of the first 129 cards and turned direction-right cards into losers.
+        assert (e["stop_net"] is None) if debit else (e["stop_net"] > 0)
         assert isinstance(e["invalidation_level"], float)
         assert "3.2%" in e["invalidation"]          # the priced move is stated
 
@@ -1159,3 +1162,42 @@ def test_a_clean_expiry_is_the_shortest_one_not_the_longest(monkeypatch):
     exp, _dte, _why = ws._pick_weekly(
         "QQQ", [], [{"label": "payrolls", "date": "2026-09-04", "days_away": 2}])
     assert exp == "2026-09-11"
+
+
+# ------------------------------------------- a card needs a MEASURED basis ---
+
+def test_a_card_needs_a_measured_basis_not_just_a_vote():
+    """Measured 2026-09-21 on 214,803 name-weeks: the vote's inputs rank next week at IC
+    0.00-0.02 and the structures cost 8-15% of risk in spread. A card rests on one of the
+    three inputs that measured with a consistent sign, or it is not a card."""
+    assert ws.REQUIRE_MEASURED_BASIS is True
+    vote = {"score": 0.41, "detail": [
+        {"input": "desk_macro", "contribution": 0.35},
+        {"input": "trend", "contribution": 0.12},
+        {"input": "flow_lean", "contribution": 0.20},
+        {"input": "vix_backwardation", "contribution": 0.0},     # abstained, not agreed
+        {"input": "pead", "contribution": 0.0},
+    ]}
+    assert ws._measured_basis("bullish", vote, None, False) == []
+
+
+def test_a_measured_input_pointing_the_same_way_is_a_basis():
+    vote = {"score": 0.41, "detail": [{"input": "pead", "contribution": 0.08},
+                                      {"input": "trend", "contribution": 0.12}]}
+    assert ws._measured_basis("bullish", vote, None, False) == ["pead +0.08"]
+    # ...and pointing the OTHER way is not
+    vote["detail"][0]["contribution"] = -0.08
+    assert ws._measured_basis("bullish", vote, None, False) == []
+
+
+def test_an_earnings_premium_read_is_a_basis_only_inside_its_own_print():
+    vrp = {"verdict": "rich", "pctile": 0.91}
+    assert ws._measured_basis("neutral", {"detail": []}, vrp, covers_catalyst=True)
+    assert ws._measured_basis("neutral", {"detail": []}, vrp, covers_catalyst=False) == []
+    assert ws._measured_basis("neutral", {"detail": []}, {"verdict": "fair"}, True) == []
+
+
+def test_the_measured_structure_costs_are_the_ones_measured():
+    """xsec_vertical_test.py, 67,380 trades at 14 DTE, held to expiry, no edge."""
+    assert ws.STRUCTURE_COST_PCT["credit"] == 8.4
+    assert ws.STRUCTURE_COST_PCT["debit"] == 14.5

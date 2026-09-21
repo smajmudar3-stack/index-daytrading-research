@@ -129,6 +129,14 @@ REGISTRY = {
                           "SIGN across three splits (+0.057/-0.023/-0.017) — "
                           "05_studies/trend_component_ic.py"),
     "rate_beta":         (0.05, "risk-flag",     +1, "sensitivity real, prediction null"),
+    # POST-EARNINGS DRIFT: the only weekly-horizon input that kept its published sign in all
+    # three splits of the 2026-09-21 cross-section (1,845 names, 344 weeks, real chains):
+    # IC +0.018 @5d (t +1.8), +0.039 @10d (t +2.6), +0.034 @21d (t +2.2). Small, and below the
+    # multiple-testing bar on its own, so it is registered at the size it measured and not at
+    # the size the literature quotes. 02_findings/weekly_predictors.md.
+    "pead":              (0.10, "measured-weak", +1,
+                          "sign of the earnings-day move, <=14 sessions old: IC +0.018@5d, "
+                          "+0.039@10d, positive in all three splits — 05_studies/xsec_predictors_test.py"),
     # hard zeros
     "iv_rel":            (0.00, "measured-null", 0, "lift 1.01x / 810,300 days"),
     "iv_trend":          (0.00, "measured-null", 0, "lift 0.98-1.02x"),
@@ -138,6 +146,16 @@ REGISTRY = {
     "sector_rotation":   (0.00, "measured-null", 0, "1,512 configs, none beat B&H"),
     "dip_screen":        (0.00, "measured-null", 0, "base-rate artifact"),
     "cheap_iv":          (0.00, "measured-null", 0, "made far-OTM worse"),
+    # THE OPTIONS-IMPLIED DIRECTION PREDICTORS, measured 2026-09-21 on 214,803 name-weeks
+    # (02_findings/weekly_predictors.md). Pinned so nobody re-adds them from the papers:
+    "cw_iv_spread":      (0.00, "measured-null", 0,
+                          "Cremers-Weinbaum call-put IV spread: IC +0.002 @5d, t +0.7; dead"),
+    "smirk":             (0.00, "measured-null", 0,
+                          "Xing-Zhang-Zhao OTM-put smirk: IC -0.006, WRONG sign in all 3 splits"),
+    "risk_reversal":     (0.00, "measured-null", 0,
+                          "OTM call IV - OTM put IV: IC -0.010, t -2.3, backwards in all 3 splits"),
+    "iv_change":         (0.00, "measured-null", 0,
+                          "An-Ang-Bali-Cakici call/put IV changes: |IC| <= 0.003 @5d, signs flip"),
 }
 
 N0 = 100          # shrinkage constant, shared with uw_calibrate

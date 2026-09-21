@@ -36,6 +36,12 @@
       {% if c.implied_move %}<span><b>week is pricing</b> ±{{ c.implied_move }}%</span>{% endif %}
     </div>
 
+    <div class="wk-basis-row">
+      <b>measured basis</b>
+      {% if c.measured_basis %}{{ c.measured_basis|join(' · ') }}{% else %}none{% endif %}
+      {% if c.structure_cost_pct %} · <b>this shape costs</b> ~{{ c.structure_cost_pct }}% of risk in bid-ask, measured on 67,380 real-fill trades{% endif %}
+    </div>
+
     {% if c.backing %}
     <div class="wk-back">
       <div class="wk-back-hd">what is behind this — {{ c.n_backing }} pillars</div>

@@ -77,6 +77,16 @@ ramp (+3.34%, *JFQA* 2018). We held through it and captured the crush.
 **GXZ's actual trade — enter T−3, exit before the release — has never been
 tested here.** See `07_research_bank/reports/04_event_driven.md`.
 
+## Weekly single-name direction — every documented predictor, on real chains
+
+Measured 2026-09-21 on 214,803 name-weeks (1,845 names, 2019–2026): the Cremers-Weinbaum
+call–put IV spread (IC +0.002), the Xing-Zhang-Zhao smirk (wrong sign in all three splits),
+the risk reversal (t −2.3, backwards), IV changes, momentum, the 52-week high and the borrow
+fee all sit inside the multiple-testing noise bar at a one-week horizon. The best composite
+calls the sign right 52% of the time. A 14-DTE vertical costs 8.4% (credit) to 14.5% (debit)
+of its risk in bid-ask alone. There is no weekly direction edge large enough to buy options
+on. [weekly_predictors.md](weekly_predictors.md), [weekly_structure.md](weekly_structure.md).
+
 ## Intraday direction
 
 No robust intraday directional edge on SPX or NDX, across every combination

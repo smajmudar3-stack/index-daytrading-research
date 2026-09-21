@@ -955,6 +955,24 @@ REQUIRE_MACRO_BASIS = True
 # cuts the Unusual Whales calls from 103 names a cycle to about 30, which is what exhausted
 # the daily quota and caused the silent degradation in the first place.
 MIN_VOTING_INPUTS = 3
+
+# A CARD NEEDS A MEASURED BASIS, NOT JUST A VOTE. Measured 2026-09-21 on 214,803 name-weeks of
+# real chains (02_findings/weekly_predictors.md): the inputs behind the direction vote rank
+# next week's return at IC 0.00-0.02, a composite of the best three calls the sign right 52%
+# of the time, and the structures the vote is expressed through cost 8.4% (credit) to 14.5%
+# (debit) of max risk per trade in bid-ask alone, held to expiry with no edge. A conviction
+# score built from those inputs is a number, not a reason. Only three things in this repo
+# measured with a consistent sign at this horizon, and a card must rest on at least one:
+#     vix_backwardation   t +3.9/+2.8/+2.1 in all three splits (index-level)
+#     pead                post-earnings drift, IC +0.018@5d / +0.039@10d, all splits positive
+#     earnings_vrp        the name's own variance-risk-premium percentile into ITS print, which
+#                         measured +3.6pt seller edge on 266 events -- and did NOT reproduce
+#                         in option P&L on a Dolt proxy (02_findings/weekly_structure.md), so
+#                         it is admitted as evidence and flagged as unconfirmed on the card
+# Everything else on the card is context. An empty book is the correct answer on a week
+# when none of these is present, and the refusal says what the trade would have cost.
+REQUIRE_MEASURED_BASIS = True
+STRUCTURE_COST_PCT = {"credit": 8.4, "debit": 14.5}     # measured, % of max risk, 14 DTE
 MIN_AGREEING_INPUTS = 3
 
 # Only consulted if REQUIRE_MACRO_BASIS is ever turned back off.
@@ -1082,6 +1100,24 @@ def _decide(macro_view, trend, vote, own_catalyst=None, move='normal'):
             f"({int(vote['unmeasured_share'] * 100)}% of that weight is still unmeasured); "
             f"{', '.join(agree[:4]) or 'nothing'} pointing the same way")
     return direction, conf, False
+
+
+def _measured_basis(direction, vote, vrp, covers_catalyst):
+    """The measured supports this card rests on, as a list of strings. Empty means none.
+
+    A support counts only when it points the SAME WAY as the card (or, for a neutral card,
+    when it is a volatility read at all). `vix_backwardation` and `pead` abstain with an
+    exact 0.0, so a zero contribution is "did not vote", never "agreed".
+    """
+    out = []
+    sign = {"bullish": 1, "bearish": -1}.get(direction, 0)
+    for d in (vote or {}).get("detail", []):
+        c = d.get("contribution") or 0.0
+        if d.get("input") in ("vix_backwardation", "pead") and c and (sign == 0 or (c > 0) == (sign > 0)):
+            out.append(f"{d['input']} {c:+.2f}")
+    if vrp and covers_catalyst and vrp.get("verdict") in ("rich", "cheap"):
+        out.append(f"earnings_vrp {vrp['verdict']} ({vrp.get('pctile', 0)*100:.0f}th pct, unconfirmed in P&L)")
+    return out
 
 
 # ------------------------------------------------- the evidence-weighted vote ---
@@ -1249,7 +1285,7 @@ def market_signal():
             "backwardated": backwardated}
 
 
-def votes_for(tk, macro_side, trend, market=None, inherited=False):
+def votes_for(tk, macro_side, trend, market=None, inherited=False, px=None):
     """Every input that has a measured weight, scored through `signal_weights`.
 
     TWO LAYERS, AND THE DISTINCTION IS THE WHOLE DESIGN.
@@ -1334,6 +1370,17 @@ def votes_for(tk, macro_side, trend, market=None, inherited=False):
         # raw count is known to saturate on stale filings and must never dominate a card.
         inputs["insider_open_buys"] = min(0.3, math.tanh(float(prof["insider_open_buys"]) / 6.0))
 
+    # POST-EARNINGS DRIFT, the one weekly-horizon input that measured with its published sign
+    # in every split (02_findings/weekly_predictors.md). Abstains outside 14 sessions of a print.
+    pe = None
+    try:
+        import pead
+        pe = pead.for_ticker(tk, px)
+    except Exception:                                         # noqa: BLE001
+        pe = None
+    if pe is not None:
+        inputs["pead"] = float(pe["score"])
+
     res = sw.combine(inputs)
     detail = []
     for name, val in sorted(inputs.items()):
@@ -1361,7 +1408,7 @@ def votes_for(tk, macro_side, trend, market=None, inherited=False):
                  if (d["contribution"] > 0) == (res["score"] > 0))
     agreement = same_w / total_w
     return {**res, "detail": detail, "agreement": round(agreement, 2),
-            "raw": prof, "profile_error": err,
+            "raw": prof, "profile_error": err, "pead": pe,
             "insider_open_buys": prof.get("insider_open_buys"),
             "insider_detail": ins,
             "short_float_pct": prof.get("short_float_pct")}
@@ -1657,16 +1704,23 @@ def _exits(struct, trend, direction, spot, implied_move):
         target = (f"close at {target_net:.2f} (+30% on the debit), or the morning after "
                   f"the catalyst")
         stop = f"close at {stop_net:.2f} (−50% of the debit)"
-    elif debit and width:
-        target_net, stop_net = round(width * 0.6, 2), round(mag * 0.50, 2)
-        target = f"close at {target_net:.2f} (60% of the ${width:g} width)"
-        stop = f"close at {stop_net:.2f} (−50% of the {mag:.2f} debit)"
     elif debit:
-        # A long-premium structure with no single width — straddle, strangle, backspread.
-        # There is no width to take a fraction of, so it is managed on the premium itself.
-        target_net, stop_net = round(mag * 1.60, 2), round(mag * 0.50, 2)
-        target = f"close at {target_net:.2f} (+60% on what you paid)"
-        stop = f"close at {stop_net:.2f} (−50% of the {mag:.2f} debit)"
+        # NO PRICE STOP ON A DEBIT STRUCTURE. The risk is already defined -- it is the debit --
+        # and a -50% stop on a 9-DTE spread is hit by an ordinary one-sigma wobble. The ledger's
+        # first 129 closed cards: the stop fired on 70% of them, and the cards whose DIRECTION
+        # was right still averaged -12.6%, because the stop closed them before they came back.
+        # The exits are the THESIS (the invalidation price below) and the CALENDAR (expiry, or
+        # the morning after the catalyst). Losing the debit is the accepted worst case; losing
+        # half of it on noise and then watching it recover is not a risk control, it is a fee.
+        stop_net = None
+        if width:
+            target_net = round(width * 0.6, 2)
+            target = f"close at {target_net:.2f} (60% of the ${width:g} width)"
+        else:
+            target_net = round(mag * 1.60, 2)
+            target = f"close at {target_net:.2f} (+60% on what you paid)"
+        stop = (f"no price stop: the {mag:.2f} debit is the risk. Out on the invalidation "
+                f"level below, or at expiry -- not on a mark")
     else:
         target_net, stop_net = round(mag * 0.45, 2), round(mag * 2.0, 2)
         target = f"buy it back at {target_net:.2f} (keep ~55% of the {mag:.2f} credit)"
@@ -1739,7 +1793,7 @@ def build_card(tk, macro, catalysts, index_short_gamma, market=None, sectors=Non
                       "themes": []}
 
     vote = votes_for(tk, view.get("side"), trend, market,
-                     inherited=bool(view.get("inherited")))
+                     inherited=bool(view.get("inherited")), px=px)
     # Captured here — after the readings exist, before any gate can remove this name from the
     # sample. See the note on `_TAPE_ROWS`: recording only survivors would build a study set
     # that has already agreed with the engine.
@@ -1849,6 +1903,17 @@ def build_card(tk, macro, catalysts, index_short_gamma, market=None, sectors=Non
         elif vrp["verdict"] == "cheap":
             band = "cheap"
 
+    basis = _measured_basis(view_dir, vote, vrp, covers_catalyst)
+    if REQUIRE_MEASURED_BASIS and not basis:
+        cost = STRUCTURE_COST_PCT["debit" if band == "cheap" else "credit"]
+        return None, {"ticker": tk, "why": (
+            f"no measured basis: the vote ({vote['score']:+.2f}) rests on inputs that rank "
+            f"next week at IC 0.00-0.02 (right ~52% of the time), and the structure it would "
+            f"be expressed through costs ~{cost:.0f}% of max risk in bid-ask alone. Nothing "
+            f"measured at this horizon -- VIX backwardation, a recent print's drift, or an "
+            f"earnings premium read -- is present, so there is no edge to pay that cost with"),
+            "themes": [t["label"] for t in view.get("themes") or []]}
+
     wanted = st.menu(view_dir, move, band, term_rich, covers_catalyst)
 
     for name in wanted:
@@ -1952,7 +2017,9 @@ def build_card(tk, macro, catalysts, index_short_gamma, market=None, sectors=Non
         "evidence": struct.get("evidence"), "breakevens": struct.get("breakevens"),
         "close_early_dte": struct.get("close_early_dte"),
         "structure_name": struct.get("name"),
-        "trend": trend, "warn": warn, "vrp": vrp, **exits,
+        "trend": trend, "warn": warn, "vrp": vrp, "measured_basis": basis,
+        "structure_cost_pct": STRUCTURE_COST_PCT["debit" if struct.get("is_debit", struct.get("debit")) else "credit"],
+        **exits,
     }, None
 
 

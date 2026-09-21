@@ -75,6 +75,13 @@ def _load_log():
         return pd.DataFrame()
     d = pd.DataFrame(rows)
     d["date"] = pd.to_datetime(d.ts).dt.tz_localize(None).dt.normalize()
+    # ONE ROW PER NAME PER DAY. The scan logs every cycle, so a name read twelve times in a
+    # session appeared twelve times against the SAME forward return. That is how the file
+    # reported n=13,079 "settled observations" from 14 tickers over 30 sessions -- 420 real
+    # name-days, and with a 5-day horizon maybe 80 that do not overlap. The shrinkage then
+    # saw n=13,079, kept 99% of a noise IC, and short interest came out at -0.19, a number
+    # signal_weights rightly refuses. The last reading of the day is the one that stands.
+    d = d.sort_values("ts").drop_duplicates(["ticker", "date"], keep="last")
     return d
 
 
@@ -136,9 +143,12 @@ def calibrate(min_n=20):
             continue
         # Spearman: the signal only has to RANK outcomes, not predict magnitude.
         ic = float(sub[k].corr(sub["fwd_ret"], method="spearman"))
-        shrink = np.sqrt(n / (n + N0))
+        # Shrink on the number of NON-OVERLAPPING windows, not on rows: a name logged on
+        # five consecutive sessions against five overlapping 5-day returns is one draw.
+        n_eff = max(1.0, n / HORIZON)
+        shrink = np.sqrt(n_eff / (n_eff + N0))
         w = max(0.0, ic) * shrink        # a negative IC earns no weight, not a short
-        res[k] = {"n": n, "ic": round(ic, 3), "shrink": round(shrink, 2),
+        res[k] = {"n": n, "n_eff": int(n_eff), "ic": round(ic, 3), "shrink": round(shrink, 2),
                   "weight_raw": round(w, 4),
                   "status": "measured" if abs(ic) > 0.02 else "no signal"}
 
@@ -151,8 +161,15 @@ def calibrate(min_n=20):
     for v in res.values():
         v["weight"] = round(v.get("weight_raw", 0) / tot, 3) if tot else 0.0
 
+    # The honest sample size: name-days that do not share a forward window. Overlapping
+    # 5-day windows on the same name inflate t by roughly sqrt(5) (METHODOLOGY_TRAPS #3).
+    n_indep = int(len(s) / HORIZON)
     out = {"status": "ok", "asof": datetime.now(timezone.utc).isoformat(),
-           "n_settled": int(len(s)), "horizon_days": HORIZON, "weights": res}
+           "n_settled": int(len(s)), "n_name_days": int(len(s)),
+           "n_independent_approx": n_indep, "n_tickers": int(s.ticker.nunique()),
+           "n_sessions": int(s.date.nunique()), "horizon_days": HORIZON, "weights": res,
+           "note": ("n counts one row per name per session; windows on one name overlap, so "
+                    "treat n_independent_approx as the sample the ICs rest on")}
     with open(WEIGHTS_OUT, "w") as f:
         json.dump(out, f, indent=1)
     return out

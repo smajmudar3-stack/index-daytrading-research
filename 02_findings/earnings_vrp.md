@@ -1,7 +1,17 @@
 # The earnings variance risk premium — measured, and it holds
 
-**Status: CURRENT. Measured 2026-09-06.** The first Unusual Whales input in this repo with a
-history behind it rather than a prior.
+**Status: CURRENT IN POINTS, UNCONFIRMED IN OPTION P&L. Measured 2026-09-06; re-tested
+2026-09-21.** The first Unusual Whales input in this repo with a history behind it rather
+than a prior.
+
+> **2026-09-21 re-test.** Rebuilt with a proxy for the vendor's premium (IV − HV from the
+> Dolt `volatility_history` table, percentile within the name's own trailing year) on
+> **44,302 straddles** whose expiry contained the print, 2019–2026, bought at the ask: the
+> rich bucket showed NO seller edge in straddle P&L (short-rich minus short-cheap −2.0%,
+> t −0.6 to expiry; −0.7%, t −0.2 on a 1-week exit), and implied 10.9% against realised
+> 11.2%. Either the vendor's series carries something the proxy does not, or 266 events in
+> one year was a period. The engine still admits this read as a basis for a card, and
+> flags it "unconfirmed in P&L" on the card. See `weekly_structure.md` §4.
 
 ## The question
 

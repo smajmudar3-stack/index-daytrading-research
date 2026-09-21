@@ -326,6 +326,36 @@ Rules:
   scored as a win or a loss. Separately, `settle` passed both `start` and `period="5d"` to
   yfinance, which honours `period` and ignores `start`, so it always fetched the last five days
   regardless of the trade date.
+- **The weekly direction vote has NO measured edge, and a card must rest on something that
+  does.** Measured 2026-09-21 on 214,803 name-weeks of real Dolt chains (1,845 names, 2019–
+  2026): every documented weekly predictor — Cremers-Weinbaum IV spread, the smirk, the risk
+  reversal, IV changes, momentum, the 52-week high, the borrow fee — sits inside the
+  multiple-testing bar; the best composite calls the sign right 52%. The ledger's 37.6% was
+  noise on top of none. `REQUIRE_MEASURED_BASIS` refuses a card unless VIX backwardation,
+  post-earnings drift (`pead`, the one input positive in all three splits, IC +0.018@5d) or
+  the earnings premium read points its way, and every card prints its basis next to the
+  structure's measured cost. `02_findings/weekly_predictors.md`, `weekly_structure.md`.
+- **A 14-DTE vertical costs 8.4% (credit) or 14.5% (debit) of max risk in bid-ask alone**,
+  held to expiry with no edge, on 67,380 real-fill trades. That number is on every card. A
+  −50% price stop on a debit spread fired on 70% of the first 129 cards and turned
+  direction-right cards into losers; debits now stop on the thesis and the calendar only.
+- **The earnings VRP edge is unconfirmed in option P&L.** +3.6pt seller edge on 266 events
+  in points did not reproduce on 44,302 event straddles with a Dolt IV−HV proxy (rich minus
+  cheap ≈ 0). Admitted as a basis, flagged "unconfirmed" on the card. Re-pull the vendor
+  series with `05_studies/scripts/uw_history_pull.py` to settle it.
+- **`_stale()` takes SECONDS.** The weekly gate was `240` under a comment saying "4h": four
+  minutes, so the 200-name paid scan ran every 5-minute cycle and burned the 30,000/day
+  Unusual Whales quota by late morning, after which every vendor voter silently dropped
+  out. `WEEKLY_REGEN_S`/`SWING_REGEN_S` are named constants now and a test pins the units.
+- **The calibration counted every 5-minute log row as an observation.** n=13,079 was 14
+  tickers over 30 sessions; it is one row per name per session now, shrunk on
+  non-overlapping windows.
+- **The 16 GB Dolt chains are now a parquet panel.** `05_studies/scripts/build_opt_panel.py`
+  dumps `DATA_ROOT/opt_panel/` (chain by month, OHLCV, splits, earnings, vol history; Dolt is
+  date-keyed so it walks days, ~10 min). `xsec_options_panel.py` builds 1.74M rows of
+  options-implied features; `xsec_predictors_test.py`, `xsec_vertical_test.py`,
+  `xsec_straddle_test.py` are the studies. Load the chain ONE YEAR AT A TIME: all 90 months
+  at once is ~8 GB and swapped the machine.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

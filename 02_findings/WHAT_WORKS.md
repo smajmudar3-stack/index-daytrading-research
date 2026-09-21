@@ -45,6 +45,12 @@ direction call.
 
 ---
 
+**Post-earnings drift** (added 2026-09-21) — the sign of the earnings-day move, within 14
+sessions of the print: IC +0.018 @5d, +0.039 @10d, +0.034 @21d, positive in all three splits
+of a 214,803 name-week panel. Small — below the multiple-testing bar on its own — and
+registered at 0.10 for that reason. The only weekly-horizon input that kept its published
+sign everywhere. [weekly_predictors.md](weekly_predictors.md).
+
 ## Partial credit
 
 **Compressed volatility + volume surge** → 1.55× lift on P(3σ move) at 42 days,

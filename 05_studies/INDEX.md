@@ -145,3 +145,10 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `vwap_reversion.py` | Intraday VWAP mean-reversion — the opposite mechanism to breakout. |
 
 **147 files.**
+| `xsec_options_panel.py` | xsec_options_panel.py — one row per (date, name) of options-implied features from the Dolt EOD chains: ATM IV, Cremers-Weinbaum spread, smirk, risk reversal, term slope. |
+| `xsec_predictors_test.py` | xsec_predictors_test.py — which documented weekly-horizon predictors rank next week's return, 1,845 names × 344 weeks. Result: none clear the bar. |
+| `xsec_composite_test.py` | xsec_composite_test.py — do the three least-bad predictors add up to a direction? 52%. |
+| `xsec_vertical_test.py` | xsec_vertical_test.py — the weekly book's verticals replayed on seven years of real quotes: structure and exit costs. |
+| `xsec_straddle_test.py` | xsec_straddle_test.py — Goyal-Saretto and the earnings premium in actual straddle P&L, 155,170 straddles. |
+| `scripts/build_opt_panel.py` | build_opt_panel.py — dump the Dolt chains, OHLCV, splits, earnings and vol history to parquet, once. |
+| `scripts/uw_history_pull.py` | uw_history_pull.py — pull every Unusual Whales endpoint that returns dated history, for a universe, to parquet. |

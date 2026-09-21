@@ -197,6 +197,12 @@ def trades():
             "no_macro_basis": c.get("no_macro_basis"),
             "backing": c.get("backing") or [],
             "n_backing": c.get("n_backing"),
+            # What the card actually RESTS on, against what it costs. Measured 2026-09-21:
+            # the vote's inputs rank next week at IC 0.00-0.02, so a card is only issued
+            # on one of the three inputs that measured with a consistent sign, and it says
+            # which, next to the bid-ask it pays to express it.
+            "measured_basis": c.get("measured_basis") or [],
+            "structure_cost_pct": c.get("structure_cost_pct"),
             "theme_inherited": c.get("theme_inherited"),
             "cap_tier": c.get("cap_tier"),
             "trend": c.get("trend") or {},

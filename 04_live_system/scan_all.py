@@ -202,7 +202,8 @@ if _mkt_open() and _stale("lessons.json", 21600):
         pass
 
 gap_scanner.run()  # intraday + analyst + paper settle; cheap when no candidates
-if _stale("swing_snapshot.json", 1500):
+SWING_REGEN_S = 25 * 3600      # seconds; 1500 was 25 minutes, not the 25 hours intended
+if _stale("swing_snapshot.json", SWING_REGEN_S):
     swing_signals.run()
 
 # WEEKLY BOOK — macro-conditioned cards on real weekly chains. Refreshed on a much
@@ -212,7 +213,15 @@ if _stale("swing_snapshot.json", 1500):
 # REFUSES to produce anything when that overlay is missing or older than two sessions,
 # so a failed ingest shows up as an empty book with a stated reason rather than as
 # cards built on last week's macro.
-if _stale("weekly_snapshot.json", 240):
+# `_stale` TAKES SECONDS. This gate was written as 240 -- four MINUTES, not four hours -- so
+# the paid 200-name scan ran on every 5-minute cycle: ~1,000 Unusual Whales requests a cycle,
+# ~24,000 an hour against a 30,000-a-day quota. By late morning every call was a 429, the
+# four vendor voters silently dropped out, and the book was built on the macro read plus a
+# moving average -- exactly the two-input card MIN_VOTING_INPUTS exists to refuse. Measured
+# 2026-09-21: 41 rate-limit lines in the refresh log and the key still throttled an hour
+# after the job was stopped. test_scan_gates_are_in_seconds pins this.
+WEEKLY_REGEN_S = 4 * 3600
+if _stale("weekly_snapshot.json", WEEKLY_REGEN_S):
     try:
         import weekly_swing
         weekly_swing.run()

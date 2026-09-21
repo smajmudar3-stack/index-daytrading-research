@@ -85,3 +85,4 @@ still in force without opening 26 reports. Verdicts written 2026-08-24.
 ---
 
 **26 files.**
+| `RESEARCH_WEEKLY_PREDICTORS.md` | The published record of what predicts a single stock over one to four weeks, ranked by strength, replication and computability here. Written 2026-09-21. |
