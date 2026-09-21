@@ -90,7 +90,10 @@ on. [weekly_predictors.md](weekly_predictors.md), [weekly_structure.md](weekly_s
 ## Intraday direction
 
 No robust intraday directional edge on SPX or NDX, across every combination
-tested. The empirical result and the published literature agree.
+tested. The empirical result and the published literature agree. The vendor's
+own per-minute signed options flow (103 sessions, 2026) is the one input that
+looks like a small real effect — positive in every cell, one-sided hit rates —
+and it is worth 1–2 bp a trade against a 5–10 bp round trip. [uw_flow.md](uw_flow.md).
 
 The only intraday-adjacent effect that held up is **overnight drift** — and it is
 too small to pay for options premium.

@@ -59,6 +59,54 @@ ENDPOINTS = {
 }
 
 
+# PAGED ENDPOINTS: the classified options flow and the dark-pool prints. Neither returns a
+# year in one call; both accept `older_than` and are walked backwards from now, at most
+# PAGES calls a name. Flow alerts carry the ask/bid-side premium split, `all_opening_trades`,
+# sweeps and volume/OI -- the vendor's own "unusual activity" classification -- which is what
+# the weekly and intraday direction tests need and what the 2026 JPM paper says decayed
+# after 2020. Pulled AFTER the one-shot endpoints so a quota stop loses the cheap part last.
+PAGED = {
+    "flow_alerts": ("/api/option-trades/flow-alerts", {"ticker_symbol": "{t}", "limit": 200}, "created_at"),
+    "darkpool": ("/api/darkpool/{t}", {"limit": 500}, "executed_at"),
+}
+PAGES = 12
+
+
+def pull_paged(ticker, name, path, params, tskey):
+    f = os.path.join(OUT, f"{name}__{ticker}.parquet")
+    if os.path.exists(f):
+        return "cached"
+    frames, older = [], None
+    for _ in range(PAGES):
+        q = {k: (v.replace("{t}", ticker) if isinstance(v, str) else v) for k, v in params.items()}
+        if older:
+            q["older_than"] = older
+        r = uw._get(path.replace("{t}", ticker), q)
+        if r is None:
+            return "no-key"
+        if isinstance(r, dict) and "_error" in r:
+            if frames:
+                break
+            return r["_error"]
+        rows = uw._rows(r)
+        if not rows:
+            break
+        df = pd.DataFrame(rows)
+        frames.append(df)
+        ts = df[tskey].dropna().astype(str).min() if tskey in df else None
+        if not ts or ts == older or len(rows) < q["limit"]:
+            break
+        older = ts
+    if not frames:
+        pd.DataFrame({"_empty": [True]}).to_parquet(f, index=False)
+        return "empty"
+    df = pd.concat(frames, ignore_index=True)
+    df["_symbol"], df["_endpoint"] = ticker, name
+    df = df.astype({c: str for c in df.columns if df[c].dtype == object})
+    df.to_parquet(f, index=False)
+    return f"{len(df)} rows"
+
+
 def universe(n):
     """The live index universe, ranked by 20-day dollar volume from the Dolt panel."""
     px = pd.read_parquet(os.path.join(paths.DATA_ROOT, "opt_panel", "ohlcv.parquet"))
@@ -104,6 +152,16 @@ def main():
             line.append(f"{name}={res}")
             if "429" in res:
                 print(f"\n{tk}: rate limited after {calls} calls — stopping; rerun to resume", flush=True)
+                return
+        print(f"{i:4d} {tk:6s} {time.time()-t0:5.0f}s  " + "  ".join(line), flush=True)
+    print("--- paged endpoints ---", flush=True)
+    for i, tk in enumerate(names):
+        line = []
+        for name, (path, params, tskey) in PAGED.items():
+            res = pull_paged(tk, name, path, params, tskey)
+            line.append(f"{name}={res}")
+            if "429" in res:
+                print(f"\n{tk}: rate limited — stopping; rerun to resume", flush=True)
                 return
         print(f"{i:4d} {tk:6s} {time.time()-t0:5.0f}s  " + "  ".join(line), flush=True)
 
