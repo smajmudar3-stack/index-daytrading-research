@@ -154,3 +154,4 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `scripts/uw_history_pull.py` | uw_history_pull.py — pull every Unusual Whales endpoint that returns dated history, for a universe, to parquet. |
 | `uw_intraday_flow_test.py` | uw_intraday_flow_test.py — does the vendor's per-minute signed options flow predict SPY/QQQ/IWM over the next 30-120 minutes? 103 sessions: suggestive, 10x too small to trade. |
 | `xsec_fundamentals_test.py` | xsec_fundamentals_test.py — earnings surprise size, margins, cash flow, buybacks, dilution, dividends: event-time drift and monthly cross-sections, 2020-2026. |
+| `xsec_portfolio_test.py` | xsec_portfolio_test.py — the measured slow factors compounded as a monthly top-decile long portfolio vs SPY at 1x and 2x: 16-18%/yr, +2-5% excess, t < 1. |

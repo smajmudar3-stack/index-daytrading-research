@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**409 files, 85,938 lines.**
+**410 files, 86,082 lines.**
 
 ## Repo root
 
-*11 files, 2,036 lines*
+*11 files, 2,038 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 431 | 32 KB |
-| `MANIFEST.md` | 615 | 24 KB |
+| `MANIFEST.md` | 617 | 24 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*16 files, 2,371 lines*
+*16 files, 2,394 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -57,7 +57,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/WHAT_WORKS.md` | 101 | 5 KB |
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
-| `02_findings/fundamentals.md` | 70 | 4 KB |
+| `02_findings/fundamentals.md` | 93 | 6 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
 | `02_findings/uw_flow.md` | 46 | 3 KB |
@@ -254,11 +254,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*60 files, 9,739 lines*
+*61 files, 9,858 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `05_studies/INDEX.md` | 156 | 16 KB |
+| `05_studies/INDEX.md` | 157 | 17 KB |
 | `05_studies/backtest_0dte_rules.py` | 943 | 48 KB |
 | `05_studies/backtest_daily.py` | 156 | 7 KB |
 | `05_studies/backtest_directional.py` | 114 | 5 KB |
@@ -315,6 +315,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/xsec_composite_test.py` | 62 | 3 KB |
 | `05_studies/xsec_fundamentals_test.py` | 197 | 10 KB |
 | `05_studies/xsec_options_panel.py` | 144 | 7 KB |
+| `05_studies/xsec_portfolio_test.py` | 118 | 6 KB |
 | `05_studies/xsec_predictors_test.py` | 254 | 12 KB |
 | `05_studies/xsec_straddle_test.py` | 146 | 8 KB |
 | `05_studies/xsec_vertical_test.py` | 218 | 11 KB |

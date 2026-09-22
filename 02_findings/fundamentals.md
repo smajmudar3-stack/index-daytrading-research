@@ -68,3 +68,26 @@ table, and it is why neither gets a large fixed weight.
 - Free-cash-flow coverage starts in 2022 in this table, so its A split is empty.
 - No transaction costs are charged; at monthly turnover in liquid names that is ~10–20 bp a
   month against a 63-day spread of 2.8%, which does not change the answer.
+
+## 3. Compounded as a portfolio — the "any horizon, any stock" answer
+
+`05_studies/xsec_portfolio_test.py`: top decile of each signal, equal weight, rebalanced
+monthly, held next-open to month-end, 15 bp a side on actual turnover, 2× row levered at a
+6% borrow. 2019-01 → 2026-06.
+
+| portfolio (top decile, long only) | CAGR 1× | max DD | CAGR 2× | max DD 2× | excess over SPY | t |
+|---|---:|---:|---:|---:|---:|---:|
+| SPY | 14.8% | −20% | 20.9% | −41% | — | — |
+| earnings surprise | 17.8% | −27% | 21.8% | −54% | +4.7%/yr | 0.9 |
+| 12-1 momentum | 16.4% | −24% | 20.0% | −49% | +3.1%/yr | 0.6 |
+| composite (surprise + buyback + FCF + issuance + momentum) | 15.9% | −30% | 21.1% | −56% | +1.8%/yr | 0.5 |
+| capital return alone | 10.6% | −44% | 8.3% | −78% | +0.3%/yr | 0.1 |
+
+The 2.8% quarterly Q5−Q1 spread is real, but LONG-ONLY against a 15%-a-year SPY it is
+worth 2 to 5 points a year before the t-stat, at 50–60% monthly turnover, with a deeper
+drawdown and a lower Sharpe than the index. $5,000 becomes $14,000–$21,000 over the seven
+and a half years, against $14,000–$21,000 in SPY at the same leverage. **There is no
+combination of the measured factors, at any horizon, on any stock, that compounds faster
+than about 20% a year at 2×, and that path carries a 50%-plus drawdown.** At 21% a year,
+$5,000 reaches $50,000 in twelve years. This agrees with `goal_feasibility.md` from the
+other direction.
