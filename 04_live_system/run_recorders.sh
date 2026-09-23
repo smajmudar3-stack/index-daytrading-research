@@ -16,5 +16,7 @@ mkdir -p "$REPO/logs"
 P1=$!
 "$PY" crypto_venue_recorder.py >> "$REPO/logs/crypto_venue_recorder.out" 2>&1 &
 P2=$!
-trap 'kill $P1 $P2 2>/dev/null' TERM INT
+"$PY" memecoin_recorder.py >> "$REPO/logs/memecoin_recorder.out" 2>&1 &
+P3=$!
+trap 'kill $P1 $P2 $P3 2>/dev/null' TERM INT
 wait

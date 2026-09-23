@@ -384,6 +384,12 @@ Rules:
   against spot by `polymarket_recorder.py` (keep-alive launchd job `com.daytrading.recorders`,
   with `crypto_venue_recorder.py`); score with `05_studies/polymarket_score.py` once ~150
   windows have resolved. Both recorders place nothing.
+- **Stat-arb is dead for a retail-cost book.** Avellaneda-Lee residual reversion on 2,275
+  names 2018–2026: gross +1–2%/yr (Sharpe 0.3), net of 5 bp/side negative at every hold,
+  declining split by split. `02_findings/statarb.md`. The whole market map, with what is
+  recording and what cannot be measured from here, is `03_research/RESEARCH_EVERY_MARKET.md`;
+  the memecoin launch feed is recorded by `memecoin_recorder.py` and scored by
+  `05_studies/memecoin_score.py`.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

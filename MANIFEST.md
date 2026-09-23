@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**421 files, 87,423 lines.**
+**426 files, 87,929 lines.**
 
 ## Repo root
 
-*11 files, 2,064 lines*
+*11 files, 2,077 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 452 | 33 KB |
-| `MANIFEST.md` | 622 | 24 KB |
+| `CLAUDE.md` | 458 | 34 KB |
+| `MANIFEST.md` | 629 | 25 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*17 files, 2,485 lines*
+*18 files, 2,513 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -61,17 +61,18 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
 | `02_findings/online_methods.md` | 56 | 6 KB |
+| `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
 | `02_findings/weekly_structure.md` | 114 | 7 KB |
 
 ## 03_research — literature and repo sweeps
 
-*28 files, 18,108 lines*
+*29 files, 18,246 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `03_research/INDEX.md` | 88 | 14 KB |
+| `03_research/INDEX.md` | 89 | 14 KB |
 | `03_research/RESEARCH_0DTE_EDGE.md` | 642 | 47 KB |
 | `03_research/RESEARCH_BLACKSWAN.md` | 652 | 92 KB |
 | `03_research/RESEARCH_BLOWUPS.md` | 718 | 46 KB |
@@ -79,6 +80,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `03_research/RESEARCH_CONDOR_BUTTERFLY.md` | 1,020 | 71 KB |
 | `03_research/RESEARCH_COSTS.md` | 632 | 33 KB |
 | `03_research/RESEARCH_DIRECTION.md` | 1,065 | 68 KB |
+| `03_research/RESEARCH_EVERY_MARKET.md` | 137 | 8 KB |
 | `03_research/RESEARCH_EXOTIC_STRUCTURES.md` | 795 | 49 KB |
 | `03_research/RESEARCH_FEES.md` | 494 | 34 KB |
 | `03_research/RESEARCH_GITHUB_RETURNS.md` | 243 | 62 KB |
@@ -102,11 +104,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*79 files, 22,912 lines*
+*80 files, 23,035 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/INDEX.md` | 68 | 7 KB |
+| `04_live_system/INDEX.md` | 69 | 7 KB |
 | `04_live_system/ai_desk.py` | 370 | 19 KB |
 | `04_live_system/ai_trader.py` | 623 | 36 KB |
 | `04_live_system/analyst.py` | 195 | 10 KB |
@@ -149,6 +151,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/maintenance.py` | 169 | 7 KB |
 | `04_live_system/market_basis.py` | 260 | 13 KB |
 | `04_live_system/master_call.py` | 315 | 17 KB |
+| `04_live_system/memecoin_recorder.py` | 120 | 5 KB |
 | `04_live_system/mes_dashboard.py` | 243 | 13 KB |
 | `04_live_system/mes_signals.py` | 114 | 4 KB |
 | `04_live_system/monitor.py` | 68 | 2 KB |
@@ -161,7 +164,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/refresh_signal.py` | 79 | 3 KB |
 | `04_live_system/risk_gates.py` | 663 | 32 KB |
 | `04_live_system/rules.py` | 316 | 16 KB |
-| `04_live_system/run_recorders.sh` | 20 | 888 B |
+| `04_live_system/run_recorders.sh` | 22 | 970 B |
 | `04_live_system/scan_all.py` | 320 | 15 KB |
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
@@ -261,11 +264,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*64 files, 10,251 lines*
+*66 files, 10,455 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `05_studies/INDEX.md` | 160 | 17 KB |
+| `05_studies/INDEX.md` | 162 | 18 KB |
 | `05_studies/backtest_0dte_rules.py` | 943 | 48 KB |
 | `05_studies/backtest_daily.py` | 156 | 7 KB |
 | `05_studies/backtest_directional.py` | 114 | 5 KB |
@@ -298,6 +301,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/intraday_patterns.py` | 126 | 6 KB |
 | `05_studies/intraday_puts.py` | 77 | 4 KB |
 | `05_studies/live_path.py` | 34 | 1 KB |
+| `05_studies/memecoin_score.py` | 62 | 3 KB |
 | `05_studies/merge_optimize.py` | 52 | 2 KB |
 | `05_studies/mes_overnight.py` | 86 | 4 KB |
 | `05_studies/mes_refine.py` | 67 | 3 KB |
@@ -312,7 +316,8 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/scalp_backtest.py` | 69 | 3 KB |
 | `05_studies/scalp_update.py` | 140 | 7 KB |
 | `05_studies/sizing_curve.py` | 120 | 5 KB |
-| `05_studies/spy_putwrite_test.py` | 111 | 5 KB |
+| `05_studies/spy_putwrite_test.py` | 110 | 5 KB |
+| `05_studies/statarb_test.py` | 141 | 7 KB |
 | `05_studies/trend_component_ic.py` | 228 | 8 KB |
 | `05_studies/uw_intraday_flow_test.py` | 128 | 6 KB |
 | `05_studies/validate_condor_real.py` | 133 | 5 KB |

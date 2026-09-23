@@ -158,3 +158,5 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `xsec_uw_test.py` | xsec_uw_test.py — the Unusual Whales inputs (signed flow, premium, put/call, dealer greeks, IV-RV, insider counts) scored on two years of vendor history: null. |
 | `polymarket_score.py` | polymarket_score.py — calibration of Polymarket 5-minute crypto YES asks against realised outcomes by seconds-left and spot move, the "buy the side ahead" trade, and the cross-venue crossing count. |
 | `spy_putwrite_test.py` | spy_putwrite_test.py — monthly SPY put-writing (ATM / 30 / 15 delta) and covered calls on real quotes 2019-2026: smoother, 4-8%/yr, all below SPY. |
+| `statarb_test.py` | statarb_test.py — Avellaneda-Lee statistical arbitrage: 60-day factor residuals, OU s-scores, long/short deciles on 2,275 names 2018-2026, with costs. Net negative at every hold. |
+| `memecoin_score.py` | memecoin_score.py — the return distribution of buying every DexScreener launch at first sight, including the rugs, by horizon and liquidity. |

@@ -66,3 +66,4 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `polymarket_recorder.py` | Records Polymarket's 5-minute BTC/ETH/SOL up-or-down order books against live spot every 3 s, plus each window's resolution. Records only. |
 | `crypto_venue_recorder.py` | Records best bid/ask for BTC and ETH on Coinbase, Kraken, Binance.US and Gemini every 2 s, and every cross-venue crossing gross and net of taker fees. Records only. |
 | `run_recorders.sh` / `com.daytrading.recorders.plist` | The keep-alive launchd job that runs both recorders. |
+| `memecoin_recorder.py` | Records every new token on DexScreener's launch feed at first sight and re-prices it for 24 h. Records only. |
