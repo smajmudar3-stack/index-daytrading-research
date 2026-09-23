@@ -101,10 +101,15 @@ REGISTRY = {
     "short_float_pct":   (0.22, "measured",      -1,
                           "Boehmer et al 2008/2010/2022, Diether et al 2009. Repo IC -0.022@5d "
                           "-> -0.107@63d, n=13,219, monotone; a weekly hold sits at the WEAK end"),
-    "flow_lean":         (0.40, "unmeasured",    +1,
-                          "Johnson & So 2012 JFE: low put-call beats high by >40bp/day, >1%/week. "
-                          "Muravyev 2016 JF. Best horizon match in the vote; vendor proxy, not "
-                          "the Lee-Ready measure, so still unmeasured"),
+    # MEASURED NULL, 2026-09-22 (02_findings/uw_flow.md). Two years of the vendor's own daily
+    # signed option volume on 286 names: IC -0.003 @5d (96 weeks, 20,746 name-weeks), -0.032
+    # @21d, sign unstable between halves; net premium -0.007; the put/call ratio CONTRARIAN
+    # (t -1.9 against the published sign). It had been the largest weight in the vote, served
+    # at the 0.45 ceiling on a literature prior plus a calibration counting overlapping rows.
+    # A prior that has been measured is no longer a prior.
+    "flow_lean":         (0.00, "measured-null", 0,
+                          "vendor signed option volume: IC -0.003@5d / -0.032@21d over 2 years, "
+                          "286 names; put/call contrarian — 05_studies/xsec_uw_test.py"),
     "dp_buy_share":      (0.10, "unmeasured",    +1,
                           "Reed et al / Boulton et al: dark-pool shorts are significantly LESS "
                           "informative than exchange shorts; 0.53% over 20d. Weakest of the four"),
@@ -207,7 +212,7 @@ CAL_BAND_LO, CAL_BAND_HI = 0.25, 2.5
 # calling it the weakest of the four. This caps what any single input may ever be served at,
 # whatever a calibration file says.
 CAL_CEILING = {"dp_buy_share": 0.15, "insider_open_buys": 0.10, "short_float_pct": 0.30,
-               "flow_lean": 0.45, "trend": 0.20}
+               "trend": 0.20}
 
 
 def weight(name):

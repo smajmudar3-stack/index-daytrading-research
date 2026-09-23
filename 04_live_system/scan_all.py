@@ -242,6 +242,16 @@ if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock failed: {type(_e).__name__}: {_e}")
 
+# ...and its ledger on a 4h clock, so a pick issued after the close fills at the next open.
+if _stale("swing_stock.db", 4 * 3600):
+    try:
+        import swing_stock
+        _sm = swing_stock.mark()
+        print(f"stock book ledger: {_sm.get('filled')} filled, {_sm.get('marked')} marked, "
+              f"{_sm.get('closed')} closed")
+    except Exception as _e:                       # noqa: BLE001
+        print(f"swing_stock.mark failed: {type(_e).__name__}: {_e}")
+
 # THE LEDGER RUNS EVERY CYCLE, not on the generator's 4h clock. Two different jobs: the
 # generator decides what is worth proposing, this marks what was already proposed against
 # the live chain. Marking on the slower clock would leave the page showing a P&L from four

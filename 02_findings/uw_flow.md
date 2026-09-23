@@ -1,7 +1,7 @@
 # The vendor's options flow — what has been measured, and what is queued
 
-**Status: PARTIAL. Intraday measured 2026-09-21 on 103 sessions; the daily and weekly test
-is queued behind the API quota.**
+**Status: CURRENT. Intraday measured 2026-09-21 on 103 sessions; daily and weekly measured
+2026-09-22 on two years of the vendor's own history.**
 
 ## Intraday: per-minute signed flow on the index proxies
 
@@ -33,14 +33,45 @@ recording path. 103 sessions is not enough to say more; re-run at 250.
 The last-30-minute flow and the ask/bid imbalance carry nothing at all, which matches
 Cont, Cucuringu & Zhang (2023): order-flow imbalance is contemporaneous, not predictive.
 
-## Daily and weekly: queued
+## Daily and weekly: measured, and null
 
-`05_studies/scripts/uw_history_pull.py` pulls, for 300 names, the vendor's daily
-`options-volume` (call/put volume and premium, bullish/bearish premium), `nope`, dealer
-greek exposure, IV rank, realised vol, term structure, 25-delta risk reversal, off-exchange
-short volume, short interest, insider counts, plus the **classified flow alerts** (ask/bid
-premium split, opening trades, sweeps, volume/OI — the vendor's "unusual activity") and
-dark-pool prints, paged back in time. The pull is parked behind the 30,000-a-day quota,
-which the fixed scan gate will no longer exhaust; it starts itself when a call returns 200.
-Scoring follows `xsec_predictors_test.py` exactly: one observation a week, rank IC, three
-splits, the noise bar stated. Until it runs, `flow_lean` and `dp_buy_share` remain priors.
+`05_studies/scripts/uw_history_pull.py` pulled, for the 300 most liquid optionable names,
+every vendor endpoint that returns dated history: two years of daily `options-volume`
+(call/put volume, ask- and bid-side volume, net call and put premium), a year of dealer
+greek exposure (gamma, delta, vanna, charm), a year of the vendor's own implied-versus-
+realised volatility, and insider purchase/sale counts by filing date. Joined to the Dolt
+panel's split-adjusted forward returns and universe, one observation per name per week,
+2024-08 → 2026-08. Reproduce: `05_studies/xsec_uw_test.py`. 48 tests; noise bar |t| ≈ 2.8.
+
+| feature (signed as published) | horizon | weeks | IC | t | 1st half | 2nd half |
+|---|---|---:|---:|---:|---:|---:|
+| signed option volume, same day (`lean`) | 5d | 96 | −0.003 | −0.4 | −0.009 | +0.003 |
+| signed option volume, 5-day mean | 5d | 96 | +0.008 | +0.9 | +0.009 | +0.006 |
+| net call − put premium, same day | 5d | 96 | −0.007 | −0.8 | −0.013 | −0.000 |
+| put/call ratio, 5-day (− sign expected) | 5d | 96 | **−0.020** | −1.9 | −0.033 | −0.008 |
+| option / stock volume (Johnson-So) | 5d | 96 | +0.012 | +0.8 | +0.001 | +0.023 |
+| dealer net gamma / delta / vanna | 5d | 44 | −0.01 to −0.02 | < 0.8 | | |
+| change in dealer gamma, 5d | 10d | 21 | +0.042 | +1.3 | +0.050 | +0.034 |
+| vendor IV − RV | 5d | 44 | +0.028 | +1.2 | +0.044 | +0.011 |
+| insider net purchases, 30 days | 5d | 52 | −0.004 | −0.1 | −0.023 | +0.015 |
+| signed option volume, same day | 21d | 24 | −0.032 | −1.8 | −0.050 | −0.015 |
+
+**Nothing clears the bar, and the two most-cited flow measures lean the wrong way.** The
+vendor's buyer-initiated call-minus-put volume — the closest public proxy to Pan &
+Poteshman's open-buy ratio and the input `flow_lean` carried at 0.40, the largest weight in
+the vote — ranks next week at IC −0.003 and next month at −0.032. The put/call ratio is
+contrarian: names with heavy put volume did slightly BETTER (t −1.9 against the published
+sign). Dealer greeks say nothing about direction, which repeats the repo's earlier
+`gamma_direction` null on the index. The one mildly positive line, a five-day change in
+dealer gamma at 10 days (t 1.3, both halves positive), is worth watching and nothing more.
+
+**What this changes.** `flow_lean` goes to weight 0 as a measured null: two years, 20,746
+name-weeks, IC ≈ 0, sign not stable. It had been served at the ceiling (0.45) on a prior
+plus a calibration built from overlapping rows. Dark pool stays an unmeasured prior at 0.10,
+because the vendor's dark-pool endpoint paged back one day, not a year. Insider stays at
+0.06: the count-based vendor series measured null, but the live voter uses the filing-level
+opportunistic filter, a different construction, and its own history is what will judge it.
+
+**Not yet testable.** The classified flow ALERTS (sweeps, opening trades, ask-side premium
+— the "unusual activity" product) came back six weeks deep, and the Dolt forward returns
+end 2026-08-06, so they do not overlap. Re-pull in three months and this table gets a row.

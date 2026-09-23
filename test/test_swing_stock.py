@@ -60,3 +60,14 @@ def test_snapshot_schema_is_registered():
     from idt import snapshots
     name, spec = snapshots.schema_for(ss.OUT)
     assert name == "swing_stock" and "picks" in spec["required_when_ok"]
+
+
+def test_mark_fills_pending_picks_without_rebuilding_the_cohort(tmp_path, monkeypatch):
+    monkeypatch.setattr(ss, "DB", str(tmp_path / "book.db"))
+    monkeypatch.setattr(ss, "_stamp", lambda: "2026-09-18 16:00")
+    px = {"ABC": _px(100.0, 104.0), "SPY": _px(500.0, 500.0)}
+    monkeypatch.setattr(ss, "_prices", lambda names: {k: v for k, v in px.items() if k in set(names) | {"SPY"}})
+    ss.book([{"ticker": "ABC", "report_date": "2026-09-15", "sue": 0.01}], {}, now=pd.Timestamp("2026-09-18 16:00"))
+    assert ss.ledger()["open"][0]["status"] == "pending"
+    r = ss.mark(now=pd.Timestamp("2026-09-21 16:00"))
+    assert r["filled"] == 1 and ss.ledger()["open"][0]["entry"] == 100.0

@@ -371,6 +371,12 @@ Rules:
   window and closes after the hold; that ledger is the forward test of the backtest's
   +4.7%/yr excess. Daily, unpaid (yfinance for EPS and prices; the UW calendar only for who
   reported). It is context on the Markets view, not an action. `02_findings/fundamentals.md`.
+- **The vendor's flow does not rank next week, measured on its own history.** Two years of
+  daily signed option volume, net premium and put/call on 286 names (`xsec_uw_test.py`):
+  IC ≈ 0, put/call contrarian, dealer greeks null for direction, insider counts null.
+  `flow_lean` is weight 0 (measured-null); it had been the largest weight in the vote. The
+  classified flow ALERTS paged back only six weeks and are untested; re-pull in a quarter.
+  `02_findings/uw_flow.md`.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

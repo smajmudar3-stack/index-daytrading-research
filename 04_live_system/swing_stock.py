@@ -282,6 +282,20 @@ def book(picks, px, now=None):
     return {"ok": True, "added": added, "filled": filled, "marked": marked, "closed": closed}
 
 
+def mark(now=None):
+    """Fill pending picks and re-mark open ones without rebuilding the cohort. Cheap: one
+    batched price download for the names in the ledger. Runs on the scan's 4h clock so a
+    pick issued after the close is filled at the NEXT open, not the open after the next run."""
+    con = _con()
+    if con is None:
+        return {"ok": False, "why": "ledger database could not be opened"}
+    names = [r[0] for r in con.execute("SELECT DISTINCT ticker FROM picks WHERE status IN ('pending','open')")]
+    con.close()
+    if not names:
+        return {"ok": True, "added": 0, "filled": 0, "marked": 0, "closed": 0}
+    return book([], _prices(names), now=now)
+
+
 def ledger(limit=60):
     """Open and closed picks for the panel, plus a summary. Never raises."""
     con = _con()
