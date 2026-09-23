@@ -20,6 +20,12 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
 
+**2026-09-23 ~16:00 ET:** the nineteen missing briefs relaunched under Sholo's directive, each
+agent instructed to WRITE its own `docs/briefs/<slug>.md` (so a cap cannot lose it) and to
+compute with yfinance/public data where possible. On resume: `ls docs/briefs/` — any of the
+26 slugs missing is a re-run; then copy each new brief's verdict row into
+`02_findings/online_methods.md` and the map, and commit.
+
 ## Where things stood at the first hand-off (2026-09-22, 22:00 ET)
 
 **Goal as stated by Sholo:** an automated system that turns $5,000 into $50,000, any market,
