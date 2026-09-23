@@ -34,6 +34,15 @@ def load():
     t = pd.read_sql("SELECT * FROM ticks", c)
     w = pd.read_sql("SELECT * FROM windows", c)
     c.close()
+    # The Gamma API's `closed` flag can lag resolution by hours. A window that ended more than
+    # ten minutes ago with a first and last spot is resolved the way the market resolves it:
+    # up if the end price is at or above the start (the recorder's spot is a proxy for the
+    # Chainlink TWAP; ties are rare and go to "up" on both). Marked so the table can say
+    # which rows rest on the API's word and which on the proxy.
+    import time as _t
+    proxy = w.resolved.isna() & w.last_spot.notna() & w.first_spot.notna() & (w.window_start + 300 < _t.time() - 600)
+    w.loc[proxy, "resolved"] = np.where(w.loc[proxy, "last_spot"] >= w.loc[proxy, "first_spot"], "up", "down")
+    w["resolution_source"] = np.where(proxy, "spot proxy", "api")
     w = w[w.resolved.notna()]
     d = t.merge(w[["asset", "window_start", "first_spot", "resolved"]], on=["asset", "window_start"])
     d["mid"] = np.where(d.cb_bid.notna(), (d.cb_bid + d.cb_ask) / 2, (d.bus_bid + d.bus_ask) / 2)

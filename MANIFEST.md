@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**427 files, 88,004 lines.**
+**428 files, 88,155 lines.**
 
 ## Repo root
 
-*11 files, 2,082 lines*
+*11 files, 2,083 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 458 | 34 KB |
-| `MANIFEST.md` | 634 | 25 KB |
+| `MANIFEST.md` | 635 | 25 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,513 lines*
+*18 files, 2,515 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -60,7 +60,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 97 | 6 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 56 | 6 KB |
+| `02_findings/online_methods.md` | 58 | 7 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -104,7 +104,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*80 files, 23,035 lines*
+*80 files, 23,037 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -157,7 +157,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/monitor.py` | 68 | 2 KB |
 | `04_live_system/option_pricer.py` | 290 | 12 KB |
 | `04_live_system/pead.py` | 100 | 5 KB |
-| `04_live_system/polymarket_recorder.py` | 164 | 7 KB |
+| `04_live_system/polymarket_recorder.py` | 166 | 7 KB |
 | `04_live_system/positions.py` | 320 | 15 KB |
 | `04_live_system/refresh_calendar.sh` | 94 | 5 KB |
 | `04_live_system/refresh_cycle.sh` | 50 | 3 KB |
@@ -264,7 +264,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*66 files, 10,455 lines*
+*67 files, 10,590 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -285,6 +285,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/final_system.py` | 40 | 2 KB |
 | `05_studies/fomc_research.py` | 89 | 5 KB |
 | `05_studies/gap_direction_test.py` | 213 | 9 KB |
+| `05_studies/gxz_straddle_test.py` | 126 | 7 KB |
 | `05_studies/hunt_base_rate.py` | 93 | 4 KB |
 | `05_studies/hunt_conditional.py` | 133 | 6 KB |
 | `05_studies/hunt_features.py` | 211 | 9 KB |
@@ -311,7 +312,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/momentum_stocks.py` | 74 | 4 KB |
 | `05_studies/multi_edge.py` | 95 | 4 KB |
 | `05_studies/orb_proper.py` | 117 | 5 KB |
-| `05_studies/polymarket_score.py` | 102 | 5 KB |
+| `05_studies/polymarket_score.py` | 111 | 6 KB |
 | `05_studies/predictability.py` | 52 | 3 KB |
 | `05_studies/scalp_backtest.py` | 69 | 3 KB |
 | `05_studies/scalp_update.py` | 140 | 7 KB |
@@ -459,12 +460,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,353 lines*
+*6 files, 1,364 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 70 | 4 KB |
+| `docs/CONTINUATION.md` | 81 | 5 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |

@@ -25,6 +25,8 @@ number to keep in mind is the target: 10× in three years is 115% a year; in fiv
 | **Earnings-surprise drift, quarterly, stock** | 33,755 announcements | **+2.84% Q5−Q1 over 63 sessions, t 4.3, all splits**; long-only +4.7%/yr over SPY | **real, slow** — live as `swing_stock.py` |
 | **Buyback / FCF tilt** | 104 months | t 3.4–3.5, strong 2022–23, flat 2024–26 | real, regime-dependent |
 | **VIX-backwardation overlay on a 2× index position** | 2006–2026 | 15.3%/yr vs 11.5% buy-and-hold, DD 59% | **real** — the best growth path measured (`goal_feasibility.md`) |
+| **Overnight-only holding** (Lou, Polk & Skouras) | 2,259 names, 1,910 sessions 2019–2026 | overnight (close→open) +12.0%/yr gross vs daytime +5.0%; **net of 10 bp a day: −13.0%/yr** | the gap is real and two trades a day eat it whole |
+| **Statistical arbitrage** (Avellaneda-Lee residual reversion) | 2,275 names, 3.8M name-days | gross +1–2%/yr, Sharpe 0.3; net negative at every hold | dead for a retail-cost book (`statarb.md`) |
 | **Sector rotation** | 1,512 configurations | none beat buy-and-hold | dead |
 | **Spinoffs** | event study | see `RESEARCH_SPINOFFS.md` | small |
 

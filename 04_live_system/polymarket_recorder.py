@@ -113,7 +113,9 @@ def resolve(c, now):
                        (now - 180, now - 120)).fetchall():
         asset, ws, slug = r
         try:
-            rows = _get(f"{GAMMA}/markets?slug={urllib.parse.quote(slug)}")
+            # `?slug=` alone EXCLUDES closed markets, so a finished window came back as an
+            # empty list and `resolved` stayed NULL forever. Ask for closed ones explicitly.
+            rows = _get(f"{GAMMA}/markets?slug={urllib.parse.quote(slug)}&closed=true")
             m = rows[0] if rows else {}
             prices = json.loads(m.get("outcomePrices") or "[]")
             yes_final = float(prices[0]) if prices else None

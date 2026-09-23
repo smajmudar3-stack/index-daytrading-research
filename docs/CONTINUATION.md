@@ -34,6 +34,17 @@ tree with sources). Do not re-run what is already measured; extend it.
   `online_methods.md`, `statarb.md`; research: `RESEARCH_WEEKLY_PREDICTORS.md`,
   `RESEARCH_EVERY_MARKET.md`.
 
+### Added late 2026-09-22 (after the first hand-off)
+
+- `05_studies/statarb_test.py` → `02_findings/statarb.md`: dead net of costs.
+- Overnight-only holding: +12%/yr gross, −13%/yr net of 10 bp a day (in `online_methods.md`).
+- `05_studies/gxz_straddle_test.py`: the pre-earnings straddle bought T-3, sold before the
+  release, real fills, 2020–2026. Was still running at hand-off; result goes into
+  `online_methods.md` and, if positive after the spread, into `weekly_structure.md`.
+- `polymarket_recorder.py` fix: the Gamma API hides closed markets unless `closed=true`
+  is passed, so resolutions never populated; fixed and the job restarted ~22:00 ET. The
+  scorer also has a spot-proxy fallback and labels which rows use it.
+
 ## Next, in order
 
 1. **Score the overnight recorders** (needs ~8 h of data; do this first):
