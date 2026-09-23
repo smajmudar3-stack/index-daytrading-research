@@ -45,8 +45,36 @@ tree with sources). Do not re-run what is already measured; extend it.
   is passed, so resolutions never populated; fixed and the job restarted ~22:00 ET. The
   scorer also has a spot-proxy fallback and labels which rows use it.
 
+### The research swarm (launched 2026-09-22 ~22:30 ET under Sholo's directive "use claude for everything this session")
+
+Sixteen background agents, one per branch. Each brief is filed as `docs/briefs/<slug>.md`
+when it lands and its verdict row is copied into `02_findings/online_methods.md` and the map.
+If a slug below has NO file in `docs/briefs/`, that agent did not finish before the session
+ended: re-run it (the prompts are the bullet text; ask for 1,200–2,000 words with sources).
+
+| slug | topic |
+|---|---|
+| `prediction-markets` | Polymarket 5-min mechanics/fees/oracle latency, bot claims with receipts, Polymarket-vs-Kalshi gaps, US access |
+| `memecoins` | launch survival/return distributions, sniping economics, verified wallet P&L, rug detection, scams |
+| `crypto-derivatives` | funding carry, CME basis, crypto options VRP, cross-exchange/DEX arb latency, US access |
+| `options-income` | CBOE PUT/BXM/CNDR records, VRP with defined risk, dispersion, 0DTE who-wins, earnings option plays, LEAPS leverage |
+| `equity-anomalies` | OSAP post-2015 survivors, JKP replication, reversal, PEAD variants, momentum crash control, ML selection |
+| `leverage-growth` | 2×/3× index with MA filters, vol targeting, Kelly/ruin, trend following, VIX overlays, the 58%/month arithmetic |
+| `bot-claims-audit` | TRM drainer campaign, engagement-bait pattern, open-source bots' verified results, retail base rates, real 10× cases |
+| `sports-betting` | value/arb betting ROI and limiting, promos, Kalshi/Polymarket sports, legality, DFS |
+| `yields-altdata` | T-bills to stablecoin/staking/JEPI/SPAC/merger arb; free alt-data signals with OOS results |
+| `retail-base-rates` | day-trader outcome studies, leverage/ruin, track-record survivorship, verified small-account 10× runs |
+| `futures-fx` | CTA/trend records, micro futures, Turtle OOS, FX carry/momentum, prop-firm pass rates, seasonal spreads |
+| `crypto-factors-mm` | Liu-Tsyvinski-Wu crypto factors realised 2021–26; retail market-making (Hummingbot) evidence |
+| `informed-cloning` | congress trades (NANC/KRUZ), 13F cloning (GVIP), insider cluster buys, 13D activism, short reports |
+| `calendar-macro` | pre-FOMC drift decay, turn-of-month, earnings premium, opex/pension flows, CPI/NFP days, overnight gap |
+| `llm-news` | Lopez-Lira & Tang and replications, filing/transcript tone, Reddit sentiment, news-arrival speed, LLM portfolios |
+| `special-situations` | merger arb, tenders/odd-lots, spinoffs, SPAC arb, index adds, splits; crypto airdrop/points farming |
+
 ## Next, in order
 
+0. **Collect the swarm's briefs** into `docs/briefs/`, copy each verdict row into
+   `online_methods.md` and the map, and re-run any slug with no file.
 1. **Score the overnight recorders** (needs ~8 h of data; do this first):
    `05_studies/polymarket_score.py` and `05_studies/memecoin_score.py`. If the Polymarket
    `resolved` column is still NULL for old windows, the Gamma `closed` flag lags: add a
