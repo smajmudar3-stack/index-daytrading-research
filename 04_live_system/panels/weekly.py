@@ -278,6 +278,36 @@ def book():
                  source="weekly_book.mark() · entry price frozen at the moment of issue")
 
 
+# ------------------------------------------------------------ the index overlay ---
+
+@safe
+@describe("index_overlay", "Index overlay: the measured growth path, in paper")
+def overlay():
+    """Always long the index, twice the exposure while VIX is backwardated inside a golden
+    cross. Measured 15.3%/yr vs 11.5% buy-and-hold with a 59% drawdown. Context: the
+    signal's state, the exposure it implies, and the paper equity curve since it started."""
+    import index_overlay as io
+    p, st = snapshots.read(io.OUT)
+    if st in ("absent", "unreadable", "wrong_version", "incomplete") or p is None:
+        why, fix = snapshots.explain(io.OUT, st)
+        return unavailable("index_overlay", "Index overlay: the measured growth path, in paper", why, fix=fix)
+    if not p.get("ok"):
+        return unavailable("index_overlay", "Index overlay: the measured growth path, in paper",
+                           p.get("blocked", "did not run"), fix="idt refresh")
+    led = p.get("ledger") or {}
+    return panel("index_overlay", "Index overlay: the measured growth path, in paper",
+                 state=STALE if st == "stale" else OK, age_min=_age_min(io.OUT),
+                 body={"signal_on": p.get("signal_on"), "detail": p.get("detail") or {},
+                       "exposure": p.get("exposure"), "base_x": p.get("base_x"), "boost_x": p.get("boost_x"),
+                       "measured": p.get("measured") or {}, "summary": led.get("summary") or {},
+                       "days": led.get("days") or []},
+                 note=(f"Signal {'ON' if p.get('signal_on') else 'off'}: exposure {p.get('exposure')}x the index "
+                       f"from the next open. The rule measured 15.3%/yr against 11.5% for buy-and-hold over "
+                       f"2006–2026, with a 59% maximum drawdown; at that rate $5,000 reaches $50,000 in about "
+                       f"sixteen years. This is the paper record of that rule, from the day it started."),
+                 source="index_overlay.run() · ^VIX, ^VIX3M, SPY daily · 02_findings/goal_feasibility.md")
+
+
 # ------------------------------------------------------- the quarterly stock book ---
 
 @safe

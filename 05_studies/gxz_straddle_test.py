@@ -68,7 +68,10 @@ def main():
         if ch.empty:
             continue
         days = sorted(ch.date.unique())
-        day_idx = {d: i for i, d in enumerate(days)}
+        # ONE INDEX, NOT A MILLION-ROW FILTER PER EVENT. The first version filtered the whole
+        # year's chain by (date, symbol) for every announcement and ran 13 hours without
+        # finishing a year. A groupby dict is the same lookup in microseconds.
+        by_key = {k: g for k, g in ch.groupby(["date", "act_symbol"], observed=True)}
         ey = e[(e.date.dt.year == yr)]
         pxy = px[px.date.dt.year == yr]
         cl = pxy.pivot(index="date", columns="act_symbol", values="close")
@@ -88,13 +91,16 @@ def main():
             s0 = cl[sym].get(de); s1 = cl[sym].get(dx)
             if pd.isna(s0) or pd.isna(s1) or s0 < 10:
                 continue
-            day0 = ch[(ch.date == de) & (ch.act_symbol == sym)]
-            if day0.empty:
+            day0 = by_key.get((de, sym))
+            if day0 is None or day0.empty:
                 continue
             st = atm_straddle(day0, s0)
             if not st:
                 continue
-            day1 = ch[(ch.date == dx) & (ch.act_symbol == sym) & (ch.expiration == st["expiration"]) & (ch.strike == st["strike"])]
+            d1 = by_key.get((dx, sym))
+            if d1 is None:
+                continue
+            day1 = d1[(d1.expiration == st["expiration"]) & (d1.strike == st["strike"])]
             c1, p1 = day1[day1.call_put == "Call"], day1[day1.call_put == "Put"]
             if c1.empty or p1.empty:
                 continue

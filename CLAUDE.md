@@ -390,6 +390,15 @@ Rules:
   recording and what cannot be measured from here, is `03_research/RESEARCH_EVERY_MARKET.md`;
   the memecoin launch feed is recorded by `memecoin_recorder.py` and scored by
   `05_studies/memecoin_score.py`.
+- **The measured growth path now runs in paper.** `index_overlay.py` holds the index at 1×
+  and 2× while VIX is backwardated inside a golden cross — the configuration
+  `goal_feasibility.md` measured at 15.3%/yr vs 11.5% with a 59% drawdown — and marks a
+  $5,000 paper equity daily with borrow charged and exposure applied to the NEXT session.
+  Alongside it: the quarterly stock book and the (mostly empty) weekly options book. Live
+  recorders settled the three "fast money" claims: Polymarket 5-min (191 windows: buying the
+  leader with ≤2 min left loses 7–21% of premium before the 1.56% fee), cross-exchange gaps
+  (12,653 raw, 0 net of fees), memecoin launches (137: −19% at 1 h, −34% at 6 h). The
+  pre-earnings straddle reproduces the paper at mid (+3.2%) and loses 33% at real fills.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

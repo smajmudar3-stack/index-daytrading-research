@@ -242,6 +242,19 @@ if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock failed: {type(_e).__name__}: {_e}")
 
+# THE INDEX OVERLAY, once a day: always long the index, twice the exposure while VIX is
+# backwardated inside a golden cross -- the one growth path measured (15.3%/yr vs 11.5%,
+# 02_findings/goal_feasibility.md). Paper equity from $5,000, marked daily. Records only.
+if _stale("index_overlay_snapshot.json", 24 * 3600):
+    try:
+        import index_overlay
+        _io = index_overlay.run()
+        print(f"index overlay: signal {'ON' if _io.get('signal_on') else 'off'}, exposure "
+              f"{_io.get('exposure')}x, paper equity {(_io.get('ledger') or {}).get('summary', {}).get('equity')}"
+              + (f" — {_io['blocked']}" if _io.get("blocked") else ""))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"index_overlay failed: {type(_e).__name__}: {_e}")
+
 # ...and its ledger on a 4h clock, so a pick issued after the close fills at the next open.
 if _stale("swing_stock.db", 4 * 3600):
     try:

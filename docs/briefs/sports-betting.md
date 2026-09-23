@@ -1,0 +1,61 @@
+<!-- research brief, filed 2026-09-22; agent output verbatim; verdicts copied to 02_findings/online_methods.md -->
+
+I have what I need; no further fetches required. Here is the report.
+
+# Sports betting and event contracts as an automated profit source (US individual, Sept 2026)
+
+## 1. Closing-line value and value-betting services
+
+The one robust result in this field: beating the closing line is the only reliable predictor of long-run profit, and the amount by which you beat it is roughly your expected yield ([Sports Trading Network](https://www.sportstradingnetwork.com/article/using-the-closing-line-to-test-your-skill-in-betting/), Pinnacle's own trading director says the same in [Sharp Football](https://www.sharpfootballanalysis.com/sportsbook/clv-betting/)). Point spreads explain ~86% of the variance in outcomes, so the market is close to efficient and the residual edge is small ([Saumarez](https://joesaumarez.co.uk/sports-betting-market-efficiency-and-the-closing-line)).
+
+Self-reported service numbers (not audited, survivorship-biased):
+
+- RebelBetting community: CLV 3.3% vs realised yield 2.7% (Jan 2025); CLV 3.0% vs yield 2.5% (Sep 2025); Oct 2025 community profit €279k, average member "€1,760/month", marketing claim "30% ROI/month" on bankroll. Backtest yield since 2012: 5.6% ([results](https://www.rebelbetting.com/valuebetting/valuebetting-results), [Oct 2025](https://www.rebelbetting.com/customer-results/value-betting-results-october-2025)).
+- OddsJam: no published aggregate ROI; markets a 70%+ "CLV beat rate" and says limits are "inevitable" ([RotoWire review](https://www.rotowire.com/betting/oddsjam-review)).
+- Trademate: one published user turned over €18k on a €3k bankroll for €534 of CLV (~3%) ([Trademate](https://tradematesports.medium.com/closing-line-the-most-important-metric-in-sports-trading-a5b8af404469)).
+
+So the honest per-bet edge is 2.5–3% of stake. Monthly ROI on bankroll depends entirely on turnover, and turnover is what gets you limited. **No service publishes a median account lifetime.** The only stated figure I found is a practitioner guide: "sharp soft-book accounts last 3–12 weeks depending on book and stake discipline" ([SportsBetEdge](https://sportsbetedge.com/automation/)). Once limited, stakes drop to $20–$200 per bet ([XCLSV](https://xclsvmedia.com/oddsjam-review-2026-is-this-ev-betting-tool-worth-it/)).
+
+## 2. Arbitrage
+
+Typical arb margin 1–3% (up to 5% around boosts); a $10k bankroll sees 3–10 arbs/day averaging ~2% ([SharpAPI](https://sharpapi.io/learn/sports-betting-arbitrage-explained), [Boyd's Bets](https://www.boydsbets.com/arbitrage-betting/)). Gross that is ~$100–300/day at $1,000 per leg, which is why the arithmetic looks like 30–60%/month. What the arithmetic omits: every leg is on a regulated book that profiles exactly this. Massachusetts, the only state that now forces operators to state the reason for a limit (effective 1 June 2026, 48-hour notice), has surfaced the classifiers: DraftKings cites "live market latency exploitation" and "structured wagering", FanDuel/BetMGM "pricing inefficiencies" and "unusual markets" ([CBS](https://www.cbssports.com/betting/news/massachusetts-becomes-first-state-to-require-sportsbooks-to-explain-why-they-limit-winning-bettors/), [Gaming Intelligence](https://www.gamingintelligence.com/sectors/betting/231532-massachusetts-first-to-require-sportsbooks-to-justify-account-limits-on-winning-bettors/)). Operator data at the MGC roundtable: 0.64% of all accounts are limited, concentrated among winners. Capacity is therefore the sum of a handful of accounts × 3–12 weeks each, then $20 stakes.
+
+## 3. Promo / matched betting for a US account
+
+Headline welcome offers in a full-menu state, September 2026: Fanatics up to $1,000 FanCash, BetMGM bet $10/get $150, DraftKings bet $5/get $150, bet365 bet $10/get $200–365, FanDuel up to $250, Hard Rock $100, theScore $1,000 first-bet reset; sites total it at "$5,000+" ([Covers](https://www.covers.com/betting/bonuses), [Goal](https://www.goal.com/en-us/betting/sportsbook-promos-us/blt4eaf874e36455b5f)). Bonus bets return stake-not-included and hedge at roughly 65–75% of face; a $1,000 first-bet reset is worth ~$300–400. Realistic one-time extraction: **$2,000–4,000 per person per state**, once, plus a slower drip of reload boosts that the books cut off as soon as you hedge them consistently. It is not a recurring income line.
+
+Tax makes it worse from 2026. Gambling winnings are ordinary income; losses are deductible only if you itemise, only up to winnings, and now only at **90%** of losses (OBBBA, effective 1 Jan 2026). A matched bettor cycling $50k of gross wins against $47k of gross losses to net $3k has taxable gambling income of $50k − 0.9 × $47k = $7.7k. Unabated's example: $2M wins / $1.9M losses, tax bill rises from ~$17k to ~$74k on a $100k real profit. Professionals get no relief, and "each wager is most likely a session" ([Unabated](https://unabated.com/post/the-state-of-the-2026-gambling-deduction-changes), [Tax Foundation](https://taxfoundation.org/blog/gambling-losses-tax-big-beautiful-bill/), [Forbes](https://www.forbes.com/sites/nathangoldman/2026/01/13/gambling-tax-alert-new-law-cuts-loss-deductions-bettors-face-big-hit/)). The FAIR BET Act repeal has not passed. High-turnover, thin-margin strategies (arb, matched betting, value betting) are precisely the ones the 90% rule punishes.
+
+## 4. Kalshi and Polymarket sports contracts
+
+**Fees.** Kalshi taker fee = 0.07 × P × (1−P) per contract: 1.75% of stake at 50c, 0.63% at 10c; maker fee is 25% of that (~0.44% at 50c); a round trip pays twice. Against a −110 book (2.38 pt margin) a 50c taker pays 1.75 pt, so Kalshi beats −110 but loses to −107 or better ([OddsShopper](https://www.oddsshopper.com/articles/prediction-markets/kalshi-fees), [PredictReport](https://predictreport.io/blog/kalshi-fees-explained)). Combined Kalshi+Polymarket volume hit $44.8bn in June 2026, about 3× the US legal sportsbook handle, with sports ~80% of Kalshi's volume ([Revenue Memo](https://www.revenuememo.com/p/how-does-kalshi-make-money), [MetaMask](https://metamask.io/news/kalshi-vs-polymarket)); liquid NBA/NFL contracts run 1–3c wide.
+
+**Measured inefficiency.** The only academic work on Kalshi (GWU/UCD working paper, 313,972 contract prices through April 2025): average post-fee return on all contracts about **−20%**; a clear favourite–longshot bias (contracts under 10c lose >60%, contracts above 50c earn a small positive return); **makers average −9.64% vs takers −31.46%**, and makers buying contracts at 50c or above earn **+2.6% after fees** ([Bürgi, Deng, Whelan 2026](https://www2.gwu.edu/~forcpgm/2026-001.pdf)). That is the one documented, repeatable edge: rest bids on favourites, never lift longshots. Sample predates most sports volume.
+
+Polymarket NBA arbitrage (arXiv, 173 games, 75M order-book snapshots, Feb–Mar 2026): single-market arbs occurred 0.0001% of the time (7 episodes across 3,042 markets, median life 3.6s); combinatorial arbs 290 episodes, median yield 101bp, median life 16s, and 76.9% of them capped at ~15 shares. Total capturable profit for the month: ~$770 ([arXiv 2605.00864](https://arxiv.org/html/2605.00864v1)). That is the capacity of a perfect bot.
+
+Vendor-side comparisons of exchange vs sportsbook prices (e.g. Kalshi 0.85% vs 4.62% vig, Kalshi favourites 2–3 pt "cheaper" — [Tech Insider](https://tech-insider.org/prediction-markets/sports-prediction-markets/); "3.2 pt median gap over 1,840 markets" — [Laika Labs](https://laikalabs.ai/prediction-markets/polymarket-arbitrage-sportsbooks)) are mostly the vig itself, not mispricing: half of a 4.6% overround is 2.3 pt. Cross-venue arbs on major sports run 1–5% but are thin and short-lived ([OddsPapi](https://oddspapi.io/blog/polymarket-arbitrage-local-bookmakers/)).
+
+## 5. Legality and API access
+
+- **Regulated sportsbooks:** none offers a wagering API; all prohibit automation in their terms. Michigan codifies it: R 432.752(1)(c)(v) requires a "prohibition against utilizing automated computerized software … such as a 'bot,' to engage in play" ([Cornell LII](https://www.law.cornell.edu/regulations/michigan/Mich-Admin-Code-R-432-752)). Bots get accounts closed, not prosecuted.
+- **Kalshi:** the reverse. Official REST/WebSocket API, scoped keys (`write::trade`), rate-limit tiers (Advanced, Premier, Paragon, Prime, Prestige) earned automatically on 30-day volume, subaccount keys, RFQs, maker-fee waivers on NFL combos, and margin-volume reward programs ([API changelog](https://docs.kalshi.com/changelog)). Automation is the intended use.
+- **Whether Kalshi sports contracts are legal in your state is unsettled.** Third Circuit (6 Apr 2026, *KalshiEX v. Flaherty*): sports contracts are swaps, states preempted ([Holland & Knight](https://www.hklaw.com/en/insights/publications/2026/04/federal-appeals-court-cftc-jurisdiction-over-sports-event-contracts)). Ninth Circuit (28 Aug 2026, 3–0): not swaps, states may regulate. Massachusetts state court enjoined Kalshi sports in January 2026; suits by WA, MI, NV, AZ (criminal charges), MN; Kalshi suing NV, NJ, MD, OH, NY, UT; CFTC proposed Rule 40.11 (10 June 2026); a Supreme Court petition is likely ([DLA Piper, Sept 2026](https://www.dlapiper.com/en-us/insights/publications/2026/09/legal-status-at-odds-tracking-developments-in-prediction-markets-and-sports-betting)). Risk to a user is access being cut, not prosecution.
+- **Exchanges:** Novig launched as a CFTC-regulated sports exchange on 4 Aug 2026 (free maker and pre-game taker fills); ProphetX is in 40+ states but manual-only; Polymarket US operates a state-gated CFTC app; DraftKings Predictions and FanDuel Predicts also run under CFTC ([OddsShopper venues](https://www.oddsshopper.com/articles/prediction-markets/kalshi-polymarket-vs-sportsbook)).
+
+## 6. DFS / model route
+
+Rake is 10% on cash games, ~15% on large GPPs, 6% on some small satellites. Break-even in 50/50s at 10% rake is 55.5%; a normal-distribution estimate puts profitable players at ~4% of the pool at 10% rake, ~16% at 6% ([RotoGrinders](https://rotogrinders.com/articles/daily-fantasy-spors-rake-increases-percetage-of-profitable-players-9661)). "Professional-grade" is 10% ROI on entries; 3–5% is good recreational. A 5% player entering 20 contests a week at $50 makes $12.50/hour; $60k/yr needs ~333 contests/week at $50 ([DFS Degen](https://dfsdegen.com/blog/dfs-roi-math-hourly-rate)). Pick'em apps (PrizePicks/Underdog) are the exception where a correlation model has a published edge: OddsJam's optimiser reports +9.26% on six-pick flex vs −8.6% on two-pick power plays (self-reported).
+
+## Verdict
+
+| Method | Expected ROI | Capacity | Time to limit | US legality | 58%/mo | 20%/yr |
+|---|---|---|---|---|---|---|
+| Value betting vs closing line (soft books) | 2.5–3% per bet; 5–15%/mo on bankroll while accounts live | ~$1–5k/bet across a few books, then $20–200 | 3–12 weeks per account | Legal; bots breach ToS (illegal in MI) | No | Yes for one season, then dies |
+| Sportsbook arbitrage | 1–3% per arb, 3–10/day | Same as above, worse (arbs are the classifier) | Weeks | Same | No | Briefly |
+| Promo / matched betting | $2–4k one-time per state | One-off; reloads small | Immediate once hedging is obvious | Legal; 90% loss rule creates phantom income | No | Not recurring |
+| Kalshi/Polymarket cross-venue arb bot | ~1% per episode, 16s windows, ~15 shares | ~$770/month measured (NBA) | None (exchanges don't ban) | Kalshi API sanctioned; state access contested | No | No (capacity) |
+| Kalshi market-making on favourites | +2.6% per contract after fees (makers, ≥50c) | Large in principle; adverse selection unmeasured | None | As above | No | Plausible, unproven at scale |
+| DFS / pick'em models | 3–10% on entries after rake | Hourly wage, not capital return | None, but pick'em apps do limit | Legal (state-dependent) | No | Only as labour |
+
+Nothing here reaches 58% a month. The only structurally durable, automatable edge with a peer-reviewed measurement is passive liquidity provision on Kalshi favourites, and its scalability has not been tested. Everything against a state-regulated sportsbook is a short-dated option that expires when the limit lands.

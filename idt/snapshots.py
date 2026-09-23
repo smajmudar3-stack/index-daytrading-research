@@ -91,6 +91,14 @@ SCHEMAS = {
     },
     # Weekly trade cards. Short max_age on purpose: every card carries live strikes and
     # a net debit or credit off a real chain, and those go wrong within the session.
+    "index_overlay": {
+        "version": 1,
+        "files": ("index_overlay_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("signal_on", "exposure"),
+        "not_null": (),
+        "max_age_min": 1500,
+    },
     "swing_stock": {
         "version": 1,
         "files": ("swing_stock_snapshot.json",),

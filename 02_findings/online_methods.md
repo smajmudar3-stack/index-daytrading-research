@@ -10,8 +10,9 @@ number to keep in mind is the target: 10× in three years is 115% a year; in fiv
 
 | method | data | result | verdict |
 |---|---|---|---|
-| **Cross-exchange crypto arbitrage** (the viral "price errors across 50 markets") | 4 venues, BTC, 10-min probe + continuous recorder (`crypto_venue_recorder.py`) | 1,182 raw gaps in 2,496 checks (47%), largest 5.2 bp; **0 beat taker fees**; best net −32 bp | gaps exist, are a twentieth of a percent, and cost a third of a percent to cross. Dead for retail. |
-| **Polymarket 5-minute crypto up/down vs spot** | order book + spot every 3 s (`polymarket_recorder.py`), scored by `polymarket_score.py` | recording since 2026-09-22 21:45 ET; ~150 windows a night per coin | **open** — first result the morning after; the 1-cent spread is 1% of notional per trade, which is the bar to clear |
+| **Cross-exchange crypto arbitrage** (the viral "price errors across 50 markets") | 4 venues, BTC, 10-min probe + continuous recorder (`crypto_venue_recorder.py`) | 12,653 raw gaps over 17 h (continuous recorder), largest 49 bp in a spike; **0 beat taker fees**; best net −14 bp | gaps exist, are a twentieth of a percent, and cost a third of a percent to cross. Dead for retail. |
+| **Polymarket 5-minute crypto up/down vs spot** | 191 resolved windows (BTC/ETH/SOL), order book vs spot every 3 s, 2026-09-22/23 (`polymarket_recorder.py`, `polymarket_score.py`) | "buy the side ahead" with ≤60 s left: 70% win, avg cost 0.75, **−21% of premium**; ≤120 s: 86% win, −7.5%; ≤240 s: +4.5% (t 0.6) — all BEFORE the 1.56% taker fee | priced at 3-second polling; the documented edge is sub-second oracle latency, now fee-taxed. Recorder keeps running for a larger sample. |
+| **Memecoin launch sniping** | 137 DexScreener launches at first sight, re-priced for a day (`memecoin_recorder.py`, `memecoin_score.py`) | buy every launch equal-weight: **−5.8% at 5 min, −6.2% at 30 min, −18.7% at 1 h, −34.4% at 6 h**; 42% down >50% by 6 h, 0% doubled; median pool $17k | dead at retail latency, as the literature says (69% die day one, <2% graduate) |
 | **Index put-writing, monthly, ATM** (CBOE PUT style) | SPY chain 2019-05 → 2026-06, sold at the bid, held to expiry | CAGR 4.2% vs SPY 10.0%; max DD −16% vs −25%; Sharpe 0.49 vs 0.66 | lower drawdown, less than half the return |
 | **Index put-writing, 15-delta** | same | CAGR **4.7%**, max DD **−3.3%**, worst month −2.8%, 91% months positive, Sharpe 2.07 | a very smooth 5% a year. A yield, not a growth path. At 2× it is 3.2%. |
 | **Covered calls, 30-delta** | same | CAGR 7.6% vs 10.0%; DD −20% vs −25% | gives up 2.8 points a year for a slightly softer ride |
@@ -19,6 +20,7 @@ number to keep in mind is the target: 10× in three years is 115% a year; in fiv
 | **Weekly single-name direction with options** | 214,803 name-weeks, 67,380 real-fill verticals | direction ~52%; spread costs 8–15% of risk per trade | dead (`weekly_predictors.md`, `weekly_structure.md`) |
 | **Intraday / 0DTE scalping on the index** | ~340,000 tests, 1,919 sessions; vendor flow 103 sessions | null; flow worth 1–2 bp vs 5–10 bp round trip | dead (`INTRADAY_DIRECTION.md`, `uw_flow.md`) |
 | **Earnings straddles** through the print | 12,035 | −35%/trade | dead |
+| **Pre-earnings straddle, the paper's way** (buy T−3, sell before the print; Gao-Xing-Zhang) | 26,063 events, 1,908 names, 2020–2026, real chains (`gxz_straddle_test.py`) | at MID: **+3.17%** (t 22), reproducing the paper's +3.34%; at real ask/bid: **−32.9%**; liquid names only (spread ≤5%, n=706): −4.6% (t −9) against +2.4% at mid | the effect is real and the spread is larger than it in every liquidity tier |
 | **Far-OTM lottery buying** | 10.5M purchases | −48% to −90% | dead |
 | **"Unusual options activity" following** | vendor's own 2-year history, 286 names | IC ≈ 0, put/call contrarian | dead (`uw_flow.md`) |
 | **Momentum / 52-week high / reversal, weekly** | 214,803 name-weeks | inside the noise bar | dead at a week |
@@ -56,3 +58,24 @@ if smoothness is worth 5 points of return. That is a twelve-to-sixteen-year path
 
 The recorders keep running. If Polymarket's odds turn out to lag spot by more than the
 spread, that row changes and this file will say so.
+
+## What the research swarm added (2026-09-22/23, briefs in `docs/briefs/`)
+
+Seven of twenty-six agent briefs finished before the session cap; each is filed verbatim.
+The verdict rows, with the brief that carries the sources:
+
+| branch | brief | verdict |
+|---|---|---|
+| Prediction markets | `prediction-markets.md` | no verified track record; the peer-reviewed converter arbitrage pays **$0.08 a trade** by 2026 with the top ten addresses taking 75%; the $8.2M "edge" was settlement manipulation, now closed by TWAP; Kalshi's own 15-min "buy the leader" test: 0.67c edge vs 1.55c fee; polymarket.com is close-only for US IPs |
+| Memecoins | `memecoins.md` | graduation 0.63% → 0.20%; deployer-funded snipers exit 85% within 5 min into you; retail-latency EV −8 to −15% per launch; 0.76% of wallets ever made $1,000 |
+| Crypto derivatives | `crypto-derivatives.md` | funding carry ~4%/yr in 2025–26 on US-legal venues before the forgone cash rate; CME basis below T-bills; MEV taken by 19 firms; the one audited 30%+ bot decayed 4–5× in a year |
+| Options income | `options-income.md` | CBOE PUT 7.6%/yr and BXM 6.6% for 2018–25 vs SPY 14.3%; retail 0DTE lost $70M over two years, $50M of it costs; pre-earnings straddle +1% at mid, **−9% at bid/ask**; a 0.9-delta SPY LEAPS costs $21,500, so a $5k account cannot lever with options |
+| Sports betting | `sports-betting.md` | value betting 2.5–3% a bet until the account is limited in 3–12 weeks; Polymarket NBA arbitrage capacity ~$770 a month; Kalshi makers on favourites +2.6% after fees, unscaled; 2026's 90% loss-deduction rule punishes high-turnover play |
+| Yields and alt-data | `yields-altdata.md` | best documented retail yield is a covered-call ETF at 8–16% that trails its index; every advertised yield above 15% has a recorded principal loss; index option alphas indistinguishable from zero since ~2010 (Chicago Fed 2025); alt-data signals halve after publication |
+| Bot claims audit | `bot-claims-audit.md` | TRM: $517K drained by nine "Claude bot" tutorials; the viral dashboards are Artifacts renders; the one open-source bot that published real trades made **+$11.51**; 97% of persistent Brazilian day traders lose; a real 10× in 5 months has no verified precedent |
+
+The remaining nineteen branches (equity anomalies, leverage paths, retail base rates, futures/FX,
+crypto factors, informed cloning, calendar effects, LLM news, special situations, vol ETPs,
+ETF/CEF gaps, microcaps, commodities, gambling, income routes, promos, non-market arbitrage,
+international macro, crypto intraday) were cut off by the session cap; `docs/CONTINUATION.md`
+lists them for re-run.

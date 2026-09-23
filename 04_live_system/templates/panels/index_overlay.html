@@ -1,0 +1,25 @@
+{# The index overlay, in paper. State of the one measured signal, the exposure it implies,
+   and the equity curve since the module started. Context, never an instruction. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    <span class="chip {{ 'info' if p.body.signal_on else '' }}">signal {{ 'ON' if p.body.signal_on else 'off' }}</span>
+  </h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+  <div class="bk-sum">
+    <span><b>exposure</b> {{ p.body.exposure }}x</span>
+    {% if p.body.detail.vix_ratio %}<span><b>VIX / VIX3M</b> {{ p.body.detail.vix_ratio }}</span>{% endif %}
+    <span><b>50d over 200d</b> {{ 'yes' if p.body.detail.golden_cross else 'no' }}</span>
+  </div>
+  {% set s = p.body.summary %}
+  {% if s and s.sessions %}
+  <div class="bk-sum">
+    <span><b>paper equity</b> ${{ '%.0f'|format(s.equity) }} <em>from $5,000 on {{ s.since }}</em></span>
+    <span class="{{ 'up' if (s.return_pct or 0) > 0 else 'down' }}"><b>return</b> {{ '%+.2f'|format(s.return_pct) }}%</span>
+    <span><b>buy &amp; hold</b> ${{ '%.0f'|format(s.buy_hold_equity) }}</span>
+    <span><b>max drawdown</b> {{ '%.2f'|format(s.max_dd_pct) }}%</span>
+    <span><b>sessions</b> {{ s.sessions }} <em>{{ s.days_on }} with the signal on</em></span>
+  </div>
+  {% endif %}
+  {% if p.body.measured %}<p class="wk-back-ft">Measured: {{ '%.1f'|format(p.body.measured.cagr*100) }}%/yr vs {{ '%.1f'|format(p.body.measured.buy_hold_cagr*100) }}% buy-and-hold, max drawdown {{ '%.0f'|format(p.body.measured.max_dd*100) }}% — {{ p.body.measured.source }}.</p>{% endif %}
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

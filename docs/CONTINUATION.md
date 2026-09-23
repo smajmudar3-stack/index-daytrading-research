@@ -4,7 +4,19 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-22, 22:00 ET)
+## Where things stand (2026-09-23, 15:00 ET)
+
+**Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
+memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
+bot-claims-audit); nineteen agents were cut off by the session cap and three relaunches were
+refused by the route gate. **To re-run them, Sholo's prompt must begin with "use claude for
+everything this session"** (the gate reads the directive only from the prompt it arrives in).
+Overnight recorders scored: Polymarket null at 3 s polling (191 windows), cross-venue null
+(12,653 gaps, 0 net), memecoins strongly negative (137 launches). Pre-earnings straddle:
++3.2% at mid, −33% real, −4.6% even in the tightest-spread names. `index_overlay.py` built,
+wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
+
+## Where things stood at the first hand-off (2026-09-22, 22:00 ET)
 
 **Goal as stated by Sholo:** an automated system that turns $5,000 into $50,000, any market,
 any method, no direction filters, with strong swing theses, without overfitting.
@@ -73,16 +85,20 @@ ended: re-run it (the prompts are the bullet text; ask for 1,200–2,000 words w
 
 ## Next, in order
 
-0. **Collect the swarm's briefs** into `docs/briefs/`, copy each verdict row into
-   `online_methods.md` and the map, and re-run any slug with no file.
-1. **Score the overnight recorders** (needs ~8 h of data; do this first):
+0. **Re-run the nineteen missing swarm briefs** (slugs with no file in `docs/briefs/`),
+   which needs the operator directive in the prompt; file each and copy its verdict row.
+1. **Re-score the recorders after a week** (Polymarket needs ~1,000 windows for the
+   last-30-second cells; memecoins are decisive already). Then `launchctl unload` the
+   recorders job if nothing changes. Originally:
    `05_studies/polymarket_score.py` and `05_studies/memecoin_score.py`. If the Polymarket
    `resolved` column is still NULL for old windows, the Gamma `closed` flag lags: add a
    fallback in the scorer that resolves `up` when `last_spot >= first_spot`. Write the numbers
    into `online_methods.md` and the map. If both are null, `launchctl unload` the recorders
    job; if Polymarket shows a last-30-second mispricing larger than 1.56% + spread, build the
    Polymarket-vs-Kalshi recorder next (both APIs answered; see the map).
-2. **Wire the index overlay into the paper agent** (`ai_trader.py` / `risk_gates.py`): hold
+2. **DONE 2026-09-23: the index overlay runs in paper** (`index_overlay.py`, Markets view).
+   Next on it: a stock sleeve tilt toward the stock book's picks, and a monthly report of
+   paper equity vs buy-and-hold. Originally: wire the index overlay into the paper agent (`ai_trader.py` / `risk_gates.py`): hold
    2× SPY, 3× when `market_signal()` says VIX backwardation inside a golden cross, stock
    sleeve tilted to the stock book's picks. Paper only. `DRY_RUN` stays True.
 3. **Re-pull the vendor flow alerts in ~3 months** (`uw_history_pull.py`; delete
