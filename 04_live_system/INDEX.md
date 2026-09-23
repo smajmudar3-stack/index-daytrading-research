@@ -61,3 +61,5 @@ The 53 modules behind the dashboard on port 8094. `gap_dashboard.py` is the entr
 | `zero_dte.py` | 0DTE research — the intraday excursion distribution that drives every 0DTE P&L. |
 
 **55 files.**
+| `swing_stock.py` | The quarterly stock book: the biggest earnings beats of the last ten sessions, ranked on surprise/price, held 63 sessions in shares, with a ledger marked against SPY. |
+| `pead.py` | Post-earnings drift voter for the weekly vote: sign of the move across the print, abstaining outside 14 sessions. |

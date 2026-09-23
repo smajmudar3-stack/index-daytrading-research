@@ -228,6 +228,20 @@ if _stale("weekly_snapshot.json", WEEKLY_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"weekly_swing failed: {type(_e).__name__}: {_e}")
 
+# THE QUARTERLY STOCK BOOK, once a day. The biggest earnings beats of the last ten sessions,
+# ranked on (reported - estimate) / price, held 63 sessions in shares and marked against SPY.
+# The one signal that measured strongly (+2.84% Q5-Q1 @63d, t +4.3) and the forward test of
+# it. Daily because the inputs are daily: ~120 yfinance calls a run, none of them paid.
+STOCK_REGEN_S = 24 * 3600
+if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
+    try:
+        import swing_stock
+        _ss = swing_stock.run()
+        print(f"stock book: {len(_ss.get('picks') or [])} picks of {_ss.get('cohort_n')} reporters"
+              + (f" — {_ss['blocked']}" if _ss.get("blocked") else ""))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"swing_stock failed: {type(_e).__name__}: {_e}")
+
 # THE LEDGER RUNS EVERY CYCLE, not on the generator's 4h clock. Two different jobs: the
 # generator decides what is worth proposing, this marks what was already proposed against
 # the live chain. Marking on the slower clock would leave the page showing a P&L from four

@@ -60,6 +60,10 @@ table, and it is why neither gets a large fixed weight.
   stock tilt, which is the next thing to build: hold the 2× index per `goal_feasibility.md`,
   and overweight the top surprise / top capital-return names in the stock sleeve.
 - Nothing here changes the weekly options book, and nothing here is a 0DTE input.
+- **Built 2026-09-22:** `04_live_system/swing_stock.py` is the live version — the top
+  quintile of the last ten sessions' reporters by surprise/price, in shares, 63-session
+  hold, with a ledger filled at the next open and marked against SPY. Its record is the
+  forward test of §3's +4.7%/yr.
 
 ## What it does NOT establish
 

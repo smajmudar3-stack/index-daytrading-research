@@ -363,6 +363,14 @@ Rules:
   them; the place they belong is a stock tilt on the index overlay. Intraday, the vendor's
   signed flow is worth 1–2 bp a trade in every test, including conditioned on gamma; no 0DTE
   direction edge exists in any data on this machine. `02_findings/fundamentals.md`, `uw_flow.md`.
+- **The quarterly stock book is where the picks are.** `swing_stock.py` ranks the last ten
+  sessions' reporters on (reported − estimate) / price, takes the top quintile, and holds
+  in SHARES for 63 sessions — the one signal that measured strongly (+2.84% Q5−Q1 @63d,
+  t 4.3, 33,755 prints, all splits) and the only one that yields a fresh crop every week.
+  Its ledger fills at the NEXT open, freezes the entry, marks against SPY over the same
+  window and closes after the hold; that ledger is the forward test of the backtest's
+  +4.7%/yr excess. Daily, unpaid (yfinance for EPS and prices; the UW calendar only for who
+  reported). It is context on the Markets view, not an action. `02_findings/fundamentals.md`.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

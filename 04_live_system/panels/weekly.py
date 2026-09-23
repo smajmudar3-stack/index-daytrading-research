@@ -27,7 +27,7 @@ Monday's rates view onto Thursday's tape.
 import desk_notes
 from idt import snapshots
 
-from . import OK, STALE, describe, empty, panel, safe, unavailable
+from . import EMPTY, OK, STALE, describe, empty, panel, safe, unavailable
 from .today import _age_min
 
 FILE = "weekly_snapshot.json"
@@ -276,6 +276,42 @@ def book():
                           "after the bell and a spread priced on them reads far worse than "
                           "it would trade. Nothing is closed on a mark like this.")),
                  source="weekly_book.mark() · entry price frozen at the moment of issue")
+
+
+# ------------------------------------------------------- the quarterly stock book ---
+
+@safe
+@describe("swing_stock", "Quarterly stock book: the biggest earnings beats")
+def stock_picks():
+    """The top quintile of the last ten sessions' reporters by earnings surprise, ranked, with
+    the ledger of what the last picks did against SPY. Context, ranked; not an action."""
+    import swing_stock as ss
+    p, st = snapshots.read(ss.OUT)
+    if st in ("absent", "unreadable", "wrong_version", "incomplete") or p is None:
+        why, fix = snapshots.explain(ss.OUT, st)
+        return unavailable("swing_stock", "Quarterly stock book: the biggest earnings beats", why, fix=fix)
+    led = ss.ledger()
+    if not p.get("ok"):
+        return unavailable("swing_stock", "Quarterly stock book: the biggest earnings beats",
+                           p.get("blocked", "the stock book did not run"), fix="idt refresh")
+    picks = p.get("picks") or []
+    body = {"picks": picks, "refused": (p.get("refused") or [])[:40], "cohort_n": p.get("cohort_n"),
+            "n_ranked": p.get("n_ranked"), "hold_sessions": p.get("hold_sessions"),
+            "basis": p.get("basis"), "ledger": led}
+    if not picks:
+        return panel("swing_stock", "Quarterly stock book: the biggest earnings beats", state=EMPTY,
+                     body=body, age_min=_age_min(ss.OUT),
+                     note=f"{p.get('cohort_n', 0)} names reported in the last ten sessions and none "
+                          f"cleared the price and volume screen. The ledger below is what earlier "
+                          f"picks did.")
+    return panel("swing_stock", "Quarterly stock book: the biggest earnings beats",
+                 state=STALE if st == "stale" else OK, age_min=_age_min(ss.OUT), body=body,
+                 note=(f"Top {len(picks)} of {p.get('n_ranked')} tradeable reporters by surprise size, "
+                       f"for a {p.get('hold_sessions')}-session hold in SHARES, not options: the drift "
+                       f"measured +2.84% top-minus-bottom quintile over a quarter and nothing over a "
+                       f"week. Every pick is recorded at the next open and marked against SPY."),
+                 source="swing_stock.run() · Unusual Whales calendar for who reported, yfinance for "
+                        "reported vs estimated EPS and prices · 02_findings/fundamentals.md")
 
 
 # ---------------------------------------------------------------- the refusals ---

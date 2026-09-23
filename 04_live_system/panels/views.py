@@ -54,7 +54,7 @@ VIEWS = [
         # macro calendar and the earnings window — because a print landing on an expiry beats
         # every opinion below it. Context follows, and the flow-history counter sits last
         # because it is a promise about future measurement, not a reason to act today.
-        "panels": [weekly.trades, weekly.book,
+        "panels": [weekly.trades, weekly.book, weekly.stock_picks,
                    weekly.calendar, weekly.earnings_vol,
                    weekly.macro, weekly.index,
                    structures.gamma_structures,

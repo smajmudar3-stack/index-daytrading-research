@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**410 files, 86,082 lines.**
+**413 files, 86,583 lines.**
 
 ## Repo root
 
-*11 files, 2,038 lines*
+*11 files, 2,047 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 431 | 32 KB |
-| `MANIFEST.md` | 617 | 24 KB |
+| `CLAUDE.md` | 439 | 32 KB |
+| `MANIFEST.md` | 618 | 24 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*16 files, 2,394 lines*
+*16 files, 2,398 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -57,7 +57,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/WHAT_WORKS.md` | 101 | 5 KB |
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
-| `02_findings/fundamentals.md` | 93 | 6 KB |
+| `02_findings/fundamentals.md` | 97 | 6 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
 | `02_findings/uw_flow.md` | 46 | 3 KB |
@@ -101,11 +101,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*74 files, 22,261 lines*
+*75 files, 22,580 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/INDEX.md` | 63 | 6 KB |
+| `04_live_system/INDEX.md` | 65 | 6 KB |
 | `04_live_system/ai_desk.py` | 370 | 19 KB |
 | `04_live_system/ai_trader.py` | 623 | 36 KB |
 | `04_live_system/analyst.py` | 195 | 10 KB |
@@ -157,7 +157,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/refresh_signal.py` | 79 | 3 KB |
 | `04_live_system/risk_gates.py` | 663 | 32 KB |
 | `04_live_system/rules.py` | 316 | 16 KB |
-| `04_live_system/scan_all.py` | 296 | 14 KB |
+| `04_live_system/scan_all.py` | 310 | 14 KB |
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
 | `04_live_system/signal_tracker.py` | 392 | 20 KB |
@@ -167,6 +167,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/sleeves.py` | 157 | 6 KB |
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
+| `04_live_system/swing_stock.py` | 303 | 13 KB |
 | `04_live_system/ticket.py` | 241 | 12 KB |
 | `04_live_system/tickets.py` | 500 | 22 KB |
 | `04_live_system/universe_builder.py` | 195 | 8 KB |
@@ -182,7 +183,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,374 lines*
+*10 files, 2,410 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -195,7 +196,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 360 | 15 KB |
 | `04_live_system/panels/views.py` | 159 | 7 KB |
-| `04_live_system/panels/weekly.py` | 491 | 24 KB |
+| `04_live_system/panels/weekly.py` | 527 | 26 KB |
 
 ## 04_live_system/templates — Jinja templates
 
@@ -211,7 +212,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*27 files, 667 lines*
+*28 files, 730 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -237,6 +238,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/scorecard.html` | 10 | 387 B |
 | `04_live_system/templates/panels/services.html` | 19 | 793 B |
 | `04_live_system/templates/panels/swing.html` | 15 | 672 B |
+| `04_live_system/templates/panels/swing_stock.html` | 63 | 3 KB |
 | `04_live_system/templates/panels/verdicts.html` | 17 | 757 B |
 | `04_live_system/templates/panels/weekly_book.html` | 85 | 4 KB |
 | `04_live_system/templates/panels/weekly_calendar.html` | 36 | 1 KB |
@@ -456,7 +458,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## idt — the shared package and CLI
 
-*7 files, 524 lines*
+*7 files, 532 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -466,7 +468,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `idt/db.py` | 22 | 773 B |
 | `idt/keys.py` | 64 | 2 KB |
 | `idt/paths.py` | 62 | 3 KB |
-| `idt/snapshots.py` | 201 | 8 KB |
+| `idt/snapshots.py` | 209 | 8 KB |
 
 ## scripts — repo tooling
 
@@ -480,7 +482,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*10 files, 2,182 lines*
+*11 files, 2,244 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -493,6 +495,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_pead.py` | 57 | 2 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |
+| `test/test_swing_stock.py` | 62 | 3 KB |
 | `test/test_weekly.py` | 1,203 | 54 KB |
 
 ## test/fixtures — frozen snapshots
