@@ -161,3 +161,6 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `statarb_test.py` | statarb_test.py — Avellaneda-Lee statistical arbitrage: 60-day factor residuals, OU s-scores, long/short deciles on 2,275 names 2018-2026, with costs. Net negative at every hold. |
 | `memecoin_score.py` | memecoin_score.py — the return distribution of buying every DexScreener launch at first sight, including the rugs, by horizon and liquidity. |
 | `gxz_straddle_test.py` | gxz_straddle_test.py — the pre-earnings straddle bought T-3 and sold before the release, at mid and at real bid/ask, 26,063 events: +3.2% at mid, −33% real. |
+| `engine_combo_test.py` | engine_combo_test.py — the index overlay and the earnings-surprise sleeve as one portfolio, 2020-2026 monthly: 15-18%/yr, 14-17 years to 10x. |
+| `xsec_diffusion_test.py` | xsec_diffusion_test.py — information diffusion: statistical-peer and sector momentum vs a name's next month, 2019-2026. Null. |
+| `kalshi_score.py` | kalshi_score.py — same-event price gaps between Kalshi and Polymarket, after both fees, same-resolution pairs only. |

@@ -399,6 +399,12 @@ Rules:
   leader with ≤2 min left loses 7–21% of premium before the 1.56% fee), cross-exchange gaps
   (12,653 raw, 0 net of fees), memecoin launches (137: −19% at 1 h, −34% at 6 h). The
   pre-earnings straddle reproduces the paper at mid (+3.2%) and loses 33% at real fills.
+- **Two more branches closed, one more recorder.** Information diffusion (peer and sector
+  lead-lag, `xsec_diffusion_test.py`): null. The whole engine as one portfolio 2020–2026
+  (`engine_combo_test.py`): 15–18%/yr, 14–17 years to 10×, and the 2× overlay HURT in that
+  window (six firings, one of them March 2020). `kalshi_recorder.py` pairs the same Bitcoin
+  event on Kalshi and Polymarket; note the daily strikes resolve at 5pm ET on Kalshi and
+  noon on Polymarket, so only the 15-minute windows are the same event.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

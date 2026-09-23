@@ -16,6 +16,10 @@ Overnight recorders scored: Polymarket null at 3 s polling (191 windows), cross-
 +3.2% at mid, −33% real, −4.6% even in the tightest-spread names. `index_overlay.py` built,
 wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 
+**2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
+(null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
+`test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
 ## Where things stood at the first hand-off (2026-09-22, 22:00 ET)
 
 **Goal as stated by Sholo:** an automated system that turns $5,000 into $50,000, any market,

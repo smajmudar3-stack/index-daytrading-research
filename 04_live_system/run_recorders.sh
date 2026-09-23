@@ -18,5 +18,7 @@ P1=$!
 P2=$!
 "$PY" memecoin_recorder.py >> "$REPO/logs/memecoin_recorder.out" 2>&1 &
 P3=$!
-trap 'kill $P1 $P2 $P3 2>/dev/null' TERM INT
+"$PY" kalshi_recorder.py >> "$REPO/logs/kalshi_recorder.out" 2>&1 &
+P4=$!
+trap 'kill $P1 $P2 $P3 $P4 2>/dev/null' TERM INT
 wait

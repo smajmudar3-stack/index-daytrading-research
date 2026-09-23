@@ -42,10 +42,15 @@ def test_macro_events_carry_no_tickers():
         assert not e.get("tickers"), f"{e['label']} must not name tickers"
 
 
-def test_expiry_on_a_high_importance_print_is_flagged():
+def test_expiry_on_a_high_importance_print_is_flagged(monkeypatch):
     """The 2026-09-11 book, replayed. Every one of those positions must be told to close."""
     row = {"ticker": "TEST", "expiry": "2026-09-11", "direction": "bullish",
            "cur_net": 1.0, "cur_spot": 100.0, "is_debit": True}
+    # The book was replayed as of the session before that expiry. Without pinning the clock
+    # this test started failing on 2026-09-12 with "it expires today", which is the CALENDAR
+    # rule correctly outranking the print rule on a date the test never meant to be run on.
+    monkeypatch.setattr(wb, "_now", lambda: BEFORE_CPI)
+    monkeypatch.setattr(mc, "_now", lambda: BEFORE_CPI)
     v = wb.exit_verdict(row, live=True)
     assert v["action"] == "CLOSE", v
     assert "CPI" in v["why"]

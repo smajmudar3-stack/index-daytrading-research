@@ -19,6 +19,7 @@ flowchart TD
   EQ --> EQ4[Quarterly factors<br/>earnings surprise +2.84% Q5-Q1 @63d, t 4.3: REAL]
   EQ --> EQ5[Index overlay<br/>2x + VIX backwardation: 15%/yr, DD 59%: REAL, slow]
   EQ --> EQ6[Buyback / FCF tilt<br/>t 3.5, regime-dependent]
+  EQ --> EQ7[Information diffusion / peer lead-lag<br/>2,126 names: NULL, t 0.3]
 
   OPT --> O1[0DTE credit structures<br/>147,350 real trades: ALL NEGATIVE]
   OPT --> O2[Weekly verticals on a signal<br/>67,380 real trades: -8.4% credit / -14.5% debit per trade]
@@ -34,7 +35,7 @@ flowchart TD
   CR --> C5[Grid / DCA / signal bots<br/>short volatility wearing a bot]
 
   PM --> P1[Polymarket 5-min crypto vs spot<br/>RECORDING; mechanism is oracle latency; 1.56% taker fee at 50/50]
-  PM --> P2[Polymarket vs Kalshi cross-venue<br/>APIs reachable; matching is manual; next recorder]
+  PM --> P2[Polymarket vs Kalshi cross-venue<br/>RECORDING same-window pairs; daily strikes resolve at different hours]
   PM --> P3[Sports arbitrage / matched betting<br/>books limit winners; not an investment]
 
   X --> X1[HFT / co-located latency<br/>3-10 ms leads; retail is 30-100 ms]

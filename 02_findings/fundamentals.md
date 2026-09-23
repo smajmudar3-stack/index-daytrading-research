@@ -95,3 +95,25 @@ combination of the measured factors, at any horizon, on any stock, that compound
 than about 20% a year at 2×, and that path carries a 50%-plus drawdown.** At 21% a year,
 $5,000 reaches $50,000 in twelve years. This agrees with `goal_feasibility.md` from the
 other direction.
+
+## 4. The engine as one portfolio, 2020–2026 (`05_studies/engine_combo_test.py`)
+
+Monthly, 78 months, the surprise sleeve at 0/25/50/100% of equity with the rest in SPY,
+with and without the 2× overlay (signal on at 6 of 78 month-ends), 15 bp/side, 6% borrow.
+
+| configuration | CAGR | max DD | worst month | Sharpe | years to 10× |
+|---|---:|---:|---:|---:|---:|
+| SPY | 14.5% | −20% | −12% | 0.88 | 17 |
+| SPY, 2× when the signal is on | 13.9% | −25% | −25% | 0.72 | 18 |
+| 50% sleeve, 1× | 16.4% | −19% | −19% | 0.85 | 15 |
+| **100% sleeve, 1×** | **17.8%** | −27% | −27% | 0.78 | **14** |
+| 100% sleeve, 2× when on | 11.2% | −54% | −54% | 0.51 | 22 |
+
+Two things to read. **The overlay hurt in this window**: with only six firings in 78 months
+and one of them the March 2020 crash, 2× when on cost 0.6 points a year at monthly
+granularity (its measured 2006–2026 result is a daily rule over 56 firings; this is a lower
+bound on the same window, and a warning that the overlay's edge is a long-run average with
+a fat left tail). **The sleeve helps at every weight** but its excess is +4.7%/yr at t 0.9,
+and its excess is slightly negatively correlated with the signal (−0.19). The honest
+expectation for the whole paper engine is 15–18% a year with a 20–30% drawdown: fourteen
+to seventeen years to 10×. Nothing in the combination changes the answer to five months.

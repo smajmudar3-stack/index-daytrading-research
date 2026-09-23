@@ -29,6 +29,8 @@ number to keep in mind is the target: 10× in three years is 115% a year; in fiv
 | **VIX-backwardation overlay on a 2× index position** | 2006–2026 | 15.3%/yr vs 11.5% buy-and-hold, DD 59% | **real** — the best growth path measured (`goal_feasibility.md`) |
 | **Overnight-only holding** (Lou, Polk & Skouras) | 2,259 names, 1,910 sessions 2019–2026 | overnight (close→open) +12.0%/yr gross vs daytime +5.0%; **net of 10 bp a day: −13.0%/yr** | the gap is real and two trades a day eat it whole |
 | **Statistical arbitrage** (Avellaneda-Lee residual reversion) | 2,275 names, 3.8M name-days | gross +1–2%/yr, Sharpe 0.3; net negative at every hold | dead for a retail-cost book (`statarb.md`) |
+| **Information diffusion / peer lead-lag** (Cohen-Frazzini, Hong-Stein, "connected stocks") | 2,126 names, 92 month-ends, statistical peers re-estimated monthly (`xsec_diffusion_test.py`) | peers' last-month return: IC −0.006; peer-minus-own gap: D10−D1 **+0.11%/month, t 0.25**; sector momentum +0.023 (t 1.5) | dead in liquid names 2019–2026 |
+| **Kalshi vs Polymarket same-event gaps** | live pair recorder (`kalshi_recorder.py`, `kalshi_score.py`): 15-min BTC windows on both venues, daily strikes | first hours: the 15-min window quotes identically on both venues (0.041/0.042 vs 0.04/0.05); the daily strikes resolve at 5pm ET on Kalshi and noon on Polymarket, so their gap is time, not mispricing | recording; scored on same-resolution pairs only |
 | **Sector rotation** | 1,512 configurations | none beat buy-and-hold | dead |
 | **Spinoffs** | event study | see `RESEARCH_SPINOFFS.md` | small |
 
