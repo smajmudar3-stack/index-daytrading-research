@@ -25,7 +25,6 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from idt import paths  # noqa: E402
-from xsec_vertical_test import load_chain  # noqa: E402
 
 PANEL = os.path.join(paths.DATA_ROOT, "opt_panel")
 
