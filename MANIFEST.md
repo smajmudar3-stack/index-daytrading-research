@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**414 files, 86,841 lines.**
+**421 files, 87,423 lines.**
 
 ## Repo root
 
-*11 files, 2,056 lines*
+*11 files, 2,064 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 445 | 33 KB |
-| `MANIFEST.md` | 621 | 24 KB |
+| `CLAUDE.md` | 452 | 33 KB |
+| `MANIFEST.md` | 622 | 24 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*16 files, 2,429 lines*
+*17 files, 2,485 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -60,6 +60,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 97 | 6 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
+| `02_findings/online_methods.md` | 56 | 6 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
 | `02_findings/weekly_structure.md` | 114 | 7 KB |
@@ -101,11 +102,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*75 files, 22,609 lines*
+*79 files, 22,912 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/INDEX.md` | 65 | 6 KB |
+| `04_live_system/INDEX.md` | 68 | 7 KB |
 | `04_live_system/ai_desk.py` | 370 | 19 KB |
 | `04_live_system/ai_trader.py` | 623 | 36 KB |
 | `04_live_system/analyst.py` | 195 | 10 KB |
@@ -114,9 +115,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/build_snapshot.py` | 197 | 9 KB |
 | `04_live_system/com.daytrading.calendar.plist` | 33 | 2 KB |
 | `04_live_system/com.daytrading.desknotes.plist` | 61 | 4 KB |
+| `04_live_system/com.daytrading.recorders.plist` | 18 | 852 B |
 | `04_live_system/committee.py` | 217 | 11 KB |
 | `04_live_system/condor.py` | 127 | 6 KB |
 | `04_live_system/confluence.py` | 51 | 3 KB |
+| `04_live_system/crypto_venue_recorder.py` | 98 | 4 KB |
 | `04_live_system/daily_edges.py` | 75 | 3 KB |
 | `04_live_system/dashboard.py` | 167 | 10 KB |
 | `04_live_system/dashboard_app.py` | 378 | 15 KB |
@@ -151,12 +154,14 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/monitor.py` | 68 | 2 KB |
 | `04_live_system/option_pricer.py` | 290 | 12 KB |
 | `04_live_system/pead.py` | 100 | 5 KB |
+| `04_live_system/polymarket_recorder.py` | 164 | 7 KB |
 | `04_live_system/positions.py` | 320 | 15 KB |
 | `04_live_system/refresh_calendar.sh` | 94 | 5 KB |
 | `04_live_system/refresh_cycle.sh` | 50 | 3 KB |
 | `04_live_system/refresh_signal.py` | 79 | 3 KB |
 | `04_live_system/risk_gates.py` | 663 | 32 KB |
 | `04_live_system/rules.py` | 316 | 16 KB |
+| `04_live_system/run_recorders.sh` | 20 | 888 B |
 | `04_live_system/scan_all.py` | 320 | 15 KB |
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
@@ -256,11 +261,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*62 files, 10,036 lines*
+*64 files, 10,251 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `05_studies/INDEX.md` | 158 | 17 KB |
+| `05_studies/INDEX.md` | 160 | 17 KB |
 | `05_studies/backtest_0dte_rules.py` | 943 | 48 KB |
 | `05_studies/backtest_daily.py` | 156 | 7 KB |
 | `05_studies/backtest_directional.py` | 114 | 5 KB |
@@ -302,10 +307,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/momentum_stocks.py` | 74 | 4 KB |
 | `05_studies/multi_edge.py` | 95 | 4 KB |
 | `05_studies/orb_proper.py` | 117 | 5 KB |
+| `05_studies/polymarket_score.py` | 102 | 5 KB |
 | `05_studies/predictability.py` | 52 | 3 KB |
 | `05_studies/scalp_backtest.py` | 69 | 3 KB |
 | `05_studies/scalp_update.py` | 140 | 7 KB |
 | `05_studies/sizing_curve.py` | 120 | 5 KB |
+| `05_studies/spy_putwrite_test.py` | 111 | 5 KB |
 | `05_studies/trend_component_ic.py` | 228 | 8 KB |
 | `05_studies/uw_intraday_flow_test.py` | 128 | 6 KB |
 | `05_studies/validate_condor_real.py` | 133 | 5 KB |

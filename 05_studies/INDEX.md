@@ -156,3 +156,5 @@ The 117 harnesses that produced every number in the findings. All are standalone
 | `xsec_fundamentals_test.py` | xsec_fundamentals_test.py — earnings surprise size, margins, cash flow, buybacks, dilution, dividends: event-time drift and monthly cross-sections, 2020-2026. |
 | `xsec_portfolio_test.py` | xsec_portfolio_test.py — the measured slow factors compounded as a monthly top-decile long portfolio vs SPY at 1x and 2x: 16-18%/yr, +2-5% excess, t < 1. |
 | `xsec_uw_test.py` | xsec_uw_test.py — the Unusual Whales inputs (signed flow, premium, put/call, dealer greeks, IV-RV, insider counts) scored on two years of vendor history: null. |
+| `polymarket_score.py` | polymarket_score.py — calibration of Polymarket 5-minute crypto YES asks against realised outcomes by seconds-left and spot move, the "buy the side ahead" trade, and the cross-venue crossing count. |
+| `spy_putwrite_test.py` | spy_putwrite_test.py — monthly SPY put-writing (ATM / 30 / 15 delta) and covered calls on real quotes 2019-2026: smoother, 4-8%/yr, all below SPY. |

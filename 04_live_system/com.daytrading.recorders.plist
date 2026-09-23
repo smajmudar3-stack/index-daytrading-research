@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.daytrading.recorders</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system/run_recorders.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system</string>
+  <key>StandardOutPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/recorders.out</string>
+  <key>StandardErrorPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/recorders.err</string>
+  <key>KeepAlive</key><true/>
+  <key>RunAtLoad</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+</dict>
+</plist>

@@ -377,6 +377,13 @@ Rules:
   `flow_lean` is weight 0 (measured-null); it had been the largest weight in the vote. The
   classified flow ALERTS paged back only six weeks and are untested; re-pull in a quarter.
   `02_findings/uw_flow.md`.
+- **The "every online method" audit is `02_findings/online_methods.md`.** Cross-exchange
+  crypto gaps: 47% of checks show a raw gap, largest 5 bp, zero beat fees. Monthly SPY
+  put-writing on real quotes: 4–5%/yr with a tiny drawdown (15-delta Sharpe 2.1), covered
+  calls 7.6%, all below SPY's 10%. Polymarket 5-minute crypto markets are being RECORDED
+  against spot by `polymarket_recorder.py` (keep-alive launchd job `com.daytrading.recorders`,
+  with `crypto_venue_recorder.py`); score with `05_studies/polymarket_score.py` once ~150
+  windows have resolved. Both recorders place nothing.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),
