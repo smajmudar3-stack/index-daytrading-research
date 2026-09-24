@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**455 files, 91,498 lines.**
+**461 files, 92,644 lines.**
 
 ## Repo root
 
-*11 files, 2,125 lines*
+*11 files, 2,133 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 473 | 35 KB |
-| `MANIFEST.md` | 662 | 26 KB |
+| `MANIFEST.md` | 670 | 26 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,579 lines*
+*18 files, 2,585 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -60,7 +60,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 124 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 95 | 16 KB |
+| `02_findings/online_methods.md` | 101 | 19 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -466,12 +466,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,439 lines*
+*6 files, 1,450 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 156 | 11 KB |
+| `docs/CONTINUATION.md` | 167 | 12 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -636,7 +636,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*20 files, 2,326 lines*
+*26 files, 3,447 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -645,18 +645,24 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/briefs/commodity-rates.md` | 222 | 15 KB |
 | `docs/briefs/crypto-derivatives.md` | 79 | 13 KB |
 | `docs/briefs/crypto-factors-mm.md` | 139 | 10 KB |
+| `docs/briefs/crypto-intraday.md` | 199 | 13 KB |
 | `docs/briefs/equity-anomalies.md` | 171 | 12 KB |
+| `docs/briefs/etf-cef.md` | 176 | 12 KB |
 | `docs/briefs/futures-fx.md` | 162 | 13 KB |
 | `docs/briefs/gambling.md` | 122 | 10 KB |
 | `docs/briefs/income-routes.md` | 55 | 10 KB |
 | `docs/briefs/informed-cloning.md` | 143 | 11 KB |
 | `docs/briefs/international-macro.md` | 146 | 13 KB |
 | `docs/briefs/leverage-growth.md` | 175 | 13 KB |
+| `docs/briefs/llm-news.md` | 199 | 14 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |
+| `docs/briefs/microcap.md` | 169 | 13 KB |
+| `docs/briefs/non-market-arb.md` | 225 | 18 KB |
 | `docs/briefs/options-income.md` | 76 | 14 KB |
 | `docs/briefs/prediction-markets.md` | 73 | 17 KB |
 | `docs/briefs/promo-bonus.md` | 91 | 9 KB |
 | `docs/briefs/retail-base-rates.md` | 114 | 11 KB |
+| `docs/briefs/special-situations.md` | 153 | 11 KB |
 | `docs/briefs/sports-betting.md` | 61 | 12 KB |
 | `docs/briefs/vol-etp.md` | 176 | 13 KB |
 | `docs/briefs/yields-altdata.md` | 62 | 14 KB |

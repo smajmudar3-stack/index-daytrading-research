@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-23, 19:45 ET)
+## Where things stand (2026-09-23, 23:30 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,14 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-09-23 ~21:00 ET, Kalshi:** the 15-minute pair recorder showed a sub-$1 two-leg cost on
+11% of ticks (last two minutes). Both rulebooks read: the venues settle on DIFFERENT references
+(CF Benchmarks 60 s average vs Chainlink spot at the open), so the "locked dollar" can pay 0 or
+2. `kalshi_recorder.py` now records each window's result on both venues; `kalshi_score.py`
+settles every sub-$1 tick at what it paid (+1.4c per $1 pair; 0 of 20 windows disagreed).
+After a week: if the disagreement rate is under ~1% and the last-2-minute P&L holds, write it
+up as a real but tiny (a few dollars a window, US-blocked venue) edge; otherwise mark it dead.
 
 **2026-09-23 ~16:00 ET:** the nineteen missing briefs relaunched under Sholo's directive, each
 agent instructed to WRITE its own `docs/briefs/<slug>.md` (so a cap cannot lose it) and to
@@ -37,11 +45,12 @@ gate only lets a batch spawn when Sholo's message STARTS with a build verb and c
 
 - Batch 1 DONE (leverage-growth, equity-anomalies, retail-base-rates, calendar-macro,
   futures-fx; filed 2026-09-23 evening, pushed as `98748c2`).
-- Batch 2 IN FLIGHT (launched ~19:30 ET): crypto-factors-mm, vol-etp, commodity-rates,
-  informed-cloning, international-macro.
-- Batch 3 IN FLIGHT (launched ~19:45 ET): promo-bonus, gambling, income-routes.
-- NOT YET LAUNCHED: llm-news, special-situations, etf-cef, microcap, non-market-arb,
-  crypto-intraday.
+- Batch 2 DONE (crypto-factors-mm, vol-etp, commodity-rates, informed-cloning,
+  international-macro) and batch 3 DONE (promo-bonus, gambling, income-routes): filed,
+  rows in `online_methods.md`, pushed as `eaf8002`.
+- Batch 4 DONE (llm-news, special-situations, etf-cef, microcap, non-market-arb,
+  crypto-intraday). **The swarm is complete: 26 of 26 briefs filed**, every verdict row in
+  `online_methods.md`. No branch reaches the target; nothing fast survives costs.
 
 On resume: `ls docs/briefs/` — any slug above with no file is a re-run; copy each new brief's
 verdict row into the swarm table in `02_findings/online_methods.md` and the map, run
@@ -116,8 +125,10 @@ ended: re-run it (the prompts are the bullet text; ask for 1,200–2,000 words w
 
 ## Next, in order
 
-0. **Re-run the nineteen missing swarm briefs** (slugs with no file in `docs/briefs/`),
-   which needs the operator directive in the prompt; file each and copy its verdict row.
+0. DONE 2026-09-23: all 26 swarm briefs filed and their verdicts tabled. The two cheap
+   follow-ups the briefs named, if Sholo wants them: a Loughran-McDonald tone score on 8-Ks
+   at EDGAR's 1–3 minute lag, and a small replication of the Lopez-Lira & Tang overnight
+   headline construction (both `llm-news.md`, both unverified, both a day's work).
 1. **Re-score the recorders after a week** (Polymarket needs ~1,000 windows for the
    last-30-second cells; memecoins are decisive already). Then `launchctl unload` the
    recorders job if nothing changes. Originally:
