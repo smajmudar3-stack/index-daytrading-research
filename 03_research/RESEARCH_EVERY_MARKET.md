@@ -19,7 +19,7 @@ flowchart TD
   EQ --> EQ4[Quarterly factors<br/>earnings surprise +2.84% Q5-Q1 @63d, t 4.3: REAL]
   EQ --> EQ5[Index overlay<br/>2x + VIX backwardation: 15%/yr, DD 59%: REAL, slow]
   EQ --> EQ6[Buyback / FCF tilt<br/>t 3.5, regime-dependent]
-  EQ --> EQ7[Information diffusion / peer lead-lag<br/>2,126 names: NULL, t 0.3]
+  EQ --> EQ7[Information diffusion, 6 channels<br/>498,734 name-weeks: NULL; combined model -9%/yr net]
 
   OPT --> O1[0DTE credit structures<br/>147,350 real trades: ALL NEGATIVE]
   OPT --> O2[Weekly verticals on a signal<br/>67,380 real trades: -8.4% credit / -14.5% debit per trade]

@@ -399,8 +399,17 @@ Rules:
   leader with ≤2 min left loses 7–21% of premium before the 1.56% fee), cross-exchange gaps
   (12,653 raw, 0 net of fees), memecoin launches (137: −19% at 1 h, −34% at 6 h). The
   pre-earnings straddle reproduces the paper at mid (+3.2%) and loses 33% at real fills.
+- **Information diffusion is measured on every link this machine has, and it is null.**
+  `05_studies/diffusion_model.py`: industry big→small (Hou), same-industry earnings transfer
+  (Thomas-Zhang), statistical peers, cross-asset→sector, industries→market, and a
+  walk-forward combined model on 498,734 name-weeks of the S&P 1500 with GICS sub-industries
+  (`opt_panel/gics.parquet`). Peers' past week predicts a name NEGATIVELY; every "peer minus
+  own" signal is weekly reversal in disguise (residual IC −0.006); the combined model is
+  +0.17%/wk gross at 87% turnover, −9.1%/yr net. `industry_lead_lag` and
+  `peer_earnings_transfer` sit in the registry at weight 0, `measured-null`.
+  `02_findings/diffusion.md`, literature in `03_research/RESEARCH_DIFFUSION.md`.
 - **Two more branches closed, one more recorder.** Information diffusion (peer and sector
-  lead-lag, `xsec_diffusion_test.py`): null. The whole engine as one portfolio 2020–2026
+  lead-lag, `xsec_diffusion_test.py`, the monthly first pass): null. The whole engine as one portfolio 2020–2026
   (`engine_combo_test.py`): 15–18%/yr, 14–17 years to 10×, and the 2× overlay HURT in that
   window (six firings, one of them March 2020). `kalshi_recorder.py` pairs the same Bitcoin
   event on Kalshi and Polymarket; note the daily strikes resolve at 5pm ET on Kalshi and

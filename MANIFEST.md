@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**461 files, 92,644 lines.**
+**464 files, 93,136 lines.**
 
 ## Repo root
 
-*11 files, 2,133 lines*
+*11 files, 2,148 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 473 | 35 KB |
-| `MANIFEST.md` | 670 | 26 KB |
+| `CLAUDE.md` | 482 | 36 KB |
+| `MANIFEST.md` | 676 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,585 lines*
+*19 files, 2,639 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -56,6 +56,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/WHAT_FAILED.md` | 117 | 5 KB |
 | `02_findings/WHAT_WORKS.md` | 101 | 5 KB |
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
+| `02_findings/diffusion.md` | 54 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
 | `02_findings/fundamentals.md` | 124 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
@@ -68,7 +69,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 03_research — literature and repo sweeps
 
-*29 files, 18,255 lines*
+*30 files, 18,328 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -79,6 +80,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `03_research/RESEARCH_BOTS.md` | 74 | 13 KB |
 | `03_research/RESEARCH_CONDOR_BUTTERFLY.md` | 1,020 | 71 KB |
 | `03_research/RESEARCH_COSTS.md` | 632 | 33 KB |
+| `03_research/RESEARCH_DIFFUSION.md` | 73 | 6 KB |
 | `03_research/RESEARCH_DIRECTION.md` | 1,065 | 68 KB |
 | `03_research/RESEARCH_EVERY_MARKET.md` | 146 | 9 KB |
 | `03_research/RESEARCH_EXOTIC_STRUCTURES.md` | 795 | 49 KB |
@@ -104,7 +106,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*82 files, 23,458 lines*
+*82 files, 23,460 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -171,7 +173,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
 | `04_live_system/signal_tracker.py` | 392 | 20 KB |
-| `04_live_system/signal_weights.py` | 311 | 18 KB |
+| `04_live_system/signal_weights.py` | 313 | 19 KB |
 | `04_live_system/signals_all.py` | 20 | 560 B |
 | `04_live_system/sizing.py` | 177 | 9 KB |
 | `04_live_system/sleeves.py` | 157 | 6 KB |
@@ -267,7 +269,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*70 files, 10,876 lines*
+*71 files, 11,215 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -280,6 +282,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/backtest_swing_rules.py` | 845 | 40 KB |
 | `05_studies/bt_options.py` | 278 | 12 KB |
 | `05_studies/condor_backtest.py` | 74 | 3 KB |
+| `05_studies/diffusion_model.py` | 339 | 17 KB |
 | `05_studies/dix_direction.py` | 68 | 4 KB |
 | `05_studies/dl_ensemble.py` | 151 | 7 KB |
 | `05_studies/earnings_vrp_test.py` | 255 | 11 KB |
@@ -466,12 +469,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,450 lines*
+*6 files, 1,459 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 167 | 12 KB |
+| `docs/CONTINUATION.md` | 176 | 12 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |

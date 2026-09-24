@@ -161,6 +161,8 @@ REGISTRY = {
     "spread_rel":        (0.00, "measured-null", 0, "lift 0.90x"),
     "gamma_direction":   (0.00, "measured-null", 0, "1,001 cells, zero survived"),
     "sector_rotation":   (0.00, "measured-null", 0, "1,512 configs, none beat B&H"),
+    "industry_lead_lag": (0.00, "measured-null", 0, "498,734 name-weeks: peers' week IC -0.011, gap = own reversal; diffusion.md"),
+    "peer_earnings_transfer": (0.00, "measured-null", 0, "IC +0.019 @5d, -0.02%/wk net of costs; diffusion.md"),
     "dip_screen":        (0.00, "measured-null", 0, "base-rate artifact"),
     "cheap_iv":          (0.00, "measured-null", 0, "made far-OTM worse"),
     # THE OPTIONS-IMPLIED DIRECTION PREDICTORS, measured 2026-09-21 on 214,803 name-weeks

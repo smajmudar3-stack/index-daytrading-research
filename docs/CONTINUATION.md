@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-23, 23:30 ET)
+## Where things stand (2026-09-24, 01:30 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,15 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-09-24 ~01:00 ET, diffusion:** Sholo asked for an extensive information-diffusion
+model. Built `05_studies/diffusion_model.py` (six channels, GICS sub-industries fetched to
+`opt_panel/gics.parquet`, literature in `03_research/RESEARCH_DIFFUSION.md`, verdict in
+`02_findings/diffusion.md`): NULL. Peers' past week predicts the name negatively; the gap
+signals are own-return reversal; peer earnings surprise is the one positive-in-all-splits
+channel and loses 2 bp a week after costs; combined walk-forward model −9.1%/yr net. The only
+untested links are customer-supplier (10-K segments), shared analysts, patents — none on
+this machine. Registry carries `industry_lead_lag` and `peer_earnings_transfer` at 0.
 
 **2026-09-23 ~21:00 ET, Kalshi:** the 15-minute pair recorder showed a sub-$1 two-leg cost on
 11% of ticks (last two minutes). Both rulebooks read: the venues settle on DIFFERENT references
