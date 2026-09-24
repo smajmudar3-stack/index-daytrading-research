@@ -31,8 +31,8 @@ session cap within minutes and ALL die with nothing written; the session's WebSe
 (~200 queries) is also shared and was already spent. Run at most FOUR agents at a time, on
 `sonnet`, each told "WebSearch may be exhausted — do not retry; WebFetch these primary
 URLs and compute", each under ~60 tool calls, each writing its own brief. Batch 1 (16:30 ET):
-leverage-growth, equity-anomalies, retail-base-rates, calendar-macro. Remaining after that:
-futures-fx, crypto-factors-mm, informed-cloning, llm-news, special-situations, vol-etp,
+leverage-growth, equity-anomalies, retail-base-rates, calendar-macro. Batch 1 DONE (leverage-growth, equity-anomalies, retail-base-rates, calendar-macro,
+futures-fx all filed 2026-09-23 evening). Remaining: crypto-factors-mm, informed-cloning, llm-news, special-situations, vol-etp,
 etf-cef, microcap, commodity-rates, gambling, income-routes, promo-bonus, non-market-arb,
 international-macro, crypto-intraday.
 

@@ -9,7 +9,7 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**446 files, 90,136 lines.**
+**447 files, 90,305 lines.**
 
 ## Repo root
 
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,565 lines*
+*18 files, 2,572 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -57,10 +57,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/WHAT_WORKS.md` | 101 | 5 KB |
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
-| `02_findings/fundamentals.md` | 119 | 8 KB |
+| `02_findings/fundamentals.md` | 124 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 86 | 12 KB |
+| `02_findings/online_methods.md` | 88 | 13 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -636,7 +636,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*11 files, 1,070 lines*
+*12 files, 1,232 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -644,6 +644,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/briefs/calendar-macro.md` | 118 | 14 KB |
 | `docs/briefs/crypto-derivatives.md` | 79 | 13 KB |
 | `docs/briefs/equity-anomalies.md` | 171 | 12 KB |
+| `docs/briefs/futures-fx.md` | 162 | 13 KB |
 | `docs/briefs/leverage-growth.md` | 175 | 13 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |
 | `docs/briefs/options-income.md` | 76 | 14 KB |
