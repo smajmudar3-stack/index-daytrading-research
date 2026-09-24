@@ -26,6 +26,16 @@ compute with yfinance/public data where possible. On resume: `ls docs/briefs/` â
 26 slugs missing is a re-run; then copy each new brief's verdict row into
 `02_findings/online_methods.md` and the map, and commit.
 
+**Batching rule, learned 2026-09-23 twice:** nineteen Fable agents at once exhaust the
+session cap within minutes and ALL die with nothing written; the session's WebSearch budget
+(~200 queries) is also shared and was already spent. Run at most FOUR agents at a time, on
+`sonnet`, each told "WebSearch may be exhausted â€” do not retry; WebFetch these primary
+URLs and compute", each under ~60 tool calls, each writing its own brief. Batch 1 (16:30 ET):
+leverage-growth, equity-anomalies, retail-base-rates, calendar-macro. Remaining after that:
+futures-fx, crypto-factors-mm, informed-cloning, llm-news, special-situations, vol-etp,
+etf-cef, microcap, commodity-rates, gambling, income-routes, promo-bonus, non-market-arb,
+international-macro, crypto-intraday.
+
 ## Where things stood at the first hand-off (2026-09-22, 22:00 ET)
 
 **Goal as stated by Sholo:** an automated system that turns $5,000 into $50,000, any market,
