@@ -77,8 +77,8 @@ def loop(max_secs=None):
                     continue
             for venue, (b, a) in q.items():
                 c.execute("INSERT INTO quotes VALUES (?,?,?,?,?)", (now, asset, venue, b, a))
-            for bv, (bb, ba) in q.items():
-                for sv, (sb, sa) in q.items():
+            for bv, (_bb, ba) in q.items():
+                for sv, (sb, _sa) in q.items():
                     if bv == sv or not ba or not sb:
                         continue
                     gross = sb / ba - 1

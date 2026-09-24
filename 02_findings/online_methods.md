@@ -30,7 +30,7 @@ number to keep in mind is the target: 10× in three years is 115% a year; in fiv
 | **Overnight-only holding** (Lou, Polk & Skouras) | 2,259 names, 1,910 sessions 2019–2026 | overnight (close→open) +12.0%/yr gross vs daytime +5.0%; **net of 10 bp a day: −13.0%/yr** | the gap is real and two trades a day eat it whole |
 | **Statistical arbitrage** (Avellaneda-Lee residual reversion) | 2,275 names, 3.8M name-days | gross +1–2%/yr, Sharpe 0.3; net negative at every hold | dead for a retail-cost book (`statarb.md`) |
 | **Information diffusion / peer lead-lag** (Cohen-Frazzini, Hong-Stein, "connected stocks") | 2,126 names, 92 month-ends, statistical peers re-estimated monthly (`xsec_diffusion_test.py`) | peers' last-month return: IC −0.006; peer-minus-own gap: D10−D1 **+0.11%/month, t 0.25**; sector momentum +0.023 (t 1.5) | dead in liquid names 2019–2026 |
-| **Kalshi vs Polymarket same-event gaps** | live pair recorder (`kalshi_recorder.py`, `kalshi_score.py`): 15-min BTC windows on both venues, daily strikes | first hours: the 15-min window quotes identically on both venues (0.041/0.042 vs 0.04/0.05); the daily strikes resolve at 5pm ET on Kalshi and noon on Polymarket, so their gap is time, not mispricing | recording; scored on same-resolution pairs only |
+| **Kalshi vs Polymarket same-event gaps** | live pair recorder (`kalshi_recorder.py`, `kalshi_score.py`): 15-min BTC windows on both venues, daily strikes; resolutions on both venues joined in | 5 h, 21 windows, 3,310 ticks: quotes identical at mid (median gap 0.000); a two-leg YES-here/NO-there cost under $1.00 after both fees on **11% of ticks**, almost all inside the last two minutes (30–36% of those ticks), deepest $0.568 with 13 contracts of depth ($5.62 gross); settled at what it actually paid the sub-$1 ticks average **+1.4c per $1 pair** (+2.8c in the last two minutes). The two venues resolve against DIFFERENT references (CF Benchmarks 60 s average vs Chainlink spot at the open), so a locked dollar is not locked — 0 of 20 windows disagreed so far, and a flat-tape window will | a real few-cent gap on a few dozen contracts for a few seconds before expiry, on a venue a US person cannot open (polymarket.com); needs a week of resolutions to size the disagreement risk. Not a $5k→$50k path. |
 | **Sector rotation** | 1,512 configurations | none beat buy-and-hold | dead |
 | **Spinoffs** | event study | see `RESEARCH_SPINOFFS.md` | small |
 
@@ -63,7 +63,7 @@ spread, that row changes and this file will say so.
 
 ## What the research swarm added (2026-09-22/23, briefs in `docs/briefs/`)
 
-Seven of twenty-six agent briefs finished before the session cap; each is filed verbatim.
+Each agent brief is filed verbatim as it lands.
 The verdict rows, with the brief that carries the sources:
 
 | branch | brief | verdict |
@@ -80,9 +80,16 @@ The verdict rows, with the brief that carries the sources:
 | Equity anomalies | `equity-anomalies.md` | on the French decile data: momentum long-short t 2.07 (1990–2014) → **0.52 (2015–2025)**, long-only edge over the market ~1.6%/yr at t 0.6; short-term reversal never significant gross of costs; GKX machine-learning gains concentrate in microcaps and vanish after costs |
 | Retail base rates | `retail-base-rates.md` | ~5% of active day traders ever profitable, <3% predictably; unprofitable traders keep trading at the same rate as profitable ones; 82% of UK CFD clients lose (avg £2,200); Fermi estimate for $5k→$50k in 5 months by trading: **well under 1%**, halving: 40–70% |
 | Bot claims audit | `bot-claims-audit.md` | TRM: $517K drained by nine "Claude bot" tutorials; the viral dashboards are Artifacts renders; the one open-source bot that published real trades made **+$11.51**; 97% of persistent Brazilian day traders lose; a real 10× in 5 months has no verified precedent |
+| Crypto factors and market-making | `crypto-factors-mm.md` | 25 coins 2021–2026 (yfinance, 0.5%/side; Kraken's real taker is 0.8%): cross-sectional 1-week and 1-month momentum and 1-week reversal all lose (long/short momentum Sharpe −1.48, reversal −2.52); "buy last week's winner" −68%/yr; only equal-weight buy-and-hold clears 20%/yr and all of it is 2021 (+804%); a real OP-USD data bug found and fixed first |
+| Volatility ETPs | `vol-etp.md` | UVXY buy-and-hold −100% split-adjusted; SVXY +504% total but −87% in 2018–19; short vol when VIX/VIX3M<1: 16–42%/yr with ~−80% drawdowns and a one-day lag into Feb 2018 (−21% that month); VRP-signal version 6.7%/yr; the "capped daily loss = hedge" version manufactures 686,000× and is flagged as a methodology trap; best 5-month window in 15 years 200–390%, not 900% |
+| Commodities and rates | `commodity-rates.md` | USO −5.6 and UNG −21 pts/yr vs their futures 2010–2026 (USO flips sign at the April 2020 roll change); DBC/PDBC/GLD/SLV/GDX 2.6–8%/yr; gold/silver and GDX/GLD pairs lose net; TLT/TMF trend rules sat out 2022 but compound at 1–3%/yr; HFEA 22.9%/yr full period, −63% in 2022 and −70% from peak since |
+| Informed cloning | `informed-cloning.md` | NANC 22.7%/yr vs SPY 20.3% since 2023 (KRUZ 18.2%, GVIP 25% on that window but 16.2% over its own 2016–2026 life); correlation 0.82–0.96 to SPY, closet index plus a side bet; literature edge (+82–85 bp/month) belongs to the original real-time transactor and this repo already measured the lagged clone as null (insider net buys IC −0.004) |
+| International and macro allocation | `international-macro.md` | 213 months computed: Faber GTAA 9.9%/yr (5.2% once a BTC-weight artifact is removed), dual momentum 8.0%, country momentum 8.2%, HYG/IEF risk switch 4.4%, vs 60/40 10.4% and SPY 15.5%; Faber's own live fund GMOM 6.0%/yr since 2014; none beat 60/40 on return or Sharpe |
+| Promotions and bonuses | `promo-bonus.md` | verified: Public.com 1% uncapped transfer match, bank bonuses $450–$900 each, 4.38% FDIC-cap savings; realistic 5-month extraction **$3,300–$7,500** for 40–80 hours, taxed as ordinary income, with clawback windows, card-velocity limits and closure risk; a 65–150% gain, 7–15× short of the target |
+| Online gambling | `gambling.md` | card counting is the only verified positive edge (0.5–1.5%, ~$50/hour) and is engineered out online (per-round reshuffle, continuous shufflers); regulated online poker in 6 states with active solver/bot bans; casino bonus hunting a one-time $1–4k; the 2026 90% loss-deduction cap taxes gross churn (Tax Foundation's break-even $1M-wagered example owes $37,000) |
+| Income routes | `income-routes.md` | the only measured way $5k becomes $50k in 5 months is adding ~$9k/month; freelance AI/automation work (Upwork/Toptal/direct) is the one route with a medium chance of that by month 5 (median $3–7k/month still ramping), a narrow direct consulting offer second; WorldQuant BRAIN caps near $2.7k/month at its top tier; Numerai is the only route that deploys the $5k and returns tens of dollars with burn risk |
 
-The remaining nineteen branches (equity anomalies, leverage paths, retail base rates, futures/FX,
-crypto factors, informed cloning, calendar effects, LLM news, special situations, vol ETPs,
-ETF/CEF gaps, microcaps, commodities, gambling, income routes, promos, non-market arbitrage,
-international macro, crypto intraday) were cut off by the session cap; `docs/CONTINUATION.md`
-lists them for re-run.
+Twenty of twenty-six briefs are filed (2026-09-23 evening). The remaining six (LLM/news signals,
+special situations, ETF/CEF gaps, microcaps, non-market arbitrage, crypto intraday) were
+launched last; `docs/CONTINUATION.md` lists any that did not land.
+

@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-23, 15:00 ET)
+## Where things stand (2026-09-23, 19:45 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -28,13 +28,24 @@ compute with yfinance/public data where possible. On resume: `ls docs/briefs/` �
 
 **Batching rule, learned 2026-09-23 twice:** nineteen Fable agents at once exhaust the
 session cap within minutes and ALL die with nothing written; the session's WebSearch budget
-(~200 queries) is also shared and was already spent. Run at most FOUR agents at a time, on
-`sonnet`, each told "WebSearch may be exhausted — do not retry; WebFetch these primary
-URLs and compute", each under ~60 tool calls, each writing its own brief. Batch 1 (16:30 ET):
-leverage-growth, equity-anomalies, retail-base-rates, calendar-macro. Batch 1 DONE (leverage-growth, equity-anomalies, retail-base-rates, calendar-macro,
-futures-fx all filed 2026-09-23 evening). Remaining: crypto-factors-mm, informed-cloning, llm-news, special-situations, vol-etp,
-etf-cef, microcap, commodity-rates, gambling, income-routes, promo-bonus, non-market-arb,
-international-macro, crypto-intraday.
+(~200 queries) is also shared and was already spent. Run at most FIVE agents at a time, on
+`sonnet`, each told "WebSearch is exhausted — do not call it; WebFetch these primary URLs
+and compute with yfinance", each under ~60 tool calls, each writing its own brief. The route
+gate only lets a batch spawn when Sholo's message STARTS with a build verb and contains
+"Use claude for everything this session." — the working prompt is:
+"Build the remaining briefs. Use claude for everything this session. continue edge hunt."
+
+- Batch 1 DONE (leverage-growth, equity-anomalies, retail-base-rates, calendar-macro,
+  futures-fx; filed 2026-09-23 evening, pushed as `98748c2`).
+- Batch 2 IN FLIGHT (launched ~19:30 ET): crypto-factors-mm, vol-etp, commodity-rates,
+  informed-cloning, international-macro.
+- Batch 3 IN FLIGHT (launched ~19:45 ET): promo-bonus, gambling, income-routes.
+- NOT YET LAUNCHED: llm-news, special-situations, etf-cef, microcap, non-market-arb,
+  crypto-intraday.
+
+On resume: `ls docs/briefs/` — any slug above with no file is a re-run; copy each new brief's
+verdict row into the swarm table in `02_findings/online_methods.md` and the map, run
+`scripts/build_manifest.py`, verify, commit, push.
 
 ## Where things stood at the first hand-off (2026-09-22, 22:00 ET)
 

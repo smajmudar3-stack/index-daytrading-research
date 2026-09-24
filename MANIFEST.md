@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**447 files, 90,305 lines.**
+**455 files, 91,498 lines.**
 
 ## Repo root
 
-*11 files, 2,124 lines*
+*11 files, 2,125 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 473 | 35 KB |
-| `MANIFEST.md` | 661 | 26 KB |
+| `MANIFEST.md` | 662 | 26 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,572 lines*
+*18 files, 2,579 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -60,7 +60,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 124 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 88 | 13 KB |
+| `02_findings/online_methods.md` | 95 | 16 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -68,7 +68,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 03_research — literature and repo sweeps
 
-*29 files, 18,247 lines*
+*29 files, 18,255 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -80,7 +80,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `03_research/RESEARCH_CONDOR_BUTTERFLY.md` | 1,020 | 71 KB |
 | `03_research/RESEARCH_COSTS.md` | 632 | 33 KB |
 | `03_research/RESEARCH_DIRECTION.md` | 1,065 | 68 KB |
-| `03_research/RESEARCH_EVERY_MARKET.md` | 138 | 9 KB |
+| `03_research/RESEARCH_EVERY_MARKET.md` | 146 | 9 KB |
 | `03_research/RESEARCH_EXOTIC_STRUCTURES.md` | 795 | 49 KB |
 | `03_research/RESEARCH_FEES.md` | 494 | 34 KB |
 | `03_research/RESEARCH_GITHUB_RETURNS.md` | 243 | 62 KB |
@@ -104,7 +104,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*82 files, 23,410 lines*
+*82 files, 23,458 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -146,7 +146,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/ingest_desk_notes.sh` | 126 | 6 KB |
 | `04_live_system/insider_score.py` | 255 | 12 KB |
 | `04_live_system/intraday_live.py` | 103 | 5 KB |
-| `04_live_system/kalshi_recorder.py` | 187 | 9 KB |
+| `04_live_system/kalshi_recorder.py` | 235 | 11 KB |
 | `04_live_system/lessons.py` | 196 | 9 KB |
 | `04_live_system/macro_calendar.py` | 252 | 11 KB |
 | `04_live_system/macro_panel.py` | 207 | 9 KB |
@@ -267,7 +267,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*70 files, 10,852 lines*
+*70 files, 10,876 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -305,7 +305,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/intraday_macro.py` | 101 | 4 KB |
 | `05_studies/intraday_patterns.py` | 126 | 6 KB |
 | `05_studies/intraday_puts.py` | 77 | 4 KB |
-| `05_studies/kalshi_score.py` | 50 | 3 KB |
+| `05_studies/kalshi_score.py` | 74 | 4 KB |
 | `05_studies/live_path.py` | 34 | 1 KB |
 | `05_studies/memecoin_score.py` | 62 | 3 KB |
 | `05_studies/merge_optimize.py` | 52 | 2 KB |
@@ -466,12 +466,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,428 lines*
+*6 files, 1,439 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 145 | 10 KB |
+| `docs/CONTINUATION.md` | 156 | 11 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -636,21 +636,29 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*12 files, 1,232 lines*
+*20 files, 2,326 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/briefs/bot-claims-audit.md` | 71 | 16 KB |
 | `docs/briefs/calendar-macro.md` | 118 | 14 KB |
+| `docs/briefs/commodity-rates.md` | 222 | 15 KB |
 | `docs/briefs/crypto-derivatives.md` | 79 | 13 KB |
+| `docs/briefs/crypto-factors-mm.md` | 139 | 10 KB |
 | `docs/briefs/equity-anomalies.md` | 171 | 12 KB |
 | `docs/briefs/futures-fx.md` | 162 | 13 KB |
+| `docs/briefs/gambling.md` | 122 | 10 KB |
+| `docs/briefs/income-routes.md` | 55 | 10 KB |
+| `docs/briefs/informed-cloning.md` | 143 | 11 KB |
+| `docs/briefs/international-macro.md` | 146 | 13 KB |
 | `docs/briefs/leverage-growth.md` | 175 | 13 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |
 | `docs/briefs/options-income.md` | 76 | 14 KB |
 | `docs/briefs/prediction-markets.md` | 73 | 17 KB |
+| `docs/briefs/promo-bonus.md` | 91 | 9 KB |
 | `docs/briefs/retail-base-rates.md` | 114 | 11 KB |
 | `docs/briefs/sports-betting.md` | 61 | 12 KB |
+| `docs/briefs/vol-etp.md` | 176 | 13 KB |
 | `docs/briefs/yields-altdata.md` | 62 | 14 KB |
 
 ## influencers — other

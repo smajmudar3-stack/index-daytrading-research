@@ -23,6 +23,16 @@ YES ask is 1 − best NO bid), depth at those levels, and the two-legged "arb" c
 each with taker fees added: Kalshi 0.07·p(1−p) per contract, Polymarket 0.07·p(1−p) per
 share (their crypto feeRate). An arb exists when a cost is < 1.00; the scorer counts how
 often, how large, and how deep. Public endpoints, no keys, ~4 requests a tick.
+
+RESOLUTIONS. The two venues do NOT define the same event. Kalshi's 15-minute rule: the
+60-second average of CF Benchmarks' BRTI before the close is at least the 60-second average
+before the open. Polymarket's: Chainlink's 60-second TWAP at the close is at least the
+Chainlink PRICE at the open. Different index, different start reference. When BTC ends
+within a few dollars of where it started the two can resolve OPPOSITE ways, and a "YES here,
+NO there" position that looked like a locked dollar pays 0 or 2. So every window's result is
+recorded on both venues once it is 2 minutes past the close (`resolutions` table), and the
+scorer reports how often the venues disagree — that disagreement rate, not the quote gap,
+is the number that decides whether the pair is an arbitrage or a bet on the basis.
 """
 import json
 import sys
@@ -124,10 +134,45 @@ def record(c, now, kind, window_end, p_end, strike, k_ticker, p_slug, p_token):
                cost_a, cost_b, cost_a_fee, cost_b_fee))
 
 
+def kalshi_result(ticker):
+    m = _get(f"{KALSHI}/markets/{ticker}").get("market") or {}
+    return (m.get("result") or None) if m.get("status") in ("finalized", "settled") else None
+
+
+def poly_final(slug):
+    rows = _get(f"{GAMMA}/markets?slug={urllib.parse.quote(slug)}&closed=true")
+    m = rows[0] if rows else {}
+    if not m.get("closed"):
+        return None
+    try:
+        return float(json.loads(m.get("outcomePrices") or "[]")[0])
+    except (ValueError, IndexError, TypeError):
+        return None
+
+
+def record_resolutions(c, now, grace_s=120):
+    """Once per call: every recorded pair whose window closed more than grace_s ago and has no
+    resolution row yet is looked up on both venues; a row is written only when BOTH answered."""
+    cutoff = datetime.fromtimestamp(now - grace_s, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    todo = c.execute("""SELECT DISTINCT p.kind, p.window_end, p.strike, p.k_ticker, p.p_slug FROM pairs p
+                        LEFT JOIN resolutions r ON r.kind = p.kind AND r.window_end = p.window_end
+                          AND (r.strike = p.strike OR (r.strike IS NULL AND p.strike IS NULL))
+                        WHERE r.k_ticker IS NULL AND p.window_end <= ? LIMIT 20""", (cutoff,)).fetchall()
+    for kind, wend, strike, kt, ps in todo:
+        try:
+            kr, pf = kalshi_result(kt), poly_final(ps)
+        except Exception:                                     # noqa: BLE001
+            continue
+        if kr is None or pf is None:
+            continue
+        c.execute("INSERT OR REPLACE INTO resolutions VALUES (?,?,?,?,?,?,?,?)", (kind, wend, strike, kt, ps, kr, pf, now))
+
+
 def loop(max_secs=None):
     c = con()
     t0, n = time.time(), 0
     daily_pairs, daily_at = [], 0.0
+    res_at = 0.0
     while max_secs is None or time.time() - t0 < max_secs:
         now = time.time()
         # 15-minute window: the Kalshi contract whose close_time is the current window's end
@@ -174,6 +219,9 @@ def loop(max_secs=None):
             daily_at = now
         for ct, pe, strike, kt, ps, tok in daily_pairs:
             record(c, now, "daily", ct, pe, strike, kt, ps, tok)
+        if now - res_at > 60:
+            record_resolutions(c, now)
+            res_at = now
         c.commit()
         n += 1
         if n % 60 == 0:

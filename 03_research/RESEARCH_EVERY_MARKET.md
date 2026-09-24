@@ -35,7 +35,7 @@ flowchart TD
   CR --> C5[Grid / DCA / signal bots<br/>short volatility wearing a bot]
 
   PM --> P1[Polymarket 5-min crypto vs spot<br/>RECORDING; mechanism is oracle latency; 1.56% taker fee at 50/50]
-  PM --> P2[Polymarket vs Kalshi cross-venue<br/>RECORDING same-window pairs; daily strikes resolve at different hours]
+  PM --> P2[Polymarket vs Kalshi cross-venue<br/>RECORDING: sub-$1 two-leg on 11% of ticks, last 2 min, ~1-3c on ~100 contracts; venues resolve on DIFFERENT references]
   PM --> P3[Sports arbitrage / matched betting<br/>books limit winners; not an investment]
 
   X --> X1[HFT / co-located latency<br/>3-10 ms leads; retail is 30-100 ms]
@@ -109,10 +109,17 @@ not growth.
   and Polymarket answered in January 2026 with a dynamic taker fee peaking at **1.56% at
   50/50**. So the trade is oracle latency against a fee larger than the spread, and the
   recorder's last-30-second cell will show what is left of it at 3-second polling.
-- **Polymarket vs Kalshi.** Both public APIs answered on 2026-09-22 (Kalshi `KXBTC` daily
-  price-range series; Polymarket 5-minute and daily). Same-event matching is manual and
-  Kalshi's fee is ~7% of profit. A recorder is the next step only if the Polymarket leaf is
-  not null.
+- **Polymarket vs Kalshi.** `kalshi_recorder.py` pairs the same 15-minute BTC window on
+  both venues. First five hours (21 windows): the mids agree to the cent; a YES-on-one,
+  NO-on-the-other position costs under $1.00 after both fees on 11% of ticks, nearly all in
+  the last two minutes, and settled at what it actually paid those ticks average +1.4c per
+  dollar pair on ~100 contracts of depth. The catch found by reading both rulebooks: Kalshi
+  settles on a CF Benchmarks 60-second average against a 60-second average at the open;
+  Polymarket on a Chainlink TWAP against the Chainlink PRICE at the open. Different index,
+  different start reference, so the "locked dollar" can pay 0 or 2 when BTC ends near where
+  it began. The recorder now records each window's result on both venues; 0 of 20 disagreed
+  so far. Even if the disagreement rate stays low it is a few dollars per window on a venue a
+  US person cannot open.
 - **Sports.** Not an investment: books limit winning accounts within weeks.
 
 ## Branch: the "bot" genre itself
@@ -132,6 +139,7 @@ multiplier" and a 10 ms latency, none of which is a real number.
 | `crypto_venue_recorder.py` | BTC/ETH best bid/ask on 4 venues every 2 s; every crossing net of fees | `polymarket_score.py` (tail) |
 | `polymarket_recorder.py` | 5-min BTC/ETH/SOL YES book vs spot every 3 s; resolutions | `polymarket_score.py` |
 | `memecoin_recorder.py` | every DexScreener launch at first sight; re-priced for 24 h | `memecoin_score.py` |
+| `kalshi_recorder.py` | the same 15-min BTC window on Kalshi and Polymarket every 5 s, both books, two-leg cost after both fees; each window's RESULT on both venues once it closes | `kalshi_score.py` |
 | `swing_stock.py` (daily) | the earnings-surprise stock book and its ledger | its own panel |
 
 All under `com.daytrading.recorders` (keep-alive) and the 5-minute refresh cycle. None of
