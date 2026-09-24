@@ -1,5 +1,5 @@
-"""swing_stock.py — the quarterly stock book: the biggest earnings beats of the last ten
-sessions, held for a quarter, in shares.
+"""swing_stock.py — the quarterly stock book: the 25 biggest earnings surprises among every
+name still inside its drift window, held for a quarter, in shares.
 
 WHY THIS EXISTS. The weekly options book issues a card only on a measured basis, and most
 weeks that is almost nothing. The one signal that measured strongly in this repo produces
@@ -11,15 +11,26 @@ at five days, which is why it is a STOCK book with a quarter's hold and not an o
 card. Long-only against SPY it measured +4.7%/yr excess with a 52% monthly turnover
 (05_studies/xsec_portfolio_test.py); this book is the forward test of that number.
 
+THE COHORT IS A QUARTER WIDE, NOT TWO WEEKS (changed 2026-09-24, 02_findings/signal_accuracy.md).
+The first version ranked only the last ten sessions' reporters, a fifth of ~60 names, and
+re-measured on weekly cohorts that long-only leg was +1.2% a quarter overall and NEGATIVE in
+2024-26: a fifth of sixty is not an extreme surprise. Ranking every name that reported in
+the last 63 sessions (the horizon the drift was measured on) and taking the 25 largest
+surprises picks from ~1,200 reporters: +4.24% a quarter (t 2.3), positive in all three
+splits (+9.0 / +0.1 / +3.8), payoff 1.6, hit rate still ~0.49. The bottom-25 leg is ~0, so
+this is a long-only result. Surprises are cached per print because a print's SUE never
+changes and yfinance is one request per name.
+
 WHAT IT DOES, once a day:
   1. who reported in the last COHORT_SESSIONS sessions (Unusual Whales calendar, two
-     calls a session);
+     calls a session, ~130 a day for the quarter-wide cohort);
   2. each name's reported and estimated EPS for that print (yfinance earnings_dates), and
      its price on the report day, so SUE = (actual - estimate) / price -- the construction
      the backtest used, not a percent-of-estimate that explodes on tiny estimates;
   3. the tradeable subset (close >= MIN_PRICE, 20-day median dollar volume >= MIN_ADV);
-  4. the top TOP_SHARE of the cohort by SUE are the picks; everything else is listed as
-     refused with its rank, so a name absent from the picks is a name that was judged.
+  4. the MAX_PICKS largest surprises (at most TOP_SHARE of a small cohort) are the picks;
+     everything else is listed as refused with its rank, so a name absent from the picks is
+     a name that was judged.
   5. the LEDGER: every pick is recorded once, filled at the NEXT session's open (never at
      a price that has already happened), marked daily against SPY over the same window, and
      closed after HOLD_SESSIONS. The entry is frozen; a losing pick stays visibly losing.
@@ -40,13 +51,14 @@ ET = ZoneInfo("America/New_York")
 OUT = "swing_stock_snapshot.json"
 DB = paths.state("swing_stock.db")
 
-COHORT_SESSIONS = 10        # the print must be this recent
-TOP_SHARE = 0.20            # the backtest's top quintile
+COHORT_SESSIONS = 63        # every name still inside its measured drift window
+TOP_SHARE = 0.20            # the backtest's top quintile; only binds on a small cohort
 MIN_PRICE = 10.0
 MIN_ADV = 10e6
 HOLD_SESSIONS = 63          # the horizon the drift measured on
 HOLD_DAYS = 92              # calendar approximation of 63 sessions
-MAX_PICKS = 25              # a fifth of a ~120-name cohort; sized for a small account
+MAX_PICKS = 25              # the 25 largest surprises of ~1,200; the measured rule
+SURPRISE_RETRY_DAYS = 3     # an unknown surprise is asked for again after this long
 
 
 def _now():
@@ -108,6 +120,43 @@ def surprise(ticker, report_date, now=None):
     return best
 
 
+def _cache_con():
+    try:
+        con = _db.connect(DB)
+    except sqlite3.Error:
+        return None
+    con.execute("""CREATE TABLE IF NOT EXISTS sue_cache (
+        ticker TEXT NOT NULL, report_date TEXT NOT NULL, reported REAL, estimate REAL,
+        fetched TEXT NOT NULL, PRIMARY KEY (ticker, report_date))""")
+    return con
+
+
+def cached_surprise(ticker, report_date, now=None, fetch=surprise):
+    """`surprise()` behind a per-print cache: a known print is never fetched twice, an
+    unknown one is retried after SURPRISE_RETRY_DAYS. Falls through to `fetch` if the
+    cache cannot be opened."""
+    con = _cache_con()
+    today = (now or _now()).date()
+    if con is not None:
+        row = con.execute("SELECT reported, estimate, fetched FROM sue_cache WHERE ticker=? AND report_date=?",
+                          (ticker, report_date)).fetchone()
+        if row is not None:
+            rep, est, fetched = row
+            if rep is not None and est is not None:
+                con.close()
+                return (float(rep), float(est))
+            if (today - datetime.strptime(fetched, "%Y-%m-%d").date()).days < SURPRISE_RETRY_DAYS:
+                con.close()
+                return None
+    got = fetch(ticker, report_date, now=now)
+    if con is not None:
+        con.execute("INSERT OR REPLACE INTO sue_cache VALUES (?,?,?,?,?)",
+                    (ticker, report_date, got[0] if got else None, got[1] if got else None, today.isoformat()))
+        con.commit()
+        con.close()
+    return got
+
+
 def sue(reported, estimate, price):
     if price is None or price <= 0:
         return None
@@ -137,8 +186,8 @@ def select(rows, top=TOP_SHARE, max_picks=MAX_PICKS):
         r["cohort"] = len(ok)
     picks = ok[:n_pick]
     for r in ok[n_pick:]:
-        refused.append({**r, "why": f"ranked {r['rank']} of {len(ok)} on surprise; the cut is the top "
-                                    f"{int(top*100)}% (measured: the drift is in the top quintile)"})
+        refused.append({**r, "why": f"ranked {r['rank']} of {len(ok)} on surprise; the cut is the "
+                                    f"{n_pick} largest (measured: the drift is in the extreme surprises)"})
     return picks, refused
 
 
@@ -150,18 +199,25 @@ def _prices(tickers):
         return {}
     try:
         import yfinance as yf
-        raw = yf.download(sorted(set(tickers) | {"SPY"}), period="4mo", interval="1d",
-                          progress=False, auto_adjust=True, group_by="ticker", threads=True)
     except Exception:                                         # noqa: BLE001
         return {}
+    names = sorted(set(tickers) | {"SPY"})
     out = {}
-    for tk in set(tickers) | {"SPY"}:
+    # batches of 120, the size weekly_swing._prefetch measured as fast and under the rate limit
+    for i in range(0, len(names), 120):
+        chunk = names[i:i + 120]
         try:
-            d = raw[tk].dropna(how="all").rename(columns=str.lower)
-            if len(d) >= 5 and "close" in d:
-                out[tk] = d
-        except (KeyError, TypeError, AttributeError):
+            raw = yf.download(chunk, period="4mo", interval="1d", progress=False, auto_adjust=True,
+                              group_by="ticker", threads=True)
+        except Exception:                                     # noqa: BLE001
             continue
+        for tk in chunk:
+            try:
+                d = (raw[tk] if len(chunk) > 1 else raw).dropna(how="all").rename(columns=str.lower)
+                if len(d) >= 5 and "close" in d:
+                    out[tk] = d
+            except (KeyError, TypeError, AttributeError):
+                continue
     return out
 
 
@@ -188,7 +244,7 @@ def run(now=None):
                 close = float(after["close"].iloc[0])
             dv = (d["close"] * d["volume"]).dropna().tail(20)
             adv = float(dv.median()) if len(dv) >= 10 else None
-        s = surprise(tk, rd, now=now)
+        s = cached_surprise(tk, rd, now=now)
         rows.append({"ticker": tk, "report_date": rd, "reported": s[0] if s else None,
                      "estimate": s[1] if s else None, "close": close, "adv20": adv,
                      "sue": sue(s[0], s[1], close) if (s and close) else None,
@@ -199,9 +255,10 @@ def run(now=None):
         1 for r in refused if "ranked" in r["why"]),
         "picks": picks, "refused": sorted(refused, key=lambda r: -(r.get("sue") or -9)),
         "hold_sessions": HOLD_SESSIONS,
-        "basis": ("earnings-surprise drift: top quintile of (reported - estimate) / price beat the "
-                  "bottom by +2.84% over 63 sessions, t +4.3, 33,755 prints 2020-2026, all three "
-                  "splits positive (02_findings/fundamentals.md)")}
+        "basis": ("earnings-surprise drift: the 25 largest (reported - estimate) / price among names "
+                  "that reported in the last 63 sessions made +4.24% over SPY per quarter, t 2.3, "
+                  "positive in all three splits, hit rate 0.49, payoff 1.6 "
+                  "(02_findings/signal_accuracy.md; the Q5-Q1 spread is in fundamentals.md)")}
     snapshots.write(OUT, out)
     try:
         book(picks, px, now=now)

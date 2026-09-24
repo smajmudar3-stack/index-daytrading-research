@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-24, 01:30 ET)
+## Where things stand (2026-09-24, 04:00 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,16 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-09-24 ~03:30 ET, signal accuracy (Sholo's reframe: "get the signal right, hit rate or
+big wins, test every pattern"):** `05_studies/signal_accuracy.py` — 68 factors, hit rate and
+payoff at 1/2/4/13 weeks, earnings event study, regime splits, LightGBM + Fama-MacBeth
+walk-forward. Verdict in `02_findings/signal_accuracy.md`: no factor or model exceeds ~50%
+hit rate on single names; the edge is win size at a quarter, and it is earnings surprise
+first. ACTED ON: `swing_stock.py` cohort widened from 10 to 63 sessions with the 25-name cap
+(+4.24%/quarter, all splits, vs +1.2% and negative in 2024–26 for the old rule); surprises
+cached per print. The ledger's existing five picks are unaffected. Next: watch the first
+quarter-wide cohort build (~1,200 reporters, ~130 UW calls, yfinance one call per NEW name).
 
 **2026-09-24 ~01:00 ET, diffusion:** Sholo asked for an extensive information-diffusion
 model. Built `05_studies/diffusion_model.py` (six channels, GICS sub-industries fetched to

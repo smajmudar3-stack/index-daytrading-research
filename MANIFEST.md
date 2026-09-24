@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**464 files, 93,136 lines.**
+**466 files, 93,833 lines.**
 
 ## Repo root
 
-*11 files, 2,148 lines*
+*11 files, 2,168 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 482 | 36 KB |
-| `MANIFEST.md` | 676 | 27 KB |
+| `CLAUDE.md` | 499 | 38 KB |
+| `MANIFEST.md` | 679 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*19 files, 2,639 lines*
+*20 files, 2,769 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -58,10 +58,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/WING_ECONOMICS.md` | 131 | 5 KB |
 | `02_findings/diffusion.md` | 54 | 5 KB |
 | `02_findings/earnings_vrp.md` | 104 | 6 KB |
-| `02_findings/fundamentals.md` | 124 | 8 KB |
+| `02_findings/fundamentals.md` | 130 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 101 | 19 KB |
+| `02_findings/online_methods.md` | 102 | 20 KB |
+| `02_findings/signal_accuracy.md` | 123 | 8 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -106,7 +107,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*82 files, 23,460 lines*
+*82 files, 23,517 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -179,7 +180,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/sleeves.py` | 157 | 6 KB |
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
-| `04_live_system/swing_stock.py` | 317 | 14 KB |
+| `04_live_system/swing_stock.py` | 374 | 17 KB |
 | `04_live_system/ticket.py` | 241 | 12 KB |
 | `04_live_system/tickets.py` | 500 | 22 KB |
 | `04_live_system/universe_builder.py` | 195 | 8 KB |
@@ -269,7 +270,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*71 files, 11,215 lines*
+*72 files, 11,675 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -324,6 +325,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/predictability.py` | 52 | 3 KB |
 | `05_studies/scalp_backtest.py` | 69 | 3 KB |
 | `05_studies/scalp_update.py` | 140 | 7 KB |
+| `05_studies/signal_accuracy.py` | 460 | 25 KB |
 | `05_studies/sizing_curve.py` | 120 | 5 KB |
 | `05_studies/spy_putwrite_test.py` | 110 | 5 KB |
 | `05_studies/statarb_test.py` | 141 | 7 KB |
@@ -469,12 +471,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,459 lines*
+*6 files, 1,469 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 176 | 12 KB |
+| `docs/CONTINUATION.md` | 186 | 13 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -506,7 +508,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*12 files, 2,312 lines*
+*12 files, 2,332 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -520,7 +522,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_pead.py` | 57 | 2 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |
-| `test/test_swing_stock.py` | 73 | 4 KB |
+| `test/test_swing_stock.py` | 93 | 5 KB |
 | `test/test_weekly.py` | 1,203 | 54 KB |
 
 ## test/fixtures — frozen snapshots

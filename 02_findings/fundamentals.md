@@ -64,6 +64,12 @@ table, and it is why neither gets a large fixed weight.
   quintile of the last ten sessions' reporters by surprise/price, in shares, 63-session
   hold, with a ledger filled at the next open and marked against SPY. Its record is the
   forward test of §3's +4.7%/yr.
+- **2026-09-24, from `signal_accuracy.md`:** the LONG-ONLY leg of this effect, measured on
+  weekly cohorts of the last ten sessions' reporters (the book's first rule), is +1.2% a
+  quarter overall and −0.6% in 2024–26; the +2.84% above is the Q5−Q1 SPREAD and the short
+  side carries much of it. Widening the cohort to every name inside its 63-session drift
+  window and taking the 25 largest surprises gives +4.24% a quarter (t 2.3), positive in all
+  three splits, bottom-25 leg ≈ 0. `swing_stock.py` uses that rule now.
 
 ## What it does NOT establish
 

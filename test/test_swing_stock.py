@@ -4,6 +4,7 @@ import os
 import sys
 
 import pandas as pd
+from datetime import datetime
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "04_live_system"))
@@ -71,3 +72,22 @@ def test_mark_fills_pending_picks_without_rebuilding_the_cohort(tmp_path, monkey
     assert ss.ledger()["open"][0]["status"] == "pending"
     r = ss.mark(now=pd.Timestamp("2026-09-21 16:00"))
     assert r["filled"] == 1 and ss.ledger()["open"][0]["entry"] == 100.0
+
+
+def test_cached_surprise_fetches_a_print_once_and_retries_unknowns_later(tmp_path, monkeypatch):
+    monkeypatch.setattr(ss, "DB", str(tmp_path / "ss.db"))
+    calls = []
+
+    def fake(ticker, report_date, now=None):
+        calls.append(ticker)
+        return (1.2, 1.0) if ticker == "KNOWN" else None
+    now = datetime(2026, 9, 24, tzinfo=ss.ET)
+    assert ss.cached_surprise("KNOWN", "2026-09-20", now=now, fetch=fake) == (1.2, 1.0)
+    assert ss.cached_surprise("KNOWN", "2026-09-20", now=now, fetch=fake) == (1.2, 1.0)
+    assert calls == ["KNOWN"]                                  # the second read came from the cache
+    assert ss.cached_surprise("UNK", "2026-09-20", now=now, fetch=fake) is None
+    assert ss.cached_surprise("UNK", "2026-09-20", now=now, fetch=fake) is None
+    assert calls.count("UNK") == 1                             # not re-asked the same day
+    later = datetime(2026, 9, 28, tzinfo=ss.ET)
+    assert ss.cached_surprise("UNK", "2026-09-20", now=later, fetch=fake) is None
+    assert calls.count("UNK") == 2                             # asked again after the retry window

@@ -371,6 +371,23 @@ Rules:
   window and closes after the hold; that ledger is the forward test of the backtest's
   +4.7%/yr excess. Daily, unpaid (yfinance for EPS and prices; the UW calendar only for who
   reported). It is context on the Markets view, not an action. `02_findings/fundamentals.md`.
+  **The cohort is 63 sessions wide, not ten (2026-09-24).** Re-measured on weekly cohorts,
+  the long-only top fifth of the last ten sessions' ~60 reporters was +1.2%/quarter and
+  negative in 2024–26 — a fifth of sixty is not an extreme surprise. The 25 largest
+  surprises among every name still inside its 63-session drift window (~1,200 reporters)
+  made +4.24%/quarter, t 2.3, positive in all three splits, bottom-25 leg ≈ 0. Surprises
+  are cached per print (`sue_cache`) since a print's SUE never changes and yfinance is one
+  request per name; prices are fetched in batches of 120. `02_findings/signal_accuracy.md`.
+- **No factor calls a single stock's direction more than ~50% of the time, at any horizon.**
+  `05_studies/signal_accuracy.py` scored 68 factors (price, chart patterns, earnings-day
+  behaviour, options-implied, fundamentals, market regime) on 643,687 name-weeks by top-decile
+  hit rate and payoff at 1/2/4/13 weeks, plus LightGBM and Fama-MacBeth walk-forward models
+  on all of them: hit rates 0.45–0.51 everywhere, payoff 1.05 (a week) to 1.36 (a quarter).
+  Earnings surprise is the only factor beyond the noise bar at every horizon; the nonlinear
+  model nets −3.7%/yr at a week and +6.8%/yr at a quarter. The earnings-day patterns asked
+  for by name (next-day sell-off, beat-but-sold, miss-but-rallied, run-up then gap) are all
+  within ±0.3% and 50/50. Regimes change WHICH factor is on (reversal in bear tapes and high
+  VIX, surprise everywhere), never how often it is right. `02_findings/signal_accuracy.md`.
 - **The vendor's flow does not rank next week, measured on its own history.** Two years of
   daily signed option volume, net premium and put/call on 286 names (`xsec_uw_test.py`):
   IC ≈ 0, put/call contrarian, dealer greeks null for direction, insider counts null.
