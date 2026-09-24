@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**442 files, 89,531 lines.**
+**444 files, 89,837 lines.**
 
 ## Repo root
 
-*11 files, 2,116 lines*
+*11 files, 2,121 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 473 | 35 KB |
-| `MANIFEST.md` | 653 | 26 KB |
+| `MANIFEST.md` | 658 | 26 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -466,12 +466,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,412 lines*
+*6 files, 1,428 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 129 | 9 KB |
+| `docs/CONTINUATION.md` | 145 | 10 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -636,15 +636,17 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*7 files, 492 lines*
+*9 files, 777 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/briefs/bot-claims-audit.md` | 71 | 16 KB |
 | `docs/briefs/crypto-derivatives.md` | 79 | 13 KB |
+| `docs/briefs/equity-anomalies.md` | 171 | 12 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |
 | `docs/briefs/options-income.md` | 76 | 14 KB |
 | `docs/briefs/prediction-markets.md` | 73 | 17 KB |
+| `docs/briefs/retail-base-rates.md` | 114 | 11 KB |
 | `docs/briefs/sports-betting.md` | 61 | 12 KB |
 | `docs/briefs/yields-altdata.md` | 62 | 14 KB |
 
