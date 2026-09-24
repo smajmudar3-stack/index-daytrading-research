@@ -27,8 +27,15 @@ Built `swing_ranker.py` (63-session reporters from the stock book snapshot, SUE 
 + 12-1, top 25, 21-session hold, ledger, desktop ping; +0.84%/hold, all splits), rendered both
 books under the options cards in `panels/weekly.trades` (`_side_books`, template sections),
 and made the stress cohort THE decision in `today.answer` on its issue day (+ desktop ping in
-`stress_reversal.run`). The stock book was re-run quarter-wide (63 sessions) so the ranker
-has ~1,200 reporters to rank; its first cohort follows that run. Next: weekly, compare both
+`stress_reversal.run`). The stock book was re-run quarter-wide (63 sessions): 1,810 reporters, 1,316 ranked,
+91 minutes the first time (every surprise now cached, so the daily run is quick). The
+ranker's first REAL cohort was issued 2026-09-24 ~09:50 ET from 1,690 reporters (1,279
+ranked): CLMT, EC, VLO, INSW, ETON, MPC, UMC, PSX, VSTS, TGT, TEN, CIB, CNC, DINO, OMER, SNDK,
+DELL, ANDE, PR, KALU, MRX, SFL, OII, SPB, ASX — heavy in refiners/energy, which is what
+momentum does with no sector cap (none was measured; do not add one without measuring).
+Lesson: the 5-minute dev-refresh cycle re-runs any module whose snapshot is missing, so a
+deleted snapshot gets rebuilt by the cycle within minutes — an earlier 15-name cohort was
+issued off the stale 38-name stock snapshot that way and was discarded before any fill. Next: weekly, compare both
 ledgers to their measured numbers (ranker hit 0.49 / +0.84%; stress 0.56 / +2.59%).
 
 **2026-09-24 ~05:30 ET, the stress book:** Sholo: "do it, test every single way." The regime
