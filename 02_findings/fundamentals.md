@@ -117,3 +117,8 @@ a fat left tail). **The sleeve helps at every weight** but its excess is +4.7%/y
 and its excess is slightly negatively correlated with the signal (−0.19). The honest
 expectation for the whole paper engine is 15–18% a year with a 20–30% drawdown: fourteen
 to seventeen years to 10×. Nothing in the combination changes the answer to five months.
+
+> **2026-09-23, from `docs/briefs/leverage-growth.md`:** rebuilt on real SSO/UPRO products the
+> VIX-gated overlay underperforms plain leveraged-ETF buy-and-hold (daily-reset drag). The
+> 15.3%/yr figure is a synthetic 1×+1× daily overlay; implementing it needs margin on SPY, not
+> a leveraged ETF. `index_overlay.py` models margin (6% borrow), which is the right instrument.

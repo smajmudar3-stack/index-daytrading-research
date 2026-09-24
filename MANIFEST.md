@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**446 files, 90,153 lines.**
+**446 files, 90,136 lines.**
 
 ## Repo root
 
-*11 files, 2,122 lines*
+*11 files, 2,124 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 473 | 35 KB |
-| `MANIFEST.md` | 659 | 26 KB |
+| `MANIFEST.md` | 661 | 26 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*18 files, 2,564 lines*
+*18 files, 2,565 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -60,7 +60,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 119 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 85 | 11 KB |
+| `02_findings/online_methods.md` | 86 | 12 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
@@ -636,7 +636,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*11 files, 1,090 lines*
+*11 files, 1,070 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -644,7 +644,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/briefs/calendar-macro.md` | 118 | 14 KB |
 | `docs/briefs/crypto-derivatives.md` | 79 | 13 KB |
 | `docs/briefs/equity-anomalies.md` | 171 | 12 KB |
-| `docs/briefs/leverage-growth.md` | 195 | 15 KB |
+| `docs/briefs/leverage-growth.md` | 175 | 13 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |
 | `docs/briefs/options-income.md` | 76 | 14 KB |
 | `docs/briefs/prediction-markets.md` | 73 | 17 KB |

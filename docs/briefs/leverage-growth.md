@@ -70,12 +70,12 @@ finding: the 15.3% number may not survive contact with a real 2x/3x product.
 
 Bootstrap pool: 201 realized monthly SPY returns, 2010-01 to 2026-09 (mean +1.19%/mo, std
 4.15%/mo, min −12.5%, max +12.7%). Each of 10,000 paths draws 5 months **with replacement**
-from this pool (i.i.d. monthly block bootstrap — block length = 1 month, the natural unit given
-the 5-month horizon; this does not capture intra-month autocorrelation or vol clustering, see
-caveats). Leveraged monthly return = `L × spy_month − variance_drag`, where variance_drag
-approximates daily-reset compounding cost as `0.5 × L × (L−1) × σ_daily² × 21` using the sample's
-realized daily SPY vol (σ_daily = 1.075%, i.e. ≈17.1% annualized) — this is the same effect
-visible in the #2 vs #1 CAGR gap above, just isolated as a monthly constant.
+from this pool (i.i.d. monthly block bootstrap, block = 1 month, the natural unit at a 5-month
+horizon; doesn't capture intra-month autocorrelation or vol clustering — see caveats).
+Leveraged monthly return = `L × spy_month − variance_drag`, where variance_drag approximates
+daily-reset compounding cost as `0.5 × L × (L−1) × σ_daily² × 21` off the sample's realized
+daily SPY vol (σ_daily = 1.075%, ≈17.1% annualized) — the same effect visible in the #2 vs #1
+CAGR gap above, isolated here as a monthly constant.
 
 | Leverage | Median 5-mo multiple | 10th pct | 90th pct | P(≥10x, i.e. $5k→≥$50k) | P(max drawdown ≥50% within 5mo) |
 |---|---|---|---|---|---|
@@ -83,19 +83,18 @@ visible in the #2 vs #1 CAGR gap above, just isolated as a monthly constant.
 | 3x | 1.13x | 0.77x | 1.57x | 0.00% (0/10,000) | 1.13% (113/10,000) |
 | 5x | 1.13x | 0.55x | 1.94x | 0.00% (0/10,000) | 12.67% (1,267/10,000) |
 
-The **highest** final multiple observed across all 10,000 five-month paths was **2.63x at 3x
-leverage** and **4.85x at 5x leverage** — neither ever reaches 5x, let alone the 10x needed.
-Zero of 20,000 combined simulated paths (3x + 5x) hit $50,000 from $5,000 in 5 months. The
-approximate annualized variance drag alone is 8.7%/yr at 3x and 29.1%/yr at 5x — at 5x leverage
-the drag by itself is larger than SPY's own long-run CAGR.
+The **highest** final multiple observed across all 10,000 five-month paths was **2.63x at 3x**
+and **4.85x at 5x** — neither ever reaches 5x, let alone the 10x needed. Zero of 20,000
+combined simulated paths (3x + 5x) hit $50,000 from $5,000 in 5 months. Approximate annualized
+variance drag alone is 8.7%/yr at 3x and 29.1%/yr at 5x — at 5x, drag by itself exceeds SPY's
+own long-run CAGR.
 
 Probability of a margin-call-magnitude event (≥50% drawdown within the 5-month window) is
-**1.1% at 3x and 12.7% at 5x** — non-trivial and rises fast with leverage, while the upside case
-this plan is being judged against essentially never happens. This drawdown estimate is itself
-conservative-*downward* (i.e. probably understates real risk): at monthly resolution the
-simulation cannot see an intra-month trough like February 5, 2018 or April 2025, when 5x
-leveraged exposure could breach 50% drawdown and trigger an actual margin call intra-month even
-in a month that closes flat or positive.
+**1.1% at 3x and 12.7% at 5x** — non-trivial and rising fast with leverage, while the upside
+case this plan is judged against essentially never happens. This drawdown estimate likely
+*understates* real risk: at monthly resolution the simulation can't see an intra-month trough
+like February 5, 2018 or April 2025, when 5x exposure could breach 50% drawdown and trigger an
+actual margin call intra-month even in a month that closes flat or positive.
 
 ## Verdict against the two stated bars
 
@@ -134,10 +133,9 @@ in a month that closes flat or positive.
   ("Volmageddon"), final valuation ~Feb 20. SEC EDGAR filer record, Credit Suisse AG (CIK
   0001053092): https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001053092 —
   **not independently verified**: EDGAR and Wikipedia fetches failed after several attempts;
-  sequence is well-documented public record from recalled context, not read this session. Most
-  relevant precedent for the Monte Carlo's 5x column: short-vol/high-leverage products can go
-  from fine to terminated at ~4% of prior value in under 24 hours, a tail a monthly-resolution
-  simulation can't see.
+  recalled public record, not read this session. Most relevant precedent for the Monte Carlo's
+  5x column: short-vol/high-leverage products can go from fine to ~4% of prior value in under
+  24 hours, a tail a monthly-resolution simulation can't see.
 - Robinhood margin rates (403'd) and Interactive Brokers margin rates (404'd): **neither
   verified this session**. Targets: https://robinhood.com/us/en/support/articles/margin-investing/,
   https://www.interactivebrokers.com/en/trading/margin-rates.php
