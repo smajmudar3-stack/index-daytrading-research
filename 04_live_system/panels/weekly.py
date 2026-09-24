@@ -157,11 +157,15 @@ def trades():
                            fix=p.get("fix", "idt refresh"))
 
     cards = p.get("cards") or []
+    books = _side_books()
     if not cards:
-        return empty("weekly_trades", "Weekly trade cards",
-                     f"The scan ran across {p.get('n_considered', '?')} names and none "
-                     f"cleared. Most weeks that is the correct answer; the panel below "
-                     f"lists what was thrown out and why.")
+        return panel("weekly_trades", "Weekly trade cards", state=EMPTY, age_min=_age_min(FILE),
+                     body={"cards": [], "macro_as_of": p.get("macro_as_of"), "macro_age_h": p.get("macro_age_h"), **books},
+                     note=(f"No options card: the scan ran across {p.get('n_considered', '?')} names and none "
+                           f"cleared the measured-basis gate. Most weeks that is the correct answer. The two "
+                           f"stock books below are the swing ideas that DID measure: the ranker every week, "
+                           f"the stress book only while VIX is above 25."),
+                     source="weekly_swing.run() · swing_ranker.run() · stress_reversal.run()")
 
     out = []
     for c in cards:
@@ -225,7 +229,7 @@ def trades():
                  state=STALE if bad else OK, age_min=_age_min(FILE),
                  body={"cards": out,
                        "macro_as_of": p.get("macro_as_of"),
-                       "macro_age_h": p.get("macro_age_h")},
+                       "macro_age_h": p.get("macro_age_h"), **books},
                  note=("UNPROVEN, not validated. This repo measured every systematic, "
                        "price-derived swing option overlay as worse than owning the index. "
                        "These cards are conditioned on a macro note instead, which has "
@@ -367,6 +371,34 @@ def stress_book():
                      note=p.get("note") or "the regime is off", source=src)
     return panel("stress_reversal", title, state=STALE if st == "stale" else OK, age_min=_age_min(sr.OUT),
                  body=body, note=p.get("note"), source=src)
+
+
+def _side_books():
+    """The two stock books that ride on the swing panel: the weekly ranker (surprise +
+    residual momentum + 12-1, top 25, 21 sessions) and the stress book (biggest losers,
+    only while VIX > 25). Each is a snapshot plus its ledger summary; never a vendor call."""
+    out = {"ranker": None, "stress": None}
+    try:
+        import swing_ranker as srk
+        p, st = snapshots.read(srk.OUT)
+        if p is not None and st not in ("absent", "unreadable", "wrong_version", "incomplete"):
+            out["ranker"] = {"ok": p.get("ok"), "as_of": p.get("as_of"), "issued": p.get("issued"), "note": p.get("note"),
+                             "blocked": p.get("blocked"), "picks": (p.get("picks") or [])[:25], "cohort_n": p.get("cohort_n"),
+                             "hold_sessions": p.get("hold_sessions"), "measured": p.get("measured"), "stale": st == "stale",
+                             "ledger": srk.ledger(limit=60)}
+    except Exception as e:                                    # noqa: BLE001
+        out["ranker"] = {"ok": False, "blocked": f"{type(e).__name__}: {e}", "picks": [], "ledger": None}
+    try:
+        import stress_reversal as sr
+        p, st = snapshots.read(sr.OUT)
+        if p is not None and st not in ("absent", "unreadable", "wrong_version", "incomplete"):
+            out["stress"] = {"ok": p.get("ok"), "as_of": p.get("as_of"), "regime_on": p.get("regime_on"), "vix": p.get("vix"),
+                             "vix_on": p.get("vix_on"), "issued": p.get("issued"), "note": p.get("note"), "blocked": p.get("blocked"),
+                             "picks": (p.get("picks") or [])[:40], "hold_sessions": p.get("hold_sessions"),
+                             "measured": p.get("measured"), "stale": st == "stale", "ledger": sr.ledger(limit=80)}
+    except Exception as e:                                    # noqa: BLE001
+        out["stress"] = {"ok": False, "blocked": f"{type(e).__name__}: {e}", "picks": [], "ledger": None}
+    return out
 
 
 # ---------------------------------------------------------------- the refusals ---

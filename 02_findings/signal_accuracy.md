@@ -113,6 +113,38 @@ spread, and the long side alone needs the wider window. `swing_stock.py` now use
 was already measured on, not a search over parameters; the 10-session result is kept here
 so the change can be judged against it as the ledger fills.
 
+## Per-name weights, tested and rejected (2026-09-24)
+
+Sholo's design was to weight each factor by how much it has moved THAT stock.
+`05_studies/per_name_weights_test.py` fit a ridge regression per name on the name's own
+past (at least two years of its own months, forward returns known at the time) and
+ranked on the prediction, against one set of weights for everyone and an unweighted
+composite, same ten factors, four-week hold:
+
+| weights | dates | IC (t) | top-decile hit | payoff | net/yr | IC by split |
+|---|---:|---:|---:|---:|---:|---|
+| equal weight, no fitting | 110 | **+0.034 (2.6)** | 0.485 | 1.12 | +0.4% | +0.035 / +0.046 / +0.032 |
+| pooled, Fama-MacBeth | 98 | +0.014 (1.0) | 0.478 | 1.09 | −0.9% | −0.005 / +0.053 / +0.005 |
+| **per-name, ridge on own past** | 85 | +0.015 (0.9) | 0.482 | 1.12 | +1.8% | +0.016 / +0.029 / +0.004 |
+| blend of the two | 85 | +0.020 (1.2) | 0.479 | 1.09 | −0.8% | +0.002 / +0.055 / +0.006 |
+
+The per-name weight's sign agreed with the pooled sign on 36–65% of names depending on
+the factor — a coin flip — so a name's "own" weights are its own past accidents. Equal
+weights on the inputs that survived is the rule; this matches Lewellen (2015).
+
+## The swing ranker
+
+What the weekly swing panel now produces, in shares, alongside the options cards: every
+name that reported in the last 63 sessions, ranked on the mean rank of earnings surprise,
+residual momentum and 12-1 momentum, the top 25 issued weekly and held 21 sessions.
+Measured on the same panel (non-overlapping 4-week dates): **+0.84% over SPY per hold, hit
+rate 0.49, wins 1.24× losses, 54% of cohorts positive, 42% turnover, +9.3%/yr net; splits
++0.87 / +0.79 / +0.87.** Surprise alone is +1.10% on average and +0.12 in 2022–23; the
+three-input rule is the smaller, steadier one. At 63 sessions it is +3.71%/hold (t 2.4),
+75% of cohorts positive. Live: `04_live_system/swing_ranker.py`; ledger; desktop ping
+when a cohort is issued. The stress book rides on the same panel and, on the day it
+issues, is the decision on the Today page.
+
 ## Plain reading
 
 Nothing here predicts an individual stock's direction more than about half the time. What

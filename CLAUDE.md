@@ -378,6 +378,17 @@ Rules:
   made +4.24%/quarter, t 2.3, positive in all three splits, bottom-25 leg ≈ 0. Surprises
   are cached per print (`sue_cache`) since a print's SUE never changes and yfinance is one
   request per name; prices are fetched in batches of 120. `02_findings/signal_accuracy.md`.
+- **The swing panel carries two stock books beside the options cards, and per-name weights
+  were tested and rejected.** `swing_ranker.py`: every name that reported in the last 63
+  sessions (read from the stock book's snapshot — no new vendor calls), ranked on the mean
+  rank of surprise, residual momentum and 12-1 momentum, top 25 weekly, 21-session hold,
+  ledger, desktop ping on issue. Measured +0.84% over SPY per hold, hit 0.49, payoff 1.24,
+  +9.3%/yr net, positive in all three splits (`signal_accuracy.md`). Weighting each factor
+  by how much it moved THAT name (`per_name_weights_test.py`) scored IC +0.015 against
+  +0.034 for equal weights and the per-name signs agreed with the pooled sign on 36–65% of
+  names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
+  books under the cards (`_side_books`), and `today.answer` states the stress cohort as
+  THE decision on the day it issues — the only place an action is stated.
 - **The stress book is the one regime-conditional edge, and it is OFF most of the time.**
   `stress_reversal.py`: when VIX closes above 25, buy the 40 biggest losers of the S&P 1500
   by a reversal composite (mean rank of 1-month, 1-week and Bollinger position), hold ten

@@ -63,6 +63,31 @@ def answer():
     gates = _gate_blockers()
     d = _load("master_call.json")
 
+    # THE STRESS BOOK OUTRANKS THE OPTIONS STACK on the day it issues. It is the one regime
+    # in this repo with a measured hit rate above 50% (0.56, wins 1.4x losses, all splits,
+    # 02_findings/stress_reversal.md), it fires on ~16% of weeks, and it is a stock book,
+    # so the index-option gates do not apply to it. It is stated here and nowhere else.
+    st = _stress_cohort_today()
+    if st:
+        return panel(
+            "answer", "Today's decision", state=OK, severity="watch",
+            body={
+                "label": f"DECISION · {st['as_of']}",
+                "verb": f"STRESS BOOK: ENTER THE {len(st['picks'])}-NAME COHORT (paper)",
+                "because": (f"VIX closed {st['vix']:.1f}, above {st['vix_on']:.0f}. In that regime the biggest losers "
+                            f"bought and held {st['hold']} sessions beat SPY 56% of the time with wins 1.4x losses, "
+                            f"in every split measured; out of it the same trade loses."),
+                "detail": ("Equal weight across the cohort, fills at the next open, exit after "
+                           f"{st['hold']} sessions or at the ledger's close. Names: " + ", ".join(st["names"])),
+                "rows": [{"k": "cohort", "v": ", ".join(st["names"][:12]) + (" …" if len(st["names"]) > 12 else "")},
+                         {"k": "hold", "v": f"{st['hold']} sessions, then out"},
+                         {"k": "measured", "v": "+2.59% over SPY per hold, t 2.6, hit 0.56, payoff 1.42, 34 dates"},
+                         {"k": "index-option gates", "v": f"{len(gates)} blocking (they do not apply to a stock book)",
+                          "severity": "stop" if gates else "live"}],
+                "tiles": _decision_tiles(gates),
+                "trust": _trust_sentence(),
+            })
+
     # The gates are deterministic and they outrank the model. If anything is blocking,
     # the answer is STAND DOWN regardless of what the agent proposed, and the page says
     # which gate. risk_gates would refuse the trade anyway; the UI used to not show it.
@@ -134,6 +159,18 @@ def answer():
             "tiles": _decision_tiles([], d.get("conviction")),
             "trust": _trust_sentence(),
         })
+
+
+def _stress_cohort_today():
+    """The stress book's cohort if it was issued today, else None. Reads the snapshot only."""
+    p = _load("stress_reversal_snapshot.json")
+    if not p or not p.get("ok") or not p.get("regime_on") or not p.get("issued") or not p.get("picks"):
+        return None
+    as_of = str(p.get("as_of", ""))
+    if as_of[:10] != time.strftime("%Y-%m-%d"):
+        return None
+    return {"as_of": as_of, "vix": float(p.get("vix") or 0), "vix_on": float(p.get("vix_on") or 25),
+            "hold": p.get("hold_sessions"), "picks": p["picks"], "names": [x["ticker"] for x in p["picks"]]}
 
 
 def _px(v):

@@ -64,6 +64,17 @@ def _stamp():
     return _now().strftime("%Y-%m-%d %H:%M")
 
 
+def _notify(title, msg):
+    """Desktop ping, best effort; the ledger is the record and panels/today.answer the action."""
+    try:
+        import subprocess
+        subprocess.run(["osascript", "-e", f'display notification "{msg}" with title "{title}" sound name "Glass"'],
+                       timeout=5, check=False)
+        return True
+    except Exception:                                         # noqa: BLE001
+        return False
+
+
 # ------------------------------------------------------------------ inputs ---
 
 def vix_now():
@@ -209,7 +220,10 @@ def run(now=None):
                    f"{len(rows)} names by the reversal composite, for a {HOLD_SESSIONS}-session hold."}
     snapshots.write(OUT, out)
     try:
-        out["ledger_result"] = book(picks, px, now=now)
+        out["ledger_result"] = book(picks, px, now=now, vix=vix)
+        if picks:
+            _notify(f"Stress book ON: VIX {vix:.1f}, cohort issued (paper)",
+                    f"{len(picks)} biggest losers, {HOLD_SESSIONS}-session hold; top: " + ", ".join(p["ticker"] for p in picks[:5]))
     except Exception as e:                                    # noqa: BLE001
         out["ledger_error"] = f"{type(e).__name__}: {e}"
     return out

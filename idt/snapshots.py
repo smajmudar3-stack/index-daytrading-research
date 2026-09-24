@@ -107,6 +107,14 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    "swing_ranker": {
+        "version": 1,
+        "files": ("swing_ranker_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("issued", "picks"),
+        "not_null": (),
+        "max_age_min": 1500,
+    },
     "stress_reversal": {
         "version": 1,
         "files": ("stress_reversal_snapshot.json",),

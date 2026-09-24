@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-24, 06:00 ET)
+## Where things stand (2026-09-24, 08:00 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,17 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-09-24 ~07:30 ET, swing panel + ranker:** Sholo: put the stress book on the swing panel,
+send signals, and make the swing produce with per-stock weights. Measured first:
+`per_name_weights_test.py` — per-name weights LOSE to equal weights (IC 0.015 vs 0.034).
+Built `swing_ranker.py` (63-session reporters from the stock book snapshot, SUE + resid mom
++ 12-1, top 25, 21-session hold, ledger, desktop ping; +0.84%/hold, all splits), rendered both
+books under the options cards in `panels/weekly.trades` (`_side_books`, template sections),
+and made the stress cohort THE decision in `today.answer` on its issue day (+ desktop ping in
+`stress_reversal.run`). The stock book was re-run quarter-wide (63 sessions) so the ranker
+has ~1,200 reporters to rank; its first cohort follows that run. Next: weekly, compare both
+ledgers to their measured numbers (ranker hit 0.49 / +0.84%; stress 0.56 / +2.59%).
 
 **2026-09-24 ~05:30 ET, the stress book:** Sholo: "do it, test every single way." The regime
 reversal from the sweep was tested properly (`05_studies/regime_reversal_test.py`: 4 regime

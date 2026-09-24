@@ -242,6 +242,17 @@ if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock failed: {type(_e).__name__}: {_e}")
 
+# THE SWING RANKER, once a day after the stock book (it reads that snapshot); issues a cohort
+# at most weekly. 02_findings/signal_accuracy.md.
+if _stale("swing_ranker_snapshot.json", STOCK_REGEN_S):
+    try:
+        import swing_ranker
+        _rk = swing_ranker.run()
+        print(f"swing ranker: {'issued ' + str(len(_rk.get('picks') or [])) + ' picks' if _rk.get('issued') else 'no cohort due'}"
+              + (f" — {_rk['blocked']}" if _rk.get("blocked") else ""))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"swing_ranker failed: {type(_e).__name__}: {_e}")
+
 # THE STRESS BOOK, once a day: off unless VIX closed above 25; then the week's biggest losers
 # for a ten-session hold (02_findings/stress_reversal.md). Its ledger shares the 4h clock below.
 if _stale("stress_reversal_snapshot.json", STOCK_REGEN_S):
@@ -275,6 +286,13 @@ if _stale("swing_stock.db", 4 * 3600):
               f"{_sm.get('closed')} closed")
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock.mark failed: {type(_e).__name__}: {_e}")
+if _stale("swing_ranker.db", 4 * 3600):
+    try:
+        import swing_ranker
+        _rkm = swing_ranker.mark()
+        print(f"swing ranker ledger: {_rkm.get('filled')} filled, {_rkm.get('marked')} marked, {_rkm.get('closed')} closed")
+    except Exception as _e:                       # noqa: BLE001
+        print(f"swing_ranker.mark failed: {type(_e).__name__}: {_e}")
 if _stale("stress_reversal.db", 4 * 3600):
     try:
         import stress_reversal
