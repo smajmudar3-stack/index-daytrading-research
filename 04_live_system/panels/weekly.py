@@ -344,6 +344,31 @@ def stock_picks():
                         "reported vs estimated EPS and prices · 02_findings/fundamentals.md")
 
 
+@safe
+@describe("stress_reversal", "Stress book: the biggest losers, only while VIX is above 25")
+def stress_book():
+    """On only in a stressed tape; then the week's biggest losers for a ten-session hold in
+    shares, with the ledger of what earlier cohorts did against SPY. Context, ranked."""
+    import stress_reversal as sr
+    title = "Stress book: the biggest losers, only while VIX is above 25"
+    p, st = snapshots.read(sr.OUT)
+    if st in ("absent", "unreadable", "wrong_version", "incomplete") or p is None:
+        why, fix = snapshots.explain(sr.OUT, st)
+        return unavailable("stress_reversal", title, why, fix=fix)
+    led = sr.ledger()
+    body = {"picks": p.get("picks") or [], "refused": (p.get("refused") or [])[:40], "cohort_n": p.get("cohort_n"),
+            "n_ranked": p.get("n_ranked"), "hold_sessions": p.get("hold_sessions"), "n_picks": p.get("n_picks"),
+            "vix": p.get("vix"), "vix_on": p.get("vix_on"), "measured": p.get("measured"), "ledger": led}
+    if not p.get("ok"):
+        return unavailable("stress_reversal", title, p.get("blocked", "the stress book did not run"), fix="idt refresh")
+    src = "stress_reversal.run() · ^VIX and prices from yfinance · 02_findings/stress_reversal.md"
+    if not p.get("regime_on") or not body["picks"]:
+        return panel("stress_reversal", title, state=EMPTY, body=body, age_min=_age_min(sr.OUT),
+                     note=p.get("note") or "the regime is off", source=src)
+    return panel("stress_reversal", title, state=STALE if st == "stale" else OK, age_min=_age_min(sr.OUT),
+                 body=body, note=p.get("note"), source=src)
+
+
 # ---------------------------------------------------------------- the refusals ---
 
 @safe

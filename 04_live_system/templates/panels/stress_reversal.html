@@ -1,0 +1,62 @@
+{# The stress book: on only while VIX is above 25, then the week's biggest losers for a
+   ten-session hold. Ranked context, never an instruction. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
+  {% if p.body.picks %}
+  <table class="tbl">
+    <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th></tr></thead>
+    <tbody>
+    {% for r in p.body.picks %}
+      <tr>
+        <td>{{ r.rank }}<em>/{{ r.cohort }}</em></td>
+        <td><b>{{ r.ticker }}</b></td>
+        <td class="down">{{ '%+.1f'|format(r.ret1m * 100) }}%</td>
+        <td class="down">{{ '%+.1f'|format(r.ret1w * 100) }}%</td>
+        <td>{{ '%+.2f'|format(r.bb_pos) }}</td>
+        <td>{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% set led = p.body.ledger %}
+  {% if led and (led.open or led.closed) %}
+  <div class="bk-sum">
+    <span><b>cohorts</b> {{ led.summary.cohorts }}</span>
+    <span><b>open</b> {{ led.summary.n_open }}</span>
+    <span><b>closed</b> {{ led.summary.n }}</span>
+    {% if led.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ led.summary.hit_rate }}%</span>{% endif %}
+    {% if led.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(led.summary.avg_rel_pct) }}%</span>{% endif %}
+  </div>
+  <table class="tbl">
+    <thead><tr><th>name</th><th>issued</th><th>entered</th><th>entry</th><th>now</th><th>P&amp;L</th><th>vs SPY</th><th>due</th><th>status</th></tr></thead>
+    <tbody>
+    {% for r in led.open + led.closed %}
+      <tr>
+        <td><b>{{ r.ticker }}</b></td>
+        <td>{{ r.issued[:10] }}</td>
+        <td>{{ r.entry_date or 'pending, fills at the next open' }}</td>
+        <td>{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td>
+        <td>{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+        <td class="{{ 'up' if (r.pnl_pct or 0) > 0 else 'down' }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+        <td class="{{ 'up' if (r.rel_pct or 0) > 0 else 'down' }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td>
+        <td>{{ r.exit_due or '—' }}</td>
+        <td>{{ r.status }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if p.body.measured %}
+  <p class="wk-back-ft">Measured: the {{ p.body.n_picks }} biggest losers when VIX &gt; {{ '%.0f'|format(p.body.vix_on) }},
+    held {{ p.body.hold_sessions }} sessions: {{ '%+.2f'|format(p.body.measured.per_hold_pct) }}% over SPY per hold
+    (t {{ p.body.measured.t }}), hit rate {{ '%.0f'|format(p.body.measured.hit * 100) }}%, wins {{ p.body.measured.payoff }}x losses,
+    {{ p.body.measured.dates }} non-overlapping dates, splits {{ p.body.measured.splits }}. Out of the regime: flat to negative.
+    {{ p.body.measured.source }}.</p>
+  {% endif %}
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

@@ -107,6 +107,14 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    "stress_reversal": {
+        "version": 1,
+        "files": ("stress_reversal_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("regime_on", "picks"),
+        "not_null": (),
+        "max_age_min": 1500,
+    },
     "weekly": {
         "version": 1,
         "files": ("weekly_snapshot.json",),

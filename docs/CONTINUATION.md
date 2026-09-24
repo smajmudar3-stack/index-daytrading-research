@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-24, 04:00 ET)
+## Where things stand (2026-09-24, 06:00 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,17 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-09-24 ~05:30 ET, the stress book:** Sholo: "do it, test every single way." The regime
+reversal from the sweep was tested properly (`05_studies/regime_reversal_test.py`: 4 regime
+definitions × 3 signals × 3 holds, controls, costs, liquidity, years) and it held everywhere:
+biggest losers bought while VIX > 25, ten-session hold, +2.59%/hold for the bottom 40 (t 2.6,
+hit 0.56, all splits), flat-to-negative out of regime. Built as a paper book with ledger and
+panel: `04_live_system/stress_reversal.py`, `templates/panels/stress_reversal.html`,
+`panels/weekly.stress_book`, snapshot schema `stress_reversal`, scan wiring (daily run, 4h
+ledger). VIX ~17 today so the book is OFF; it issues only when VIX closes above 25. Findings:
+`02_findings/stress_reversal.md`. Next: when VIX next crosses 25, check the first cohort fills
+and the panel renders; after 3 cohorts compare the ledger's hit rate to 0.56.
 
 **2026-09-24 ~03:30 ET, signal accuracy (Sholo's reframe: "get the signal right, hit rate or
 big wins, test every pattern"):** `05_studies/signal_accuracy.py` — 68 factors, hit rate and

@@ -9,19 +9,19 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**466 files, 93,833 lines.**
+**471 files, 94,570 lines.**
 
 ## Repo root
 
-*11 files, 2,168 lines*
+*11 files, 2,179 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 499 | 38 KB |
-| `MANIFEST.md` | 679 | 27 KB |
+| `CLAUDE.md` | 508 | 38 KB |
+| `MANIFEST.md` | 681 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*20 files, 2,769 lines*
+*21 files, 2,831 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -61,9 +61,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 130 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/online_methods.md` | 102 | 20 KB |
+| `02_findings/online_methods.md` | 103 | 21 KB |
 | `02_findings/signal_accuracy.md` | 123 | 8 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
+| `02_findings/stress_reversal.md` | 61 | 4 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
 | `02_findings/weekly_structure.md` | 114 | 7 KB |
@@ -107,7 +108,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*82 files, 23,517 lines*
+*83 files, 23,864 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -170,7 +171,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/risk_gates.py` | 663 | 32 KB |
 | `04_live_system/rules.py` | 316 | 16 KB |
 | `04_live_system/run_recorders.sh` | 24 | 1 KB |
-| `04_live_system/scan_all.py` | 333 | 16 KB |
+| `04_live_system/scan_all.py` | 351 | 17 KB |
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
 | `04_live_system/signal_tracker.py` | 392 | 20 KB |
@@ -179,6 +180,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/sizing.py` | 177 | 9 KB |
 | `04_live_system/sleeves.py` | 157 | 6 KB |
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
+| `04_live_system/stress_reversal.py` | 329 | 15 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
 | `04_live_system/swing_stock.py` | 374 | 17 KB |
 | `04_live_system/ticket.py` | 241 | 12 KB |
@@ -196,7 +198,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,440 lines*
+*10 files, 2,465 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -209,7 +211,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 360 | 15 KB |
 | `04_live_system/panels/views.py` | 159 | 7 KB |
-| `04_live_system/panels/weekly.py` | 557 | 28 KB |
+| `04_live_system/panels/weekly.py` | 582 | 30 KB |
 
 ## 04_live_system/templates — Jinja templates
 
@@ -225,7 +227,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*29 files, 755 lines*
+*30 files, 817 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -251,6 +253,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/regime.html` | 29 | 1 KB |
 | `04_live_system/templates/panels/scorecard.html` | 10 | 387 B |
 | `04_live_system/templates/panels/services.html` | 19 | 793 B |
+| `04_live_system/templates/panels/stress_reversal.html` | 62 | 3 KB |
 | `04_live_system/templates/panels/swing.html` | 15 | 672 B |
 | `04_live_system/templates/panels/swing_stock.html` | 63 | 3 KB |
 | `04_live_system/templates/panels/verdicts.html` | 17 | 757 B |
@@ -270,7 +273,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*72 files, 11,675 lines*
+*73 files, 11,793 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -323,6 +326,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/orb_proper.py` | 117 | 5 KB |
 | `05_studies/polymarket_score.py` | 111 | 6 KB |
 | `05_studies/predictability.py` | 52 | 3 KB |
+| `05_studies/regime_reversal_test.py` | 118 | 6 KB |
 | `05_studies/scalp_backtest.py` | 69 | 3 KB |
 | `05_studies/scalp_update.py` | 140 | 7 KB |
 | `05_studies/signal_accuracy.py` | 460 | 25 KB |
@@ -471,12 +475,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,469 lines*
+*6 files, 1,480 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 186 | 13 KB |
+| `docs/CONTINUATION.md` | 197 | 14 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -484,7 +488,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## idt — the shared package and CLI
 
-*7 files, 540 lines*
+*7 files, 548 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -494,7 +498,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `idt/db.py` | 22 | 773 B |
 | `idt/keys.py` | 64 | 2 KB |
 | `idt/paths.py` | 62 | 3 KB |
-| `idt/snapshots.py` | 217 | 8 KB |
+| `idt/snapshots.py` | 225 | 8 KB |
 
 ## scripts — repo tooling
 
@@ -508,7 +512,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*12 files, 2,332 lines*
+*13 files, 2,425 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -522,6 +526,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_pead.py` | 57 | 2 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |
+| `test/test_stress_reversal.py` | 93 | 5 KB |
 | `test/test_swing_stock.py` | 93 | 5 KB |
 | `test/test_weekly.py` | 1,203 | 54 KB |
 

@@ -242,6 +242,17 @@ if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock failed: {type(_e).__name__}: {_e}")
 
+# THE STRESS BOOK, once a day: off unless VIX closed above 25; then the week's biggest losers
+# for a ten-session hold (02_findings/stress_reversal.md). Its ledger shares the 4h clock below.
+if _stale("stress_reversal_snapshot.json", STOCK_REGEN_S):
+    try:
+        import stress_reversal
+        _sr = stress_reversal.run()
+        print(f"stress book: regime {'ON' if _sr.get('regime_on') else 'off'} (VIX {_sr.get('vix')}), "
+              f"{len(_sr.get('picks') or [])} picks" + (f" — {_sr['blocked']}" if _sr.get("blocked") else ""))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"stress_reversal failed: {type(_e).__name__}: {_e}")
+
 # THE INDEX OVERLAY, once a day: always long the index, twice the exposure while VIX is
 # backwardated inside a golden cross -- the one growth path measured (15.3%/yr vs 11.5%,
 # 02_findings/goal_feasibility.md). Paper equity from $5,000, marked daily. Records only.
@@ -264,6 +275,13 @@ if _stale("swing_stock.db", 4 * 3600):
               f"{_sm.get('closed')} closed")
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock.mark failed: {type(_e).__name__}: {_e}")
+if _stale("stress_reversal.db", 4 * 3600):
+    try:
+        import stress_reversal
+        _srm = stress_reversal.mark()
+        print(f"stress book ledger: {_srm.get('filled')} filled, {_srm.get('marked')} marked, {_srm.get('closed')} closed")
+    except Exception as _e:                       # noqa: BLE001
+        print(f"stress_reversal.mark failed: {type(_e).__name__}: {_e}")
 
 # THE LEDGER RUNS EVERY CYCLE, not on the generator's 4h clock. Two different jobs: the
 # generator decides what is worth proposing, this marks what was already proposed against

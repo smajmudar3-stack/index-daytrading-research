@@ -378,6 +378,15 @@ Rules:
   made +4.24%/quarter, t 2.3, positive in all three splits, bottom-25 leg ≈ 0. Surprises
   are cached per print (`sue_cache`) since a print's SUE never changes and yfinance is one
   request per name; prices are fetched in batches of 120. `02_findings/signal_accuracy.md`.
+- **The stress book is the one regime-conditional edge, and it is OFF most of the time.**
+  `stress_reversal.py`: when VIX closes above 25, buy the 40 biggest losers of the S&P 1500
+  by a reversal composite (mean rank of 1-month, 1-week and Bollinger position), hold ten
+  sessions, in shares, paper, with a ledger that fills at the next open. Measured on
+  `regime_reversal_test.py`: +2.59% over SPY per hold (t 2.6), hit 0.56, wins 1.4× losses,
+  positive in all three splits, every regime definition (VIX>25, VIX top-30%, SPY<200d,
+  SPY 12m<0), every hold, at 30 bp a side; OUT of the regime the same trade is −8 to −13%/yr.
+  The mechanism is Nagel 2012 (reversal = paid liquidity provision, priced by VIX). On ~16%
+  of weeks; a 25%-when-on number is not 25%/yr. `02_findings/stress_reversal.md`.
 - **No factor calls a single stock's direction more than ~50% of the time, at any horizon.**
   `05_studies/signal_accuracy.py` scored 68 factors (price, chart patterns, earnings-day
   behaviour, options-implied, fundamentals, market regime) on 643,687 name-weeks by top-decile
