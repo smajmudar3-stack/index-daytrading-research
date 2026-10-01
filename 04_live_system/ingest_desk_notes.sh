@@ -118,6 +118,15 @@ STATUS=$?
 
 echo "claude exit: $STATUS" >>"$LOG"
 
+# AN EXPIRED LOGIN MUST BE HEARD, NOT JUST LOGGED. From 2026-09-26 to 2026-10-01 every run
+# died with "OAuth session expired and could not be refreshed", the overlay aged past its
+# gate, and the weekly book refused cards for a week while the only trace was a line in
+# this log. The refusal was correct; the silence was not. A desktop ping names the fix.
+if [ "$STATUS" -ne 0 ] && tail -c 4000 "$LOG" | grep -q "Failed to authenticate"; then
+  echo "LOGIN EXPIRED: run /login in Claude Code, then idt refresh" >>"$LOG"
+  osascript -e 'display notification "Claude login expired: desk notes are not being read and the weekly book will go stale. Run /login in Claude Code." with title "Desk-note ingest failed" sound name "Basso"' 2>/dev/null || true
+fi
+
 # Rebuild regardless: if the ingest added nothing the overlay is unchanged and this just
 # refreshes the live strikes on the existing cards, which is worth doing on its own.
 "$PY" weekly_swing.py >>"$LOG" 2>&1
