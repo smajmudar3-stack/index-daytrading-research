@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-09-24, 08:00 ET)
+## Where things stand (2026-10-01, 15:30 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,29 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-10-01, "the weekly cards aren't updating":** ROOT CAUSE: the headless `claude -p`
+desk-note ingest died every run from 09-26 with "OAuth session expired and could not be
+refreshed"; no new notes → overlay past its gate → weekly book BLOCKED (correct) for a week,
+with only a log line to show for it. Sholo's `/login` fixed the session; the ingest then
+pulled 16 notes and the book rebuilt (an MU put credit spread at 14:49 that the 14:53 regen
+refused at 57% agreement — a marginal card, the ledger kept it). Fixed so it cannot be
+silent again: `ingest_desk_notes.sh` raises a desktop alert on "Failed to authenticate".
+ALSO FOUND: (1) the midnight cycle's yfinance downloads fail under rate limit, and the
+stock book / ranker wrote "refused" for names that were simply unpriced — both now BLOCK
+when fewer than half the names price, and `scan_all._due` retries a blocked snapshot on a
+2h clock instead of 24h; (2) the dev dashboard (launchd `com.daytrading.dev-dashboard`,
+port **8095**) had been running since 09-07 with code from 09-07 — every panel added since
+was invisible until `launchctl kickstart -k gui/$(id -u)/com.daytrading.dev-dashboard`.
+Port 8094 is an OLD process from the production checkout (pid 1261, since 09-01). RESTART
+THE DEV DASHBOARD AFTER ANY PANEL CHANGE; (3) the stock books now have their own card
+`weekly_books` directly under the trade cards, because `panel.html` renders a key's own
+template only in the ok/stale states and the trades card is empty most weeks; (4) the
+Anthropic API account is OUT OF CREDIT (master_call / analyst fail every cycle) — Sholo's to
+top up; the paper books do not need it. Ledger after one week: stock book 79 open, avg
++0.05% vs SPY, 37/77 beating; ranker cohort 1 (09-24) +0.85% vs SPY, 14/25 beating; cohort
+2 issued 10-01 (CLMT, EC, UMC, MPC, INSW, VLO, TEN, DINO, PSX, TGT, …); stress book off, VIX 16.
+Recorders: still running, NOT yet re-scored (item 1 below is now overdue).
 
 **2026-09-24 ~07:30 ET, swing panel + ranker:** Sholo: put the stress book on the swing panel,
 send signals, and make the swing produce with per-stock weights. Measured first:

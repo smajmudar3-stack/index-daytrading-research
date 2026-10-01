@@ -91,3 +91,13 @@ def test_cached_surprise_fetches_a_print_once_and_retries_unknowns_later(tmp_pat
     later = datetime(2026, 9, 28, tzinfo=ss.ET)
     assert ss.cached_surprise("UNK", "2026-09-20", now=later, fetch=fake) is None
     assert calls.count("UNK") == 2                             # asked again after the retry window
+
+
+def test_a_price_outage_blocks_the_stock_book_instead_of_refusing_every_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(ss, "DB", str(tmp_path / "ss.db"))
+    written = {}
+    monkeypatch.setattr(ss.snapshots, "write", lambda name, out: written.update({name: out}))
+    monkeypatch.setattr(ss, "reporters", lambda now=None: ({"AAA": "2026-09-20", "BBB": "2026-09-20", "CCC": "2026-09-20"}, None))
+    monkeypatch.setattr(ss, "_prices", lambda names: {"SPY": _px(500.0, 500.0)})
+    out = ss.run(now=pd.Timestamp("2026-10-01 00:11", tz=ss.ET))
+    assert out["ok"] is False and "0 of 3" in out["blocked"] and out["picks"] == []

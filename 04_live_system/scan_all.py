@@ -17,6 +17,23 @@ def _stale(name, secs):
     except Exception:
         return True
 
+
+def _blocked(name):
+    """True when a snapshot recorded that its engine could not run (ok False). A blocked
+    snapshot is retried on the short clock: the 24h gate exists to spare the vendors, and
+    a run that fetched nothing spared them already."""
+    p = os.path.join(HERE, "data", name)
+    try:
+        import json as _json
+        with open(p, encoding="utf-8") as fh:
+            return _json.load(fh).get("ok") is False
+    except Exception:
+        return False
+
+
+def _due(name, secs, retry_secs=2 * 3600):
+    return _stale(name, secs) or (_blocked(name) and _stale(name, retry_secs))
+
 def _load(name):
     try:
         return json.load(open(os.path.join(HERE, "data", name)))
@@ -233,7 +250,7 @@ if _stale("weekly_snapshot.json", WEEKLY_REGEN_S):
 # The one signal that measured strongly (+2.84% Q5-Q1 @63d, t +4.3) and the forward test of
 # it. Daily because the inputs are daily: ~120 yfinance calls a run, none of them paid.
 STOCK_REGEN_S = 24 * 3600
-if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
+if _due("swing_stock_snapshot.json", STOCK_REGEN_S):
     try:
         import swing_stock
         _ss = swing_stock.run()
@@ -244,7 +261,7 @@ if _stale("swing_stock_snapshot.json", STOCK_REGEN_S):
 
 # THE SWING RANKER, once a day after the stock book (it reads that snapshot); issues a cohort
 # at most weekly. 02_findings/signal_accuracy.md.
-if _stale("swing_ranker_snapshot.json", STOCK_REGEN_S):
+if _due("swing_ranker_snapshot.json", STOCK_REGEN_S):
     try:
         import swing_ranker
         _rk = swing_ranker.run()
@@ -255,7 +272,7 @@ if _stale("swing_ranker_snapshot.json", STOCK_REGEN_S):
 
 # THE STRESS BOOK, once a day: off unless VIX closed above 25; then the week's biggest losers
 # for a ten-session hold (02_findings/stress_reversal.md). Its ledger shares the 4h clock below.
-if _stale("stress_reversal_snapshot.json", STOCK_REGEN_S):
+if _due("stress_reversal_snapshot.json", STOCK_REGEN_S):
     try:
         import stress_reversal
         _sr = stress_reversal.run()

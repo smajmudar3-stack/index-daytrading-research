@@ -217,6 +217,19 @@ def run(now=None):
         r.update(m or {"mom12_1": None, "resid_mom": None})
         if d is not None and len(d):
             r["spot"] = float(d["close"].dropna().iloc[-1]) if len(d["close"].dropna()) else None
+    # A PRICE OUTAGE IS NOT A RANKING. On 2026-10-01 00:11 the midnight cycle's downloads
+    # failed under yfinance's rate limit, momentum came back None for every name, and the
+    # ranker wrote "0 of 639 ... price history shorter than a year" as if it had judged
+    # them. It had not. Fewer than half the names priced means the run is blocked, the
+    # snapshot says so, and the scan retries on its short clock instead of waiting a day.
+    n_ok = sum(1 for r in rows if r.get("mom12_1") is not None)
+    if spy is None or n_ok < 0.5 * len(rows):
+        out = {**base, "ok": False, "issued": False,
+               "blocked": f"price history came back for {n_ok} of {len(rows)} names"
+                          f"{' and SPY is missing' if spy is None else ''} (yfinance rate limit?); not ranked"}
+        snapshots.write(OUT, out)
+        _feed(out, now)
+        return out
     picks, refused = select(rows)
     out = {**base, "ok": True, "issued": bool(picks), "cohort_n": len(rows),
            "n_ranked": len(picks) + sum(1 for r in refused if "ranked" in r["why"]),

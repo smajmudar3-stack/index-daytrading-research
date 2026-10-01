@@ -157,15 +157,12 @@ def trades():
                            fix=p.get("fix", "idt refresh"))
 
     cards = p.get("cards") or []
-    books = _side_books()
     if not cards:
-        return panel("weekly_trades", "Weekly trade cards", state=EMPTY, age_min=_age_min(FILE),
-                     body={"cards": [], "macro_as_of": p.get("macro_as_of"), "macro_age_h": p.get("macro_age_h"), **books},
-                     note=(f"No options card: the scan ran across {p.get('n_considered', '?')} names and none "
-                           f"cleared the measured-basis gate. Most weeks that is the correct answer. The two "
-                           f"stock books below are the swing ideas that DID measure: the ranker every week, "
-                           f"the stress book only while VIX is above 25."),
-                     source="weekly_swing.run() · swing_ranker.run() · stress_reversal.run()")
+        return empty("weekly_trades", "Weekly trade cards",
+                     f"No options card: the scan ran across {p.get('n_considered', '?')} names and none "
+                     f"cleared the measured-basis gate. Most weeks that is the correct answer. The stock "
+                     f"books in the next card are the swing ideas that DID measure: the ranker every week, "
+                     f"the stress book only while VIX is above 25.")
 
     out = []
     for c in cards:
@@ -229,7 +226,7 @@ def trades():
                  state=STALE if bad else OK, age_min=_age_min(FILE),
                  body={"cards": out,
                        "macro_as_of": p.get("macro_as_of"),
-                       "macro_age_h": p.get("macro_age_h"), **books},
+                       "macro_age_h": p.get("macro_age_h")},
                  note=("UNPROVEN, not validated. This repo measured every systematic, "
                        "price-derived swing option overlay as worse than owning the index. "
                        "These cards are conditioned on a macro note instead, which has "
@@ -371,6 +368,27 @@ def stress_book():
                      note=p.get("note") or "the regime is off", source=src)
     return panel("stress_reversal", title, state=STALE if st == "stale" else OK, age_min=_age_min(sr.OUT),
                  body=body, note=p.get("note"), source=src)
+
+
+@safe
+@describe("weekly_books", "Swing stock books: the weekly ranker and the stress book")
+def books():
+    """The two stock books that sit under the trade cards. Each reads its snapshot and its
+    ledger; neither calls a vendor. OK whenever at least one has a readable snapshot, so the
+    books render even on the many weeks the options engine issues nothing."""
+    b = _side_books()
+    title = "Swing stock books: the weekly ranker and the stress book"
+    have = [k for k in ("ranker", "stress") if b.get(k)]
+    if not have:
+        return unavailable("weekly_books", title, "neither the ranker nor the stress book has written a snapshot yet",
+                           fix="idt refresh")
+    stale = any((b[k] or {}).get("stale") for k in have)
+    rk, sb = b.get("ranker") or {}, b.get("stress") or {}
+    note = (f"Ranker: {'a cohort issued ' + str(rk.get('as_of', ''))[:10] if rk.get('issued') else (rk.get('note') or rk.get('blocked') or 'no snapshot')}. "
+            f"Stress book: {'REGIME ON, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('regime_on') else ('off, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('vix') else (sb.get('blocked') or 'no snapshot'))}. "
+            f"Both in shares, both paper, both marked against SPY from the next open.")
+    return panel("weekly_books", title, state=STALE if stale else OK, body=b, note=note,
+                 source="swing_ranker.run() weekly · stress_reversal.run() daily · 02_findings/signal_accuracy.md, stress_reversal.md")
 
 
 def _side_books():

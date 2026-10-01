@@ -230,6 +230,15 @@ def run(now=None):
         snapshots.write(OUT, out)
         return out
     px = _prices(list(reps))
+    n_px = sum(1 for tk in reps if tk in px)
+    if n_px < 0.5 * len(reps):
+        # Same rule as swing_ranker: a price outage must read as "not judged", never as
+        # "refused". 2026-10-01 00:11: 1,822 reporters, 508 ranked, the rest refused for a
+        # missing close that was a rate limit wearing the costume of a market condition.
+        out = {"ok": False, "as_of": _stamp(), "picks": [], "refused": [], "cohort_n": len(reps),
+               "blocked": f"prices came back for {n_px} of {len(reps)} reporters (yfinance rate limit?); not ranked"}
+        snapshots.write(OUT, out)
+        return out
     rows = []
     for tk, rd in sorted(reps.items()):
         d = px.get(tk)

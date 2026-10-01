@@ -72,3 +72,16 @@ def test_snapshot_schema_is_registered():
 def test_nothing_places_an_order():
     src = open(rk.__file__, encoding="utf-8").read()
     assert "place_order" not in src and "submit_order" not in src
+
+
+def test_a_price_outage_blocks_the_run_instead_of_ranking_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(rk, "DB", str(tmp_path / "rk.db"))
+    monkeypatch.setattr(rk, "_notify", lambda *a, **k: True)
+    written = {}
+    monkeypatch.setattr(rk.snapshots, "write", lambda name, out: written.update({name: out}))
+    rows = [{"ticker": t, "sue": 0.01, "close": 50.0, "adv20": 50e6} for t in ("AAA", "BBB", "CCC", "DDD")]
+    monkeypatch.setattr(rk, "reporters", lambda: (rows, None))
+    monkeypatch.setattr(rk, "_prices", lambda names, period="14mo": {})      # the download failed
+    out = rk.run(now=pd.Timestamp("2026-10-01 00:11", tz=rk.ET))
+    assert out["ok"] is False and out["issued"] is False and "0 of 4" in out["blocked"]
+    assert rk.ledger()["summary"]["n_open"] == 0                          # nothing issued, nothing booked

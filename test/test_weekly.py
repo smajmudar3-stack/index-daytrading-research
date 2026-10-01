@@ -933,13 +933,20 @@ def test_an_inherited_theme_votes_at_half_strength(monkeypatch):
 
 # ================================== a trade needs more than two things agreeing ===
 
-def test_a_card_with_no_macro_theme_is_refused_outright(overlay):
+def test_a_card_with_no_macro_theme_is_refused_outright(overlay, monkeypatch):
     """Reversed on purpose. It was briefly a handicap so every sector could be covered.
 
     The 2026-09-04 16:02 cycle showed why that was wrong: JNJ and NEM shipped with ZERO
     themes on a single voting input — trend — which is exactly the pure-technicals card the
     rewrite existed to remove. Sector coverage is not worth a card with nothing behind it.
+
+    The derived basis is pinned to "nothing" here: `market_basis.derive` reads the live
+    earnings calendar, so in the two weeks before JNJ reports it finds a dated event and
+    this test, which is about a name with NO basis of any kind, failed on 2026-10-01 for a
+    reason that had nothing to do with the rule it checks.
     """
+    import market_basis
+    monkeypatch.setattr(market_basis, "derive", lambda *a, **k: None)
     assert ws.REQUIRE_MACRO_BASIS is True
     view = ws._macro_view(overlay, "JNJ")
     assert view["no_macro_basis"] is True
