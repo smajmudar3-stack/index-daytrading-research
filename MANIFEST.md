@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**475 files, 95,473 lines.**
+**475 files, 95,556 lines.**
 
 ## Repo root
 
-*11 files, 2,198 lines*
+*11 files, 2,199 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 519 | 39 KB |
-| `MANIFEST.md` | 689 | 27 KB |
+| `MANIFEST.md` | 690 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -108,7 +108,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*84 files, 24,285 lines*
+*84 files, 24,310 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -180,7 +180,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/sizing.py` | 177 | 9 KB |
 | `04_live_system/sleeves.py` | 157 | 6 KB |
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
-| `04_live_system/stress_reversal.py` | 343 | 15 KB |
+| `04_live_system/stress_reversal.py` | 368 | 17 KB |
 | `04_live_system/swing_ranker.py` | 354 | 16 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
 | `04_live_system/swing_stock.py` | 383 | 18 KB |
@@ -228,7 +228,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*31 files, 895 lines*
+*31 files, 900 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -259,7 +259,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/swing_stock.html` | 63 | 3 KB |
 | `04_live_system/templates/panels/verdicts.html` | 17 | 757 B |
 | `04_live_system/templates/panels/weekly_book.html` | 85 | 4 KB |
-| `04_live_system/templates/panels/weekly_books.html` | 77 | 5 KB |
+| `04_live_system/templates/panels/weekly_books.html` | 82 | 6 KB |
 | `04_live_system/templates/panels/weekly_calendar.html` | 36 | 1 KB |
 | `04_live_system/templates/panels/weekly_trades.html` | 128 | 7 KB |
 | `04_live_system/templates/panels/weights.html` | 15 | 605 B |
@@ -478,12 +478,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,498 lines*
+*6 files, 1,521 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 215 | 16 KB |
+| `docs/CONTINUATION.md` | 238 | 18 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -515,7 +515,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*14 files, 2,529 lines*
+*14 files, 2,558 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -529,7 +529,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_pead.py` | 57 | 2 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |
-| `test/test_stress_reversal.py` | 93 | 5 KB |
+| `test/test_stress_reversal.py` | 122 | 7 KB |
 | `test/test_swing_ranker.py` | 87 | 5 KB |
 | `test/test_swing_stock.py` | 103 | 5 KB |
 | `test/test_weekly.py` | 1,210 | 54 KB |

@@ -21,11 +21,13 @@ def test_select_takes_the_biggest_losers_by_mean_rank_and_refuses_the_rest_with_
     rows.append({"ticker": "CHEAP", "close": 4.0, "adv20": 50e6, "ret1m": -0.9, "ret1w": -0.5, "bb_pos": -3})
     rows.append({"ticker": "THIN", "close": 50.0, "adv20": 1e6, "ret1m": -0.9, "ret1w": -0.5, "bb_pos": -3})
     rows.append({"ticker": "SHORT", "close": 50.0, "adv20": 50e6, "ret1m": None})
+    rows.append({"ticker": "SPUN", "close": 12.0, "adv20": 50e6, "ret1m": -0.86, "ret1w": -0.85, "bb_pos": -2})
     picks, refused = sr.select(rows, n_picks=3)
     assert [p["ticker"] for p in picks] == ["T9", "T8", "T7"]          # the three biggest losers
     assert picks[0]["rank"] == 1 and picks[0]["cohort"] == 10 and 0 < picks[0]["score"] <= 1
     why = {r["ticker"]: r["why"] for r in refused}
     assert "price" in why["CHEAP"] and "volume" in why["THIN"] and "short" in why["SHORT"]
+    assert "corporate action" in why["SPUN"]                           # an unadjusted spin-off is not a loser
     assert "ranked 4 of 10" in why["T6"]
     assert len(picks) + len(refused) == len(rows)
 
@@ -39,6 +41,7 @@ def test_composite_reads_one_month_one_week_and_bollinger():
 
 
 def test_run_is_off_below_the_vix_threshold_and_issues_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(sr, "ALWAYS_ON", False)
     monkeypatch.setattr(sr, "DB", str(tmp_path / "sr.db"))
     monkeypatch.setattr(sr, "vix_now", lambda: (17.2, "2026-09-23"))
     monkeypatch.setattr(sr, "universe", lambda: (_ for _ in ()).throw(AssertionError("must not price the universe when off")))
@@ -91,3 +94,29 @@ def test_snapshot_schema_is_registered():
 def test_nothing_places_an_order():
     src = open(sr.__file__, encoding="utf-8").read()
     assert "place_order" not in src and "submit_order" not in src
+
+
+def test_always_on_issues_out_of_regime_but_labels_it_and_keeps_it_off_the_decision(tmp_path, monkeypatch):
+    monkeypatch.setattr(sr, "ALWAYS_ON", True)
+    monkeypatch.setattr(sr, "DB", str(tmp_path / "sr.db"))
+    monkeypatch.setattr(sr, "_stamp", lambda: "2026-10-01 15:00")
+    monkeypatch.setattr(sr, "_notify", lambda *a, **k: True)
+    monkeypatch.setattr(sr, "vix_now", lambda: (16.3, "2026-09-30"))
+    monkeypatch.setattr(sr, "universe", lambda: (["AAA", "BBB", "CCC"], None))
+    idx = pd.bdate_range(end="2026-10-01", periods=60)
+    def frame(path):
+        return pd.DataFrame({"open": path, "close": path, "volume": [1e6] * len(path)}, index=idx)
+    px = {"AAA": frame([100.0] * 55 + [70.0] * 5), "BBB": frame([100.0] * 60), "CCC": frame([100.0] * 55 + [120.0] * 5),
+          "SPY": frame([500.0] * 60)}
+    monkeypatch.setattr(sr, "_prices", lambda names: px)
+    monkeypatch.setattr(sr.snapshots, "write", lambda name, out: None)
+    out = sr.run(now=pd.Timestamp("2026-10-01 15:00", tz=sr.ET))
+    assert out["issued"] and out["regime_on"] is False and "OUT of regime" in out["note"]
+    assert out["picks"][0]["ticker"] == "AAA"
+    led = sr.ledger()
+    assert led["summary"]["n_open"] == 3 and led["open"][0]["vix"] == 16.3
+    # the decision panel only takes an IN-regime cohort
+    import panels.today as today
+    monkeypatch.setattr(today, "_load", lambda name: {"ok": True, "regime_on": False, "issued": True, "picks": out["picks"],
+                                                      "as_of": "2026-10-01 15:00", "vix": 16.3, "vix_on": 25})
+    assert today._stress_cohort_today() is None

@@ -42,9 +42,9 @@
 
   {% set sb = p.body.stress %}
   <div class="wk-sidebook">
-    <div class="wk-back-hd">Stress book · the 40 biggest losers, only while VIX is above {{ '%.0f'|format(sb.vix_on) if sb and sb.vix_on else 25 }}, 10-session hold
+    <div class="wk-back-hd">Stress book · the 40 biggest losers, measured only while VIX is above {{ '%.0f'|format(sb.vix_on) if sb and sb.vix_on else 25 }}, 10-session hold
       {% if sb and sb.regime_on %}<span class="chip stop">REGIME ON · VIX {{ '%.1f'|format(sb.vix) }}</span>
-      {% elif sb and sb.vix %}<span class="chip">off · VIX {{ '%.1f'|format(sb.vix) }}</span>{% endif %}
+      {% elif sb and sb.vix %}<span class="chip watch">out of regime · VIX {{ '%.1f'|format(sb.vix) }}</span>{% endif %}
       {% if sb and sb.stale %}<span class="chip watch">stale</span>{% endif %}</div>
     {% if not sb %}<p class="note">no stress-book snapshot yet.</p>
     {% elif sb.blocked %}<p class="note">stress book did not run: {{ sb.blocked }}</p>
@@ -66,8 +66,13 @@
       <div class="bk-sum"><span><b>cohorts</b> {{ sb.ledger.summary.cohorts }}</span><span><b>open</b> {{ sb.ledger.summary.n_open }}</span>
         <span><b>closed</b> {{ sb.ledger.summary.n }}</span>
         {% if sb.ledger.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ sb.ledger.summary.hit_rate }}%</span>{% endif %}
-        {% if sb.ledger.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(sb.ledger.summary.avg_rel_pct) }}%</span>{% endif %}</div>
+        {% if sb.ledger.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(sb.ledger.summary.avg_rel_pct) }}%</span>{% endif %}
+        {% set ir = sb.ledger.summary.in_regime %}{% set orr = sb.ledger.summary.out_regime %}
+        {% if ir and ir.n %}<span><b>in regime</b> {{ ir.n }} closed, {{ ir.hit_rate }}% beat, {{ '%+.2f'|format(ir.avg_rel_pct) }}%</span>{% endif %}
+        {% if orr and orr.n %}<span><b>out of regime</b> {{ orr.n }} closed, {{ orr.hit_rate }}% beat, {{ '%+.2f'|format(orr.avg_rel_pct) }}%</span>{% endif %}</div>
       {% endif %}
+      {% if sb.picks and not sb.regime_on %}<p class="note">This cohort was issued OUT of the measured regime (VIX below {{ '%.0f'|format(sb.vix_on) }}).
+        Out of regime the same trade measured flat to negative; in regime +2.59% per hold. The ledger scores the two apart.</p>{% endif %}
       {% if sb.measured %}<p class="wk-back-ft">Measured: {{ '%+.2f'|format(sb.measured.per_hold_pct) }}% over SPY per hold (t {{ sb.measured.t }}), hit rate
         {{ '%.0f'|format(sb.measured.hit * 100) }}%, wins {{ sb.measured.payoff }}x losses, {{ sb.measured.dates }} dates, splits {{ sb.measured.splits }};
         flat to negative when the regime is off. When a cohort is issued the decision panel on Today carries it. {{ sb.measured.source }}.</p>{% endif %}

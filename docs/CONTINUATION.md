@@ -20,6 +20,13 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
 
+**2026-10-01 ~16:00 ET, "no, the signal needs to be on":** the stress book now issues every
+week regardless of VIX (`ALWAYS_ON`), labels each cohort with its regime, and the ledger
+scores in-regime vs out-of-regime closes separately. First cohort issued 10-01 OUT of
+regime (VIX 16.4), 40 names, 10-session hold. CTVA/LQDA were caught as unadjusted corporate
+actions (−86%/−60% "weeks") → `MAX_WEEK_DROP` guard. Compare the out-of-regime ledger to the
+measured flat-to-negative after 3 cohorts; if it confirms, that is the evidence to show.
+
 **2026-10-01, "the weekly cards aren't updating":** ROOT CAUSE: the headless `claude -p`
 desk-note ingest died every run from 09-26 with "OAuth session expired and could not be
 refreshed"; no new notes → overlay past its gate → weekly book BLOCKED (correct) for a week,

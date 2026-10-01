@@ -385,7 +385,7 @@ def books():
     stale = any((b[k] or {}).get("stale") for k in have)
     rk, sb = b.get("ranker") or {}, b.get("stress") or {}
     note = (f"Ranker: {'a cohort issued ' + str(rk.get('as_of', ''))[:10] if rk.get('issued') else (rk.get('note') or rk.get('blocked') or 'no snapshot')}. "
-            f"Stress book: {'REGIME ON, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('regime_on') else ('off, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('vix') else (sb.get('blocked') or 'no snapshot'))}. "
+            f"Stress book: {'REGIME ON, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('regime_on') else ('out of regime (VIX ' + format(sb.get('vix') or 0, '.1f') + ', below 25), cohort issued anyway at your instruction' if sb.get('issued') or sb.get('picks') else ('out of regime, VIX ' + format(sb.get('vix') or 0, '.1f') if sb.get('vix') else (sb.get('blocked') or 'no snapshot')))}. "
             f"Both in shares, both paper, both marked against SPY from the next open.")
     return panel("weekly_books", title, state=STALE if stale else OK, body=b, note=note,
                  source="swing_ranker.run() weekly · stress_reversal.run() daily · 02_findings/signal_accuracy.md, stress_reversal.md")

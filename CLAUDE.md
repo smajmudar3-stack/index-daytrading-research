@@ -389,6 +389,14 @@ Rules:
   names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
   books under the cards (`_side_books`), and `today.answer` states the stress cohort as
   THE decision on the day it issues — the only place an action is stated.
+- **The stress book is ALWAYS ON at Sholo's instruction (2026-10-01), and the regime is a
+  label, not a gate.** `ALWAYS_ON = True`: a cohort is issued every week whatever VIX reads;
+  every pick records the VIX at issue and `ledger()` scores in-regime and out-of-regime
+  closes apart, because that difference IS the measurement (+2.59%/hold in, flat to negative
+  out). Only an in-regime cohort is ever stated as the decision on Today; an out-of-regime
+  cohort is context carrying the measured number on its face. A name down more than 50% in
+  a week is refused as an unadjusted corporate action (the first live cohort led with
+  Corteva's 2026 separation printed as "−86%").
 - **The stress book is the one regime-conditional edge, and it is OFF most of the time.**
   `stress_reversal.py`: when VIX closes above 25, buy the 40 biggest losers of the S&P 1500
   by a reversal composite (mean rank of 1-month, 1-week and Bollinger position), hold ten

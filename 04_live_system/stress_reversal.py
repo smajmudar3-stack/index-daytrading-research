@@ -49,9 +49,18 @@ VIX_ON = 25.0               # the regime: every split positive above this; off b
 N_PICKS = 40                # the bottom 40 by the composite: +2.59%/hold, t 2.6, hit 0.56
 MIN_PRICE = 10.0
 MIN_ADV = 10e6
+MAX_WEEK_DROP = -0.50       # a week worse than this in an S&P 1500 name is a spin-off, split or
+                            # delisting the feed did not adjust, not a price move; the first
+                            # live cohort led with CTVA "-86%" (its 2026 separation) and LQDA
 HOLD_SESSIONS = 10          # +1.55% decile / +2.59% top-40 per hold; 5 and 21 also positive
 HOLD_DAYS = 15              # calendar approximation of 10 sessions
 ISSUE_GAP_SESSIONS = 5      # a new cohort at most weekly, as the backtest sampled
+# ALWAYS ON, at Sholo's instruction (2026-10-01): a cohort is issued every week whatever VIX
+# reads. The regime is recorded on every cohort and the ledger scores the two states
+# separately, because the measurement is unambiguous: in regime +2.59%/hold (hit 0.56), out
+# of regime flat to negative (-8 to -13%/yr). Only an IN-regime cohort is ever stated as the
+# decision on Today; an out-of-regime cohort is context carrying that measured number.
+ALWAYS_ON = True
 MEASURED = {"per_hold_pct": 2.59, "t": 2.6, "hit": 0.562, "payoff": 1.42, "dates": 34,
             "splits": "+0.92 / +3.66 / +3.75", "source": "02_findings/stress_reversal.md"}
 
@@ -132,6 +141,9 @@ def select(rows, n_picks=N_PICKS):
             refused.append({**r, "why": f"price below ${MIN_PRICE:.0f}"})
         elif r.get("adv20") is None or r["adv20"] < MIN_ADV:
             refused.append({**r, "why": "20-day dollar volume below $10m"})
+        elif r["ret1w"] < MAX_WEEK_DROP:
+            refused.append({**r, "why": f"down {r['ret1w']*100:.0f}% in a week: a corporate action the price feed did not "
+                                        f"adjust, not a move the book can buy"})
         else:
             ok.append(r)
     n = len(ok)
@@ -182,23 +194,24 @@ def run(now=None):
             due = (now.date() - datetime.strptime(last[:10], "%Y-%m-%d").date()).days >= ISSUE_GAP_SESSIONS + 2
         except ValueError:
             due = True
-    if not on:
+    if not on and not ALWAYS_ON:
         out = {**base, "ok": True, "regime_on": False, "issued": False,
                "note": f"VIX {vix:.1f} on {vd}: below {VIX_ON:.0f}, the book is off. Out of the regime the same "
                        f"trade measured flat to negative; nothing is issued."}
         snapshots.write(OUT, out)
         _feed_ledger(out, now)
         return out
+    state = (f"the regime is ON (VIX {vix:.1f} > {VIX_ON:.0f})" if on else
+             f"OUT of regime (VIX {vix:.1f}, below {VIX_ON:.0f}; measured flat to negative here, issued at Sholo's instruction)")
     if not due:
-        out = {**base, "ok": True, "regime_on": True, "issued": False,
-               "note": f"VIX {vix:.1f}: the regime is ON; last cohort issued {last[:10]}, next after "
-                       f"{ISSUE_GAP_SESSIONS} sessions."}
+        out = {**base, "ok": True, "regime_on": on, "issued": False,
+               "note": f"{state}; last cohort issued {last[:10]}, next after {ISSUE_GAP_SESSIONS} sessions."}
         snapshots.write(OUT, out)
         _feed_ledger(out, now)
         return out
     names, err = universe()
     if err:
-        out = {**base, "ok": False, "regime_on": True, "blocked": err}
+        out = {**base, "ok": False, "regime_on": on, "blocked": err}
         snapshots.write(OUT, out)
         return out
     px = _prices(names)
@@ -212,17 +225,23 @@ def run(now=None):
         dv = (d["close"] * d["volume"]).dropna().tail(20)
         rows.append({"ticker": tk, "close": float(d["close"].iloc[-1]) if len(d) else None,
                      "adv20": float(dv.median()) if len(dv) >= 10 else None, **(comp or {"ret1m": None})})
+    n_px = sum(1 for tk in names if tk in px)
+    if n_px < 0.5 * len(names):
+        out = {**base, "ok": False, "regime_on": on,
+               "blocked": f"prices came back for {n_px} of {len(names)} names (yfinance rate limit?); not ranked"}
+        snapshots.write(OUT, out)
+        return out
     picks, refused = select(rows)
-    out = {**base, "ok": True, "regime_on": True, "issued": bool(picks), "cohort_n": len(rows),
+    out = {**base, "ok": True, "regime_on": on, "issued": bool(picks), "cohort_n": len(rows),
            "n_ranked": len(picks) + sum(1 for r in refused if "ranked" in r["why"]),
            "picks": picks, "refused": sorted(refused, key=lambda r: r.get("score") or 9)[:60],
-           "note": f"VIX {vix:.1f} on {vd}: the regime is ON. The {len(picks)} biggest losers of "
-                   f"{len(rows)} names by the reversal composite, for a {HOLD_SESSIONS}-session hold."}
+           "note": f"{state}. The {len(picks)} biggest losers of {len(rows)} names by the reversal "
+                   f"composite, for a {HOLD_SESSIONS}-session hold."}
     snapshots.write(OUT, out)
     try:
         out["ledger_result"] = book(picks, px, now=now, vix=vix)
         if picks:
-            _notify(f"Stress book ON: VIX {vix:.1f}, cohort issued (paper)",
+            _notify(f"Stress book {'ON' if on else 'out of regime'}: VIX {vix:.1f}, cohort issued (paper)",
                     f"{len(picks)} biggest losers, {HOLD_SESSIONS}-session hold; top: " + ", ".join(p["ticker"] for p in picks[:5]))
     except Exception as e:                                    # noqa: BLE001
         out["ledger_error"] = f"{type(e).__name__}: {e}"
@@ -332,10 +351,16 @@ def ledger(limit=120):
     op = [r for r in rows if r["status"] in ("open", "pending")]
     cl = [r for r in rows if r["status"] == "closed"]
     sc = [r for r in cl if r["rel_pct"] is not None]
-    summary = {"n": len(cl), "n_open": len(op), "cohorts": len({r["issued"][:10] for r in rows}),
-               "hit_rate": round(100 * sum(1 for r in sc if r["rel_pct"] > 0) / len(sc), 0) if sc else None,
-               "avg_rel_pct": round(sum(r["rel_pct"] for r in sc) / len(sc), 2) if sc else None,
-               "avg_pnl_pct": round(sum(r["pnl_pct"] for r in sc) / len(sc), 2) if sc else None}
+
+    def _sum(rs):
+        return {"n": len(rs),
+                "hit_rate": round(100 * sum(1 for r in rs if r["rel_pct"] > 0) / len(rs), 0) if rs else None,
+                "avg_rel_pct": round(sum(r["rel_pct"] for r in rs) / len(rs), 2) if rs else None,
+                "avg_pnl_pct": round(sum(r["pnl_pct"] for r in rs) / len(rs), 2) if rs else None}
+    summary = {**_sum(sc), "n_open": len(op), "cohorts": len({r["issued"][:10] for r in rows}),
+               # the two states scored apart: the whole measurement is that they differ
+               "in_regime": _sum([r for r in sc if (r.get("vix") or 0) > VIX_ON]),
+               "out_regime": _sum([r for r in sc if (r.get("vix") or 0) <= VIX_ON])}
     return {"open": op, "closed": cl, "summary": summary}
 
 
