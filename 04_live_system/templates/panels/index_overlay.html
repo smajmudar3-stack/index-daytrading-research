@@ -2,7 +2,7 @@
    and the equity curve since the module started. Context, never an instruction. #}
 <section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
   <h3>{{ p.title }}
-    <span class="chip {{ 'info' if p.body.signal_on else '' }}">signal {{ 'ON' if p.body.signal_on else 'off' }}</span>
+    <span class="chip {{ 'info' if p.body.signal_on else '' }}">{{ p.body.state_label or ('LONG 2x · boost ON' if p.body.signal_on else 'LONG 1x · boost waiting') }}</span>
   </h3>
   {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
   <div class="bk-sum">
@@ -17,7 +17,7 @@
     <span class="{{ 'up' if (s.return_pct or 0) > 0 else 'down' }}"><b>return</b> {{ '%+.2f'|format(s.return_pct) }}%</span>
     <span><b>buy &amp; hold</b> ${{ '%.0f'|format(s.buy_hold_equity) }}</span>
     <span><b>max drawdown</b> {{ '%.2f'|format(s.max_dd_pct) }}%</span>
-    <span><b>sessions</b> {{ s.sessions }} <em>{{ s.days_on }} with the signal on</em></span>
+    <span><b>sessions</b> {{ s.sessions }} <em>{{ s.days_on }} with the boost on</em></span>
   </div>
   {% endif %}
   {% if p.body.measured %}<p class="wk-back-ft">Measured: {{ '%.1f'|format(p.body.measured.cagr*100) }}%/yr vs {{ '%.1f'|format(p.body.measured.buy_hold_cagr*100) }}% buy-and-hold, max drawdown {{ '%.0f'|format(p.body.measured.max_dd*100) }}% — {{ p.body.measured.source }}.</p>{% endif %}

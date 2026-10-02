@@ -54,7 +54,9 @@ VIEWS = [
         # macro calendar and the earnings window — because a print landing on an expiry beats
         # every opinion below it. Context follows, and the flow-history counter sits last
         # because it is a promise about future measurement, not a reason to act today.
-        "panels": [weekly.overlay, weekly.trades, weekly.books, weekly.book, weekly.stock_picks, weekly.stress_book,
+        # The week's share cohorts lead: they are what there is to act on most weeks. The
+        # options cards, the overlay (always long, boost rarely on) and the ledgers follow.
+        "panels": [weekly.books, weekly.trades, weekly.overlay, weekly.book, weekly.stock_picks, weekly.stress_book,
                    weekly.calendar, weekly.earnings_vol,
                    weekly.macro, weekly.index,
                    structures.gamma_structures,

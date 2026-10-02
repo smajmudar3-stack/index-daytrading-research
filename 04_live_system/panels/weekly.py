@@ -296,16 +296,29 @@ def overlay():
         return unavailable("index_overlay", "Index overlay: the measured growth path, in paper",
                            p.get("blocked", "did not run"), fix="idt refresh")
     led = p.get("ledger") or {}
+    det = p.get("detail") or {}
+    on = bool(p.get("signal_on"))
+    # THE OVERLAY IS NEVER "OFF". It is long the index every day; what switches is the second
+    # unit of exposure. "Signal off" at the top of the Markets page read as "nothing to do"
+    # (2026-10-02), when the position is 1x long and the 2x boost is waiting on a condition
+    # the card can state: VIX above VIX3M while the 50-day sits above the 200-day.
+    ratio = det.get("vix_ratio")
+    waiting = (f"the 2x boost waits for VIX/VIX3M above 1.0 (now {ratio})" if ratio is not None and not det.get("golden_cross") is False
+               else "the 2x boost waits for VIX backwardation inside a golden cross")
+    if not det.get("golden_cross", True):
+        waiting += " and the 50-day back above the 200-day"
     return panel("index_overlay", "Index overlay: the measured growth path, in paper",
                  state=STALE if st == "stale" else OK, age_min=_age_min(io.OUT),
-                 body={"signal_on": p.get("signal_on"), "detail": p.get("detail") or {},
+                 body={"signal_on": on, "detail": det, "state_label": ("LONG 2x · boost ON" if on else "LONG 1x · boost waiting"),
                        "exposure": p.get("exposure"), "base_x": p.get("base_x"), "boost_x": p.get("boost_x"),
                        "measured": p.get("measured") or {}, "summary": led.get("summary") or {},
                        "days": led.get("days") or []},
-                 note=(f"Signal {'ON' if p.get('signal_on') else 'off'}: exposure {p.get('exposure')}x the index "
-                       f"from the next open. The rule measured 15.3%/yr against 11.5% for buy-and-hold over "
-                       f"2006–2026, with a 59% maximum drawdown; at that rate $5,000 reaches $50,000 in about "
-                       f"sixteen years. This is the paper record of that rule, from the day it started."),
+                 note=((f"Long the index at {p.get('exposure')}x from the next open; the boost is ON: VIX is backwardated "
+                        f"inside a golden cross." if on else
+                        f"Long the index at {p.get('exposure')}x from the next open; {waiting}. ") +
+                       "The rule measured 15.3%/yr against 11.5% for buy-and-hold over 2006–2026, with a 59% maximum "
+                       "drawdown; at that rate $5,000 reaches $50,000 in about sixteen years. This is the paper record "
+                       "of that rule, from the day it started."),
                  source="index_overlay.run() · ^VIX, ^VIX3M, SPY daily · 02_findings/goal_feasibility.md")
 
 

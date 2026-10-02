@@ -9,18 +9,18 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**475 files, 95,689 lines.**
+**475 files, 95,716 lines.**
 
 ## Repo root
 
-*11 files, 2,207 lines*
+*11 files, 2,214 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 527 | 40 KB |
+| `CLAUDE.md` | 534 | 41 KB |
 | `MANIFEST.md` | 690 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
@@ -199,7 +199,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,637 lines*
+*10 files, 2,652 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -211,8 +211,8 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/signals.py` | 244 | 11 KB |
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 482 | 22 KB |
-| `04_live_system/panels/views.py` | 159 | 7 KB |
-| `04_live_system/panels/weekly.py` | 632 | 33 KB |
+| `04_live_system/panels/views.py` | 161 | 7 KB |
+| `04_live_system/panels/weekly.py` | 645 | 34 KB |
 
 ## 04_live_system/templates — Jinja templates
 
@@ -478,12 +478,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,528 lines*
+*6 files, 1,533 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 245 | 18 KB |
+| `docs/CONTINUATION.md` | 250 | 19 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
