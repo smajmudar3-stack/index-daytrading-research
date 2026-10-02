@@ -88,10 +88,19 @@ def answer():
                 "trust": _trust_sentence(),
             })
 
+    # THE SWING BOOKS ARE THE DECISION WHEN THE INDEX HAS NONE. The 0DTE gates are shut on
+    # most sessions by design, and for weeks this panel said STAND DOWN while three stock
+    # books issued cohorts two cards down on another page ("no suggestions still", 2026-10-02).
+    # A closed index gate is not a reason to say nothing about shares: the week's cohorts
+    # are stated here, with their measured numbers and the index stand-down as one row.
+    sw = _swing_decision()
+
     # The gates are deterministic and they outrank the model. If anything is blocking,
     # the answer is STAND DOWN regardless of what the agent proposed, and the page says
     # which gate. risk_gates would refuse the trade anyway; the UI used to not show it.
     if gates:
+        if sw:
+            return _swing_panel(sw, gates)
         return panel(
             "answer", "Today's decision", state=OK, severity="info",
             body={
@@ -106,6 +115,8 @@ def answer():
             })
 
     if not d:
+        if sw:
+            return _swing_panel(sw, [])
         return panel(
             "answer", "Today's decision", state=OK, severity="info",
             body={
@@ -125,6 +136,8 @@ def answer():
 
     act = d.get("action", "STAND_DOWN")
     if act != "ENTER":
+        if sw:
+            return _swing_panel(sw, [], headline=d.get("headline"))
         return panel(
             "answer", "Today's decision", state=OK, severity="info",
             body={
@@ -157,6 +170,78 @@ def answer():
             "detail": d.get("thesis") or "",
             "rows": rows,
             "tiles": _decision_tiles([], d.get("conviction")),
+            "trust": _trust_sentence(),
+        })
+
+
+SWING_FRESH_DAYS = 7      # a cohort issued within the week is this week's decision
+
+
+def _swing_decision():
+    """This week's swing cohorts from the ranker and the stress book, or None if neither has
+    issued one within SWING_FRESH_DAYS. Reads snapshots only; never a vendor."""
+    import datetime as _dt
+    today = _dt.date.today()
+    out = {"ranker": None, "stress": None}
+    for key, name in (("ranker", "swing_ranker_snapshot.json"), ("stress", "stress_reversal_snapshot.json")):
+        p = _load(name)
+        if not p or not p.get("ok") or not p.get("picks"):
+            continue
+        try:
+            issued = _dt.datetime.strptime(str(p.get("as_of", ""))[:10], "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if (today - issued).days > SWING_FRESH_DAYS:
+            continue
+        out[key] = {"as_of": p.get("as_of"), "issued": issued.isoformat(), "hold": p.get("hold_sessions"),
+                    "names": [x["ticker"] for x in p["picks"]], "n": len(p["picks"]),
+                    "measured": p.get("measured") or {}, "regime_on": bool(p.get("regime_on")),
+                    "vix": p.get("vix"), "vix_on": p.get("vix_on"), "cohort_n": p.get("cohort_n")}
+    return out if (out["ranker"] or out["stress"]) else None
+
+
+def _swing_panel(sw, gates, headline=None):
+    """The decision when the index has none: this week's share cohorts, stated once."""
+    rk, sb = sw.get("ranker"), sw.get("stress")
+    parts, rows = [], []
+    if rk:
+        m = rk["measured"]
+        parts.append(f"{rk['n']} ranker names")
+        rows.append({"k": f"swing ranker · issued {rk['issued']}", "v": ", ".join(rk["names"])})
+        rows.append({"k": "ranker hold / measured",
+                     "v": (f"{rk['hold']} sessions, equal weight · +{m.get('per_hold_pct')}% over SPY per hold, hit "
+                           f"{int(round((m.get('hit') or 0) * 100))}%, wins {m.get('payoff')}x losses, all three splits positive")})
+    if sb:
+        m = sb["measured"]
+        state = ("IN regime" if sb["regime_on"] else "OUT of regime")
+        parts.append(f"{sb['n']} stress names ({state})")
+        rows.append({"k": f"stress book · issued {sb['issued']} · VIX {float(sb['vix'] or 0):.1f}, {state}",
+                     "v": ", ".join(sb["names"])})
+        rows.append({"k": "stress hold / measured",
+                     "v": (f"{sb['hold']} sessions, equal weight · in regime +{m.get('per_hold_pct')}% per hold, hit "
+                           f"{int(round((m.get('hit') or 0) * 100))}%; OUT of regime measured flat to negative"
+                           + ("" if sb["regime_on"] else " — this cohort is out of regime, issued at your instruction")),
+                     "severity": None if sb["regime_on"] else "stop"})
+    rows.append({"k": "0DTE index", "v": (f"stand down — {len(gates)} gate(s) shut" if gates else
+                                          (headline or "no setup clears the gates")), "severity": "stop" if gates else None})
+    rows.append({"k": "execution", "v": "paper. Fills are booked at the next open and marked against SPY; nothing is sent to a broker."})
+    newest = max(x["issued"] for x in (rk, sb) if x)
+    return panel(
+        "answer", "Today's decision", state=OK, severity="watch",
+        body={
+            "label": f"DECISION · swing books · {newest}",
+            "verb": "SWING: ENTER THIS WEEK'S COHORTS (paper)" if newest == time.strftime("%Y-%m-%d") or
+                    (rk and rk["issued"] >= time.strftime("%Y-%m-%d")) else "SWING: HOLD THIS WEEK'S COHORTS (paper)",
+            "because": ("The index has no trade today; the share books do. This week: " + " and ".join(parts) +
+                        ". Every name below is in the ledger at the next open and scored against SPY."),
+            "detail": ("The ranker is every name that reported in the last quarter, ranked on earnings surprise, "
+                       "residual momentum and 12-month momentum with equal weights, top 25 weekly, 21-session hold. "
+                       "The stress book is the 40 biggest losers by a reversal composite, 10-session hold, measured "
+                       "to pay only while VIX is above 25 and issued every week regardless at your instruction. "
+                       "02_findings/signal_accuracy.md and stress_reversal.md carry the numbers."),
+            "rows": rows,
+            "blockers": gates,
+            "tiles": _decision_tiles(gates),
             "trust": _trust_sentence(),
         })
 

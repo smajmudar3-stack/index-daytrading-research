@@ -389,6 +389,13 @@ Rules:
   names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
   books under the cards (`_side_books`), and `today.answer` states the stress cohort as
   THE decision on the day it issues — the only place an action is stated.
+- **The swing books are THE decision when the index has none.** For weeks `today.answer`
+  said STAND DOWN (the 0DTE gates are shut most sessions by design) while three share books
+  issued cohorts two cards down on the Markets page ("no suggestions still", 2026-10-02).
+  `_swing_decision()` reads the ranker and stress snapshots; any cohort issued in the last
+  seven days is stated on Today with its names, hold, measured numbers, regime label and the
+  index stand-down as one row. An in-regime stress cohort issued today still outranks it.
+  Still the only panel that states an action.
 - **The stress book is ALWAYS ON at Sholo's instruction (2026-10-01), and the regime is a
   label, not a gate.** `ALWAYS_ON = True`: a cohort is issued every week whatever VIX reads;
   every pick records the VIX at issue and `ledger()` scores in-regime and out-of-regime

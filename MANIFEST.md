@@ -9,18 +9,18 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**475 files, 95,556 lines.**
+**475 files, 95,689 lines.**
 
 ## Repo root
 
-*11 files, 2,199 lines*
+*11 files, 2,207 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 519 | 39 KB |
+| `CLAUDE.md` | 527 | 40 KB |
 | `MANIFEST.md` | 690 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
@@ -199,7 +199,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,552 lines*
+*10 files, 2,637 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -210,7 +210,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/risk.py` | 163 | 8 KB |
 | `04_live_system/panels/signals.py` | 244 | 11 KB |
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
-| `04_live_system/panels/today.py` | 397 | 17 KB |
+| `04_live_system/panels/today.py` | 482 | 22 KB |
 | `04_live_system/panels/views.py` | 159 | 7 KB |
 | `04_live_system/panels/weekly.py` | 632 | 33 KB |
 
@@ -478,12 +478,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,521 lines*
+*6 files, 1,528 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 238 | 18 KB |
+| `docs/CONTINUATION.md` | 245 | 18 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -515,7 +515,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*14 files, 2,558 lines*
+*14 files, 2,591 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -525,7 +525,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_gates.py` | 140 | 6 KB |
 | `test/test_index_overlay.py` | 52 | 2 KB |
 | `test/test_macro_calendar.py` | 97 | 5 KB |
-| `test/test_panels.py` | 290 | 12 KB |
+| `test/test_panels.py` | 323 | 14 KB |
 | `test/test_pead.py` | 57 | 2 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |

@@ -288,3 +288,36 @@ def test_a_null_in_a_required_field_is_incomplete_not_ok(state):
                                            "symbol": "^SPX", "spot": None})
     _, status = snapshots.read("periscope_SPX.json")
     assert status == "incomplete"
+
+
+def test_the_decision_states_this_weeks_swing_cohorts_when_the_index_has_none(monkeypatch):
+    """"No suggestions still" (2026-10-02): the index gates were shut, the answer said STAND
+    DOWN, and three share books had issued cohorts on another page. The week's cohorts are the
+    decision when the index has none, stated once, here."""
+    import time as _t
+    from panels import today
+    today_s = _t.strftime("%Y-%m-%d")
+    snaps = {
+        "swing_ranker_snapshot.json": {"ok": True, "as_of": f"{today_s} 09:40", "hold_sessions": 21,
+                                       "picks": [{"ticker": "AAA"}, {"ticker": "BBB"}],
+                                       "measured": {"per_hold_pct": 0.84, "hit": 0.487, "payoff": 1.24}},
+        "stress_reversal_snapshot.json": {"ok": True, "as_of": f"{today_s} 09:45", "hold_sessions": 10, "regime_on": False,
+                                          "vix": 16.4, "vix_on": 25, "picks": [{"ticker": "CCC"}],
+                                          "measured": {"per_hold_pct": 2.59, "hit": 0.562, "payoff": 1.42}},
+    }
+    monkeypatch.setattr(today, "_load", lambda name: snaps.get(name))
+    monkeypatch.setattr(today, "_gate_blockers", lambda: [{"gate": "entry", "reason": "gamma gate shut"}])
+    monkeypatch.setattr(today, "_trust_sentence", lambda: "modelled")
+    p = today.answer()
+    b = p["body"]
+    assert b["verb"].startswith("SWING: ENTER")
+    assert "AAA, BBB" in b["rows"][0]["v"] and "CCC" in b["rows"][2]["v"]
+    assert any(r["k"] == "0DTE index" and "stand down" in r["v"] for r in b["rows"])
+    assert "OUT of regime" in b["rows"][2]["k"]                 # an out-of-regime cohort says so on its face
+    # an in-regime stress cohort issued today still outranks everything
+    snaps["stress_reversal_snapshot.json"].update(regime_on=True, issued=True, vix=31.0)
+    assert today.answer()["body"]["verb"].startswith("STRESS BOOK: ENTER")
+    # nothing fresh -> the old STAND DOWN
+    snaps["swing_ranker_snapshot.json"]["as_of"] = "2026-01-01 09:40"
+    snaps["stress_reversal_snapshot.json"].update(as_of="2026-01-01 09:45", regime_on=False)
+    assert today.answer()["body"]["verb"] == "STAND DOWN"
