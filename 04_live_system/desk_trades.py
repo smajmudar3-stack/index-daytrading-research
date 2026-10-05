@@ -58,7 +58,7 @@ _CLOSE_RE = re.compile(r"\b(closed|closes?|exit(?:ed)?|sold (?:all|out|the)|took
 _REDUCE_RE = re.compile(r"\b(reduced|trimmed|cut|lightened|scaled out|sold)\b")
 _ADD_RE = re.compile(r"\b(added|increased|bought more|scaled in|pressed|to full size|full size)\b")
 _HOLD_RE = re.compile(r"\b(kept|holding|held|still (?:long|short)|no change|staying)\b")
-_HEDGE_RE = re.compile(r"\b(protection|hedge[sd]?|insurance|collar|cover the)\b")
+_HEDGE_RE = re.compile(r"\b(protect\w*|hedge[sd]?|hedging|insurance|collar|cover the|brace|against (?:the |our )?(?:existing )?(?:long|short|position))\b")
 _BEAR_RE = re.compile(r"\b(put debit|put spreads?|bought (?:the )?puts?|long puts?|puts|call credit|sold calls?|short(?:ed)?|bearish|went short|downside)\b")
 _BULL_RE = re.compile(r"\b(call debit|call spreads?|bought (?:the )?calls?|long calls?|calls|put credit|sold puts?|bought|long|went long|bullish|entered|upside|position from half)\b")
 
