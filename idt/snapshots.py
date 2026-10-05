@@ -107,6 +107,14 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    "desk_trades": {
+        "version": 1,
+        "files": ("desk_trades_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("positions", "overlay_as_of"),
+        "not_null": (),
+        "max_age_min": 1500,
+    },
     "swing_ranker": {
         "version": 1,
         "files": ("swing_ranker_snapshot.json",),

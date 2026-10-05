@@ -389,6 +389,20 @@ Rules:
   names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
   books under the cards (`_side_books`), and `today.answer` states the stress cohort as
   THE decision on the day it issues — the only place an action is stated.
+- **The emails are trades now, not only a gate.** Sholo (2026-10-05): "the email should be
+  heavily helping with trades, not just desk notes." `desk_notes.merge_note` ACCUMULATES the
+  desk's own trades (`desk_book` was overwritten by whichever note last carried one, so a week
+  of the author's trades collapsed to one WEAT exit), stamps every theme with `updated` /
+  `first_seen`, and keeps each note's `implications` — instrument, long/short/avoid, horizon,
+  conviction, the note's own reasoning — as `trade_calls`; the ingest prompt asks for them
+  as "the field a trader reads". `desk_trades.py` turns the overlay into three paper books
+  with one ledger (their book mirrored as direction in shares; their calls for the horizon
+  named, "avoid" booked as a short; the live themes' favours long and against short, netted,
+  conflicts stated), filled at the next open, marked against SPY, rebuilt whenever the overlay
+  is newer. Panel `desk_trades` second on Markets; stated on Today with the swing cohorts as
+  "from the desk notes, unmeasured". NOTHING HERE IS BACKTESTED (notes exist from 2026-09-17);
+  the ledger is the measurement. `desk_notes.py --merge-calls` backfills calls for notes
+  ingested before the change.
 - **The first 15 minutes forecast the SIZE of the day, never its direction.** `05_studies/
   opening_range_study.py` on SPY/QQQ 1-minute bars, 554 sessions 2024-07 → 2026-10, 56
   pre-registered cells: no conditioning on the opening range (direction, position in the

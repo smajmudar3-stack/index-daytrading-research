@@ -224,6 +224,21 @@ def catalysts(payload, within_days=None):
     return out
 
 
+def calls(payload, within_days=14):
+    """The notes' trade calls from the last `within_days`, newest first. Never raises."""
+    now = _now_et()
+    out = []
+    for c in (payload or {}).get("trade_calls") or []:
+        if not isinstance(c, dict):
+            continue
+        ts = _parse_stamp(c.get("date"))
+        if ts is None or (now.timestamp() - ts) > within_days * 86400:
+            continue
+        out.append(c)
+    out.sort(key=lambda c: c.get("date") or "", reverse=True)
+    return out
+
+
 def driver(payload, name):
     """One named macro driver (`us10y`, `brent`, ...) or None."""
     for d in (payload or {}).get("drivers") or []:
@@ -264,9 +279,16 @@ def merge_note(payload, parsed, subject, date):
     for t in parsed.get("themes") or []:
         if not isinstance(t, dict) or "key" not in t:
             continue
+        # Every theme carries the date of the note that last touched it. Without it a theme
+        # from three weeks ago sits beside today's with equal standing, which is how the
+        # overlay came to say IWM is favoured (four themes) and avoided (three) at once.
+        t = {**t, "updated": date}
         if t["key"] in by_key:
-            out["themes"][by_key[t["key"]]].update(t)
+            prev = out["themes"][by_key[t["key"]]]
+            t.setdefault("first_seen", prev.get("first_seen", date))
+            prev.update(t)
         else:
+            t.setdefault("first_seen", date)
             out["themes"].append(t)
 
     by_dkey = {d.get("key"): i for i, d in enumerate(out["drivers"]) if isinstance(d, dict)}
@@ -283,8 +305,30 @@ def merge_note(payload, parsed, subject, date):
         if isinstance(c, dict) and (c.get("date"), c.get("label")) not in seen:
             out["catalysts"].append(c)
 
-    if parsed.get("desk_book"):
-        out["desk_book"] = parsed["desk_book"]
+    # THE DESK'S OWN TRADES ACCUMULATE; they are not replaced. The first version overwrote
+    # `desk_book` with whichever note last carried one, so a week of the author's trades
+    # collapsed to a single WEAT exit (the ingest log said so on 2026-09-25). Each entry
+    # keeps the note that reported it; `desk_trades.py` turns the list into a paper ledger.
+    out.setdefault("trade_calls", [])
+    seen_b = {(b.get("date"), b.get("asset"), b.get("action")) for b in out["desk_book"] if isinstance(b, dict)}
+    for b in parsed.get("desk_book") or []:
+        if not isinstance(b, dict) or not b.get("asset"):
+            continue
+        b = {**b, "date": date, "subject": subject}
+        if (b["date"], b.get("asset"), b.get("action")) not in seen_b:
+            out["desk_book"].append(b)
+    out["desk_book"] = out["desk_book"][-80:]
+    # WHAT THE NOTE SAYS TO DO. `implications` is the field a trader reads: every position the
+    # note argues for or against as an instrument, a direction and a horizon, in the note's
+    # own reasoning. Themes gate the options engine; these are the trades themselves.
+    seen_c = {(c.get("date"), c.get("instrument"), c.get("direction")) for c in out["trade_calls"] if isinstance(c, dict)}
+    for c in parsed.get("implications") or []:
+        if not isinstance(c, dict) or not c.get("instrument") or c.get("direction") not in ("long", "short", "avoid"):
+            continue
+        c = {**c, "instrument": str(c["instrument"]).upper().strip(), "date": date, "subject": subject}
+        if (c["date"], c["instrument"], c["direction"]) not in seen_c:
+            out["trade_calls"].append(c)
+    out["trade_calls"] = out["trade_calls"][-200:]
     if parsed.get("regime_line"):
         out["regime_line"] = parsed["regime_line"]
 
@@ -323,10 +367,17 @@ Return ONLY JSON, no prose, with this shape:
               "why":"one sentence, citing the note's own reasoning"}],
   "catalysts": [{"date":"2026-09-04","label":"August payrolls",
                  "what_it_moves":"front-end rates, then equity multiples"}],
-  "desk_book": [{"asset":"GLD","action":"reduced 0.25 unit","note":"ran into catalysts"}]
+  "desk_book": [{"asset":"GLD","action":"reduced 0.25 unit","note":"ran into catalysts"}],
+  "implications": [{"instrument":"XLF","direction":"long","horizon":"weeks",
+                    "conviction":"medium","why":"the note's own reasoning, one sentence"}]
 }
 
 Rules:
+- "implications" is WHAT THE NOTE SAYS TO DO: every position it argues for or against, as
+  a tradeable instrument (a ticker or ETF), a direction (exactly one of long / short /
+  avoid), a horizon (days / weeks / months), a conviction (high / medium / low) and the
+  note's own reasoning. This is the field a trader reads. Omit the list only if the note
+  argues for nothing. Never invent an instrument the note does not name or clearly imply.
 - "stance" is exactly one of: favour, avoid, dispersion, watch.
 - "favours"/"against" hold TICKERS only (equities, ETFs). Never a sector word. Omit the
   key entirely if the note names none. Do not invent tickers the note does not imply.
@@ -439,6 +490,48 @@ def _cli(argv):
         print(f"merged {subject!r} ({date}) — {len(merged.get('themes') or [])} themes, "
               f"{len(merged.get('catalysts') or [])} catalysts, "
               f"{len(merged.get('notes_ingested') or [])} notes in the read")
+        return 0
+
+    if "--merge-calls" in argv:
+        # BACKFILL for notes already ingested before 2026-10-05, when the overlay began keeping
+        # the desk's trades, the notes' trade calls and a per-theme `updated` stamp. Merges
+        # ONLY those three things for a (subject, date) already in notes_ingested; stances
+        # and reasoning are left exactly as the later notes set them.
+        i = argv.index("--merge-calls")
+        src = argv[i + 1] if len(argv) > i + 1 else "-"
+        parsed = json.loads(sys.stdin.read() if src == "-" else open(src, encoding="utf-8").read())
+        subject = _flag(argv, "--subject") or "note"
+        date = _flag(argv, "--date") or _now_et().strftime("%Y-%m-%d %H:%M")
+        payload, _ = overlay()
+        out = dict(payload or {})
+        out.setdefault("desk_book", []); out.setdefault("trade_calls", [])
+        seen_b = {(b.get("date"), b.get("asset"), b.get("action")) for b in out["desk_book"] if isinstance(b, dict)}
+        nb = 0
+        for b in parsed.get("desk_book") or []:
+            if isinstance(b, dict) and b.get("asset"):
+                b = {**b, "date": date, "subject": subject}
+                if (b["date"], b.get("asset"), b.get("action")) not in seen_b:
+                    out["desk_book"].append(b); nb += 1
+        seen_c = {(c.get("date"), c.get("instrument"), c.get("direction")) for c in out["trade_calls"] if isinstance(c, dict)}
+        nc = 0
+        for c in parsed.get("implications") or []:
+            if isinstance(c, dict) and c.get("instrument") and c.get("direction") in ("long", "short", "avoid"):
+                c = {**c, "instrument": str(c["instrument"]).upper().strip(), "date": date, "subject": subject}
+                if (c["date"], c["instrument"], c["direction"]) not in seen_c:
+                    out["trade_calls"].append(c); nc += 1
+        keys = {t.get("key") for t in parsed.get("themes") or [] if isinstance(t, dict)}
+        nt = 0
+        for t in out.get("themes") or []:
+            if isinstance(t, dict) and t.get("key") in keys:
+                if not t.get("updated") or str(t["updated"]) < date:
+                    t["updated"] = date
+                if not t.get("first_seen") or str(t["first_seen"]) > date:
+                    t["first_seen"] = date
+                nt += 1
+        out["desk_book"] = sorted(out["desk_book"], key=lambda b: b.get("date") or "")[-80:]
+        out["trade_calls"] = sorted(out["trade_calls"], key=lambda c: c.get("date") or "")[-200:]
+        write(out)
+        print(f"backfilled {subject!r} ({date}): +{nb} desk-book, +{nc} calls, {nt} themes stamped")
         return 0
 
     if "--ingested-list" in argv:

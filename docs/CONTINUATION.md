@@ -20,6 +20,14 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
 
+**2026-10-05 ~17:00 ET, "the email should be heavily helping with trades":** built
+`04_live_system/desk_trades.py` + panel + Today rows + scan wiring; overlay now accumulates
+`desk_book`, stamps themes, keeps `trade_calls` (`implications` in the parse shape and the
+ingest prompt). Backfill of calls for the ~30 already-ingested notes runs via
+`desk_notes.py --merge-calls` from a headless claude session (see the log line "backfilled").
+After a month: compare `desk_trades.ledger()["by_source"]` — desk / call / theme — against
+SPY; that is the first measurement of whether the Crown notes pay.
+
 **2026-10-05, opening range (Sholo: "test intraday opening ranges on NDX and SPX, first 15
 minutes"):** `05_studies/opening_range_study.py`, verdict `02_findings/opening_range.md`:
 direction null (every cell alive in year one is flat/negative in year two; G was trap 6 and

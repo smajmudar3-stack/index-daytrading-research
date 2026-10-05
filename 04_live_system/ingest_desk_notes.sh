@@ -98,6 +98,11 @@ ${SEEN:-   (none yet - ingest everything you find)}
        earlier note instead of appending a duplicate.
      - Quote levels verbatim ("4.80%", "\$95"). Never round or update a number.
      - Only include a catalyst the note actually dates.
+     - "implications" is the field that matters most: for EVERY position the note argues
+       for or against, give the instrument (ticker/ETF), direction (long/short/avoid),
+       horizon (days/weeks/months), conviction (high/medium/low) and the note's own
+       reasoning in one sentence. If the author says what he is doing with his own book,
+       that goes in "desk_book" verbatim (asset, action, note) AND in "implications".
 
 4. Write each note's JSON to a temp file and merge it:
      "$PY" desk_notes.py --merge-json <file> --subject "<subject>" --date "<YYYY-MM-DD HH:MM>"

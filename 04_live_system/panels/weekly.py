@@ -98,8 +98,8 @@ def macro():
                      "severity": "watch" if c["days_away"] <= 3 else None,
                      "sub": c.get("what_it_moves")})
 
-    for b in p.get("desk_book") or []:
-        rows.append({"k": f"Their book · {b.get('asset', '?')}", "v": b.get("action", ""),
+    for b in list(reversed(p.get("desk_book") or []))[:8]:
+        rows.append({"k": f"Their book · {b.get('asset', '?')} · {str(b.get('date', ''))[:10]}", "v": b.get("action", ""),
                      "sub": b.get("note")})
 
     if p.get("coverage_note"):
@@ -402,6 +402,32 @@ def books():
             f"Both in shares, both paper, both marked against SPY from the next open.")
     return panel("weekly_books", title, state=STALE if stale else OK, body=b, note=note,
                  source="swing_ranker.run() weekly · stress_reversal.run() daily · 02_findings/signal_accuracy.md, stress_reversal.md")
+
+
+@safe
+@describe("desk_trades", "From the emails: the desk's book, its calls, and the theme book, as paper trades")
+def desk_trades():
+    """Three paper books built straight from the desk notes, each with its ledger. Reads the
+    snapshot and the ledger; never the mailbox, never a vendor."""
+    import desk_trades as dtr
+    title = "From the emails: the desk's book, its calls, and the theme book, as paper trades"
+    p, st = snapshots.read(dtr.OUT)
+    if p is None or st in ("absent", "unreadable", "wrong_version", "incomplete"):
+        why, fix = snapshots.explain(dtr.OUT, st)
+        return unavailable("desk_trades", title, why, fix=fix)
+    if not p.get("ok"):
+        return unavailable("desk_trades", title, p.get("blocked", "did not run"), fix="idt refresh")
+    led = dtr.ledger()
+    n = {k: p.get(k) or 0 for k in ("n_desk", "n_call", "n_theme")}
+    body = {"ledger": led, "conflicts": p.get("conflicts") or [], "skipped": p.get("skipped") or [],
+            "overlay_as_of": p.get("overlay_as_of"), "new": p.get("new") or []}
+    state = EMPTY if not (led["open"] or led["closed"]) else (STALE if st == "stale" else OK)
+    return panel("desk_trades", title, state=state, age_min=_age_min(dtr.OUT), body=body,
+                 note=(f"Built from the overlay as of {p.get('overlay_as_of')}: {n['n_desk']} from the desk's own book, "
+                       f"{n['n_call']} from the notes' explicit calls, {n['n_theme']} from the live themes"
+                       + (f"; new this run: {', '.join(body['new'][:8])}" if body["new"] else "")
+                       + ". Every row is a paper position in shares, filled at the next open and scored against SPY."),
+                 source="desk_trades.run() after each desk-note ingest · desk_notes.json · 04_live_system/desk_trades.py")
 
 
 def _side_books():

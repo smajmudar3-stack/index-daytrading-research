@@ -1,0 +1,68 @@
+{# The emails as trades: the desk's own book, the notes' explicit calls, and the theme book,
+   each a paper ledger marked against SPY. Unmeasured by construction (the notes exist from
+   2026-09-17); the ledgers are the measurement. Context, never an instruction. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    <span class="chip watch">unmeasured · forward test</span>
+    {% if p.state == "stale" %}<span class="chip watch">stale</span>{% endif %}
+  </h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
+  {% set led = p.body.ledger %}
+  {% for src, label, blurb in [("desk", "Their book", "the author's own reported trades, mirrored as direction in shares"),
+                               ("call", "Their calls", "what each note says to do: instrument, direction, horizon, in its own words"),
+                               ("theme", "Theme book", "tickers the live themes argue for (long) and against (short), netted")] %}
+  {% set rows = led.open | selectattr("source", "equalto", src) | list %}
+  {% set bs = led.by_source[src] if led.by_source else none %}
+  <div class="wk-sidebook">
+    <div class="wk-back-hd">{{ label }} <em>— {{ blurb }}</em>
+      {% if bs and bs.closed.n %}<span class="chip">closed {{ bs.closed.n }} · beat SPY {{ bs.closed.hit_rate }}% · avg {{ '%+.2f'|format(bs.closed.avg_rel_pct) }}%</span>{% endif %}
+      {% if bs and bs.open.n %}<span class="chip">open {{ bs.open.n }}{% if bs.open.avg_rel_pct is not none %} · running {{ '%+.2f'|format(bs.open.avg_rel_pct) }}% vs SPY{% endif %}</span>{% endif %}
+    </div>
+    {% if rows %}
+    <table class="tbl">
+      <thead><tr><th>name</th><th>side</th><th>from note</th><th>entered</th><th>entry</th><th>now</th><th>P&amp;L</th><th>vs SPY</th><th>due</th><th>why</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td><b>{{ r.ticker }}</b></td>
+          <td class="{{ 'up' if r.dir > 0 else 'down' }}">{{ 'long' if r.dir > 0 else 'short' }}{% if r.conviction %} <em>{{ r.conviction }}</em>{% endif %}</td>
+          <td>{{ (r.src_date or r.issued)[:10] }}</td>
+          <td>{{ r.entry_date or 'pending, fills at the next open' }}</td>
+          <td>{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td>
+          <td>{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+          <td class="{{ 'up' if (r.pnl_pct or 0) > 0 else 'down' }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+          <td class="{{ 'up' if (r.rel_pct or 0) > 0 else 'down' }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td>
+          <td>{{ r.exit_due or '—' }}{% if r.status == 'closing' %} <em>closing: the desk exited</em>{% endif %}</td>
+          <td class="wk-pd">{{ r.why }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="note">nothing open from this source.</p>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% if p.body.conflicts %}
+  <details class="wk-refused"><summary>{{ p.body.conflicts|length }} names the live themes argue BOTH ways (not traded)</summary>
+    <ul>{% for c in p.body.conflicts %}<li><b>{{ c.ticker }}</b> net {{ c.net }} — {{ c.themes|join(' · ') }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  {% if p.body.skipped %}
+  <details class="wk-refused"><summary>{{ p.body.skipped|length }} entries not booked, and why</summary>
+    <ul>{% for s in p.body.skipped %}<li><b>{{ s.what }}</b> ({{ s.source }}) — {{ s.why }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  {% if led.closed %}
+  <details class="wk-refused"><summary>{{ led.closed|length }} closed</summary>
+    <table class="tbl"><thead><tr><th>name</th><th>side</th><th>source</th><th>entered</th><th>closed</th><th>P&amp;L</th><th>vs SPY</th></tr></thead><tbody>
+    {% for r in led.closed %}<tr><td><b>{{ r.ticker }}</b></td><td>{{ 'long' if r.dir > 0 else 'short' }}</td><td>{{ r.source }}</td><td>{{ r.entry_date }}</td><td>{{ (r.closed or '')[:10] }}</td>
+      <td class="{{ 'up' if (r.pnl_pct or 0) > 0 else 'down' }}">{{ '%+.1f'|format(r.pnl_pct or 0) }}%</td><td class="{{ 'up' if (r.rel_pct or 0) > 0 else 'down' }}">{{ '%+.1f'|format(r.rel_pct or 0) }}%</td></tr>{% endfor %}
+    </tbody></table>
+  </details>
+  {% endif %}
+  <p class="wk-back-ft">Nothing here is backtested: the desk notes exist from 2026-09-17. These ledgers are the measurement. A short is a paper short
+    against SPY; "avoid" is booked as a short because that is the only way to score it. An option trade in their book is mirrored as its
+    direction in shares and says so. Fills at the next open; the entry is frozen; a losing position stays visibly losing.</p>
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

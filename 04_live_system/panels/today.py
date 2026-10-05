@@ -182,7 +182,17 @@ def _swing_decision():
     issued one within SWING_FRESH_DAYS. Reads snapshots only; never a vendor."""
     import datetime as _dt
     today = _dt.date.today()
-    out = {"ranker": None, "stress": None}
+    out = {"ranker": None, "stress": None, "desk": None}
+    dk = _load("desk_trades_snapshot.json")
+    if dk and dk.get("ok") and dk.get("positions"):
+        try:
+            issued = _dt.datetime.strptime(str(dk.get("as_of", ""))[:10], "%Y-%m-%d").date()
+            if (today - issued).days <= SWING_FRESH_DAYS:
+                out["desk"] = {"as_of": dk.get("as_of"), "issued": issued.isoformat(), "n": len(dk["positions"]),
+                               "names": [f"{x['ticker']} {'long' if x['dir'] > 0 else 'short'}" for x in dk["positions"]],
+                               "new": dk.get("new") or [], "overlay_as_of": dk.get("overlay_as_of")}
+        except ValueError:
+            pass
     for key, name in (("ranker", "swing_ranker_snapshot.json"), ("stress", "stress_reversal_snapshot.json")):
         p = _load(name)
         if not p or not p.get("ok") or not p.get("picks"):
@@ -197,13 +207,19 @@ def _swing_decision():
                     "names": [x["ticker"] for x in p["picks"]], "n": len(p["picks"]),
                     "measured": p.get("measured") or {}, "regime_on": bool(p.get("regime_on")),
                     "vix": p.get("vix"), "vix_on": p.get("vix_on"), "cohort_n": p.get("cohort_n")}
-    return out if (out["ranker"] or out["stress"]) else None
+    return out if (out["ranker"] or out["stress"] or out["desk"]) else None
 
 
 def _swing_panel(sw, gates, headline=None):
     """The decision when the index has none: this week's share cohorts, stated once."""
-    rk, sb = sw.get("ranker"), sw.get("stress")
+    rk, sb, dk = sw.get("ranker"), sw.get("stress"), sw.get("desk")
     parts, rows = [], []
+    if dk:
+        parts.append(f"{dk['n']} positions from the desk notes")
+        rows.append({"k": f"from the emails · overlay {str(dk.get('overlay_as_of') or '')[:16]}",
+                     "v": ", ".join(dk["names"][:30]) + (" …" if len(dk["names"]) > 30 else "")})
+        rows.append({"k": "emails: measured?", "v": "no — the notes exist from 2026-09-17; the ledger on Markets is the test. "
+                                                    "Stated here because they are what the desk says to do this week.", "severity": "watch"})
     if rk:
         m = rk["measured"]
         parts.append(f"{rk['n']} ranker names")
@@ -225,7 +241,7 @@ def _swing_panel(sw, gates, headline=None):
     rows.append({"k": "0DTE index", "v": (f"stand down — {len(gates)} gate(s) shut" if gates else
                                           (headline or "no setup clears the gates")), "severity": "stop" if gates else None})
     rows.append({"k": "execution", "v": "paper. Fills are booked at the next open and marked against SPY; nothing is sent to a broker."})
-    newest = max(x["issued"] for x in (rk, sb) if x)
+    newest = max(x["issued"] for x in (rk, sb, dk) if x)
     return panel(
         "answer", "Today's decision", state=OK, severity="watch",
         body={

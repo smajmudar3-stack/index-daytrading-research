@@ -259,6 +259,30 @@ if _due("swing_stock_snapshot.json", STOCK_REGEN_S):
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock failed: {type(_e).__name__}: {_e}")
 
+# THE EMAILS AS TRADES: rebuilt whenever the desk-note overlay is newer than the last run
+# (the ingest lands three times a day), else daily; its ledger marks on the 4h clock below.
+def _overlay_newer_than(snapshot):
+    try:
+        import json as _json
+        with open(os.path.join(HERE, "data", "desk_notes.json"), encoding="utf-8") as fh:
+            ov = _json.load(fh).get("as_of")
+        with open(os.path.join(HERE, "data", snapshot), encoding="utf-8") as fh:
+            last = _json.load(fh).get("overlay_as_of")
+        return bool(ov) and ov != last
+    except Exception:
+        return True
+
+
+if _due("desk_trades_snapshot.json", STOCK_REGEN_S) or _overlay_newer_than("desk_trades_snapshot.json"):
+    try:
+        import desk_trades
+        _dtr = desk_trades.run()
+        print(f"desk trades: {len(_dtr.get('positions') or [])} positions from the notes"
+              + (f", new: {', '.join(_dtr['new'][:6])}" if _dtr.get("new") else "")
+              + (f" — {_dtr['blocked']}" if _dtr.get("blocked") else ""))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"desk_trades failed: {type(_e).__name__}: {_e}")
+
 # THE SWING RANKER, once a day after the stock book (it reads that snapshot); issues a cohort
 # at most weekly. 02_findings/signal_accuracy.md.
 if _due("swing_ranker_snapshot.json", STOCK_REGEN_S):
@@ -303,6 +327,13 @@ if _stale("swing_stock.db", 4 * 3600):
               f"{_sm.get('closed')} closed")
     except Exception as _e:                       # noqa: BLE001
         print(f"swing_stock.mark failed: {type(_e).__name__}: {_e}")
+if _stale("desk_trades.db", 4 * 3600):
+    try:
+        import desk_trades
+        _dtm = desk_trades.mark()
+        print(f"desk trades ledger: {_dtm.get('filled')} filled, {_dtm.get('marked')} marked, {_dtm.get('closed')} closed")
+    except Exception as _e:                       # noqa: BLE001
+        print(f"desk_trades.mark failed: {type(_e).__name__}: {_e}")
 if _stale("swing_ranker.db", 4 * 3600):
     try:
         import swing_ranker
