@@ -102,7 +102,9 @@ ${SEEN:-   (none yet - ingest everything you find)}
        for or against, give the instrument (ticker/ETF), direction (long/short/avoid),
        horizon (days/weeks/months), conviction (high/medium/low) and the note's own
        reasoning in one sentence. If the author says what he is doing with his own book,
-       that goes in "desk_book" verbatim (asset, action, note) AND in "implications".
+       that goes in "desk_book" verbatim (asset, action, note) AND in "implications" —
+       EXCEPT protection: a put spread bought to hedge a position he is long is not a short
+       view and must not be an implication.
 
 4. Write each note's JSON to a temp file and merge it:
      "$PY" desk_notes.py --merge-json <file> --subject "<subject>" --date "<YYYY-MM-DD HH:MM>"

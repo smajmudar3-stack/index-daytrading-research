@@ -51,12 +51,16 @@ CALL_WINDOW_DAYS = 14
 THEME_WINDOW_DAYS = 14
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,5}$")
 
-_CLOSE = ("closed", "close ", "exit", "sold all", "sold out", "took off", "unwound", "flat", "stopped out", "covered")
-_REDUCE = ("reduced", "trimmed", "cut ", "sold ", "took profit", "scaled out", "lightened")
-_ADD = ("added", "increased", "bought more", "scaled in", "pressed")
-_BEAR = ("put debit", "bought put", "bought the put", "long put", "puts", "call credit", "sold call", "short ", "shorted", "bearish")
-_BULL = ("call debit", "bought call", "long call", "calls", "put credit", "sold put", "bought", "long ", "added", "bullish")
-_HEDGE = ("protection", "hedge", "insurance", "cover the", "collar")
+# The desk's vocabulary, as regular expressions on word boundaries. "monetized", "stopped
+# out", "took profit", "went long", "entered ... put spread" all appeared in the first two
+# weeks of notes and none matched the first draft's substring lists.
+_CLOSE_RE = re.compile(r"\b(closed|closes?|exit(?:ed)?|sold (?:all|out|the)|took off|unwound|flat|stopped out|covered|monetiz\w*|took profits?)\b")
+_REDUCE_RE = re.compile(r"\b(reduced|trimmed|cut|lightened|scaled out|sold)\b")
+_ADD_RE = re.compile(r"\b(added|increased|bought more|scaled in|pressed|to full size|full size)\b")
+_HOLD_RE = re.compile(r"\b(kept|holding|held|still (?:long|short)|no change|staying)\b")
+_HEDGE_RE = re.compile(r"\b(protection|hedge[sd]?|insurance|collar|cover the)\b")
+_BEAR_RE = re.compile(r"\b(put debit|put spreads?|bought (?:the )?puts?|long puts?|puts|call credit|sold calls?|short(?:ed)?|bearish|went short|downside)\b")
+_BULL_RE = re.compile(r"\b(call debit|call spreads?|bought (?:the )?calls?|long calls?|calls|put credit|sold puts?|bought|long|went long|bullish|entered|upside|position from half)\b")
 
 
 def _now():
@@ -80,27 +84,61 @@ def _notify(title, msg):
 # ----------------------------------------------------------------- parsing ---
 
 def parse_action(text):
-    """(direction, kind) from the desk's own words. direction +1 long / -1 short / 0 unknown;
-    kind in open / add / reduce / close / hedge. A hedge on an existing position is recorded
-    and never mirrored: a put spread bought to protect a long is not a short view."""
+    """(direction, kind, is_option) from the desk's own words. direction +1 / -1 / 0 unknown;
+    kind in open / add / reduce / close / hold / hedge. `is_option` says the line is about an
+    option structure, which matters for the stateful read below: a put spread on a name the
+    desk is long is protection, not a short view, and closing it does not close the name."""
     t = f" {(text or '').lower()} "
+    is_option = bool(re.search(r"\b(put|puts|call|calls|spread|debit|credit|collar)\b", t))
     kind = "open"
-    if any(w in t for w in _CLOSE):
+    if _CLOSE_RE.search(t):
         kind = "close"
-    elif any(w in t for w in _REDUCE):
+    elif _REDUCE_RE.search(t):
         kind = "reduce"
-    elif any(w in t for w in _ADD):
+    elif _ADD_RE.search(t):
         kind = "add"
-    if any(w in t for w in _HEDGE):
+    elif _HOLD_RE.search(t):
+        kind = "hold"
+    if _HEDGE_RE.search(t):
         kind = "hedge"
     direction = 0
-    if any(w in t for w in _BEAR):
+    if _BEAR_RE.search(t):
         direction = -1
-    if direction == 0 and any(w in t for w in _BULL):
+    if direction == 0 and _BULL_RE.search(t):
         direction = 1
-    if kind in ("close", "reduce") and direction == 0:
-        direction = 1                                          # "sold GLD" closes a long by default
-    return direction, kind
+    if kind in ("close", "reduce", "hold", "add") and direction == 0:          # "added 0.5 unit" is a long add
+        direction = 1
+    return direction, kind, is_option
+
+
+def desk_state(entries):
+    """Walk the desk's own entries for ONE asset in date order and return (state, trail):
+    state +1 long / -1 short / 0 flat, trail = what each line did. The rules, each from a
+    line in the first two weeks of notes:
+      * an option structure AGAINST an open position is a hedge (USO put spreads on a USO
+        long): recorded, never mirrored, and closing it does not close the position;
+      * a structure in a NEW direction on a flat book opens that direction (IWM put spread =
+        short IWM); a structure in the opposite direction to an open position flips it;
+      * close / monetize / stopped out / exit on the position itself goes flat;
+      * reduce keeps the position; hold with no open position implies one is open (long)."""
+    state, trail = 0, []
+    for b in entries:
+        d, kind, opt = parse_action(b.get("action"))
+        before = state
+        if kind == "hedge" or (opt and d != 0 and state != 0 and d == -state and kind in ("open", "add")):
+            trail.append((b.get("date"), "hedge", state)); continue
+        if kind == "close":
+            if opt and state != 0 and d == -state:
+                trail.append((b.get("date"), "hedge closed", state)); continue
+            state = 0
+        elif kind in ("open", "add"):
+            if d != 0:
+                state = d
+        elif kind == "hold":
+            if state == 0:
+                state = d or 1
+        trail.append((b.get("date"), kind, state if state != before or kind != "reduce" else state))
+    return state, trail
 
 
 def positions_from(overlay, now=None):
@@ -108,7 +146,8 @@ def positions_from(overlay, now=None):
     Pure; takes the overlay dict. Dates compare against `now`."""
     now = now or _now()
     out, closes, conflicts, skipped = [], [], [], []
-    # THEIR BOOK
+    # THEIR BOOK, read statefully per asset: the desk's CURRENT position is what is mirrored
+    by_asset = {}
     for b in overlay.get("desk_book") or []:
         if not isinstance(b, dict):
             continue
@@ -117,30 +156,46 @@ def positions_from(overlay, now=None):
         if not TICKER_RE.match(asset) or ts is None:
             skipped.append({"source": "desk", "what": asset or "?", "why": "not a tradeable ticker or undated"})
             continue
-        if (now.timestamp() - ts) > CALL_WINDOW_DAYS * 86400:
+        if (now.timestamp() - ts) > CALL_WINDOW_DAYS * 86400 * 2:
             continue
-        d, kind = parse_action(b.get("action"))
-        if kind in ("close", "reduce"):
-            closes.append({"ticker": asset, "src_date": b.get("date"), "why": b.get("action")})
+        by_asset.setdefault(asset, []).append(b)
+    for asset, entries in by_asset.items():
+        entries.sort(key=lambda b: b.get("date") or "")
+        state, trail = desk_state(entries)
+        last = entries[-1]
+        if state == 0:
+            closes.append({"ticker": asset, "src_date": last.get("date"), "why": last.get("action")})
+            skipped.append({"source": "desk", "what": asset, "why": f"the desk is flat: last line {last.get('date', '')[:10]} \"{last.get('action')}\""})
             continue
-        if kind == "hedge" or d == 0:
-            skipped.append({"source": "desk", "what": asset, "why": f"{kind}: {b.get('action')}"})
-            continue
-        out.append({"source": "desk", "ticker": asset, "dir": d, "hold": HOLD_SESSIONS, "src_date": b.get("date"),
-                    "why": f"their book: {b.get('action')}" + (f" — {b.get('note')}" if b.get("note") else ""),
+        opened = next((b for b in reversed(entries) if parse_action(b.get("action"))[1] in ("open", "add")), last)
+        out.append({"source": "desk", "ticker": asset, "dir": state, "hold": HOLD_SESSIONS, "src_date": opened.get("date"),
+                    "why": f"their book, {len(entries)} lines: latest \"{last.get('action')}\"" + (f" — {last.get('note')}" if last.get("note") else ""),
                     "conviction": None, "horizon": "weeks"})
-    # THEIR CALLS
-    for c in desk_notes.calls(overlay, within_days=CALL_WINDOW_DAYS):
+    # THEIR CALLS: the NEWEST call per instrument wins; an older call the desk has since
+    # reversed is superseded, not held beside it (USO long and USO short were both booked once)
+    latest = {}
+    for c in desk_notes.calls(overlay, within_days=CALL_WINDOW_DAYS):      # newest first
         tk = str(c.get("instrument") or "").upper().strip()
         if not TICKER_RE.match(tk):
             skipped.append({"source": "call", "what": tk or "?", "why": "instrument is not a ticker"})
             continue
+        if _HEDGE_RE.search(f" {str(c.get('why') or '').lower()} "):
+            skipped.append({"source": "call", "what": tk, "why": f"protection on an existing position, not a view: {str(c.get('why'))[:80]}"})
+            continue
+        if tk in latest:
+            if latest[tk]["direction"] != c.get("direction"):
+                skipped.append({"source": "call", "what": tk, "why": f"older call ({str(c.get('date'))[:10]} {c.get('direction')}) superseded by {str(latest[tk].get('date'))[:10]} {latest[tk]['direction']}"})
+            continue
+        latest[tk] = c
+    for tk, c in latest.items():
         d = 1 if c.get("direction") == "long" else -1
         hz = str(c.get("horizon") or "weeks").lower()
-        hold = HORIZON_SESSIONS.get(hz, HOLD_SESSIONS)
-        out.append({"source": "call", "ticker": tk, "dir": d, "hold": hold, "src_date": c.get("date"),
-                    "why": c.get("why") or "", "conviction": c.get("conviction"), "horizon": hz,
-                    "label": c.get("direction")})
+        out.append({"source": "call", "ticker": tk, "dir": d, "hold": HORIZON_SESSIONS.get(hz, HOLD_SESSIONS), "src_date": c.get("date"),
+                    "why": c.get("why") or "", "conviction": c.get("conviction"), "horizon": hz, "label": c.get("direction")})
+    # a call reversed since it was booked closes the older paper position
+    for tk, c in latest.items():
+        closes.append({"ticker": tk, "source": "call", "keep_dir": 1 if c.get("direction") == "long" else -1,
+                       "src_date": c.get("date"), "why": f"superseded by the {str(c.get('date'))[:10]} call: {c.get('direction')}"})
     # THEME BOOK
     net, why = {}, {}
     for t in desk_notes.themes(overlay):
@@ -240,8 +295,12 @@ def book(positions, closes, px, now=None):
         added += 1
         new_names.append(f"{p['ticker']} {'long' if p['dir'] > 0 else 'short'} ({p['source']})")
     for c in closes:
-        con.execute("UPDATE positions SET status='closing', close_why=? WHERE source='desk' AND ticker=? AND status IN ('pending','open')",
-                    (c.get("why"), c["ticker"]))
+        if c.get("source") == "call":
+            con.execute("UPDATE positions SET status='closing', close_why=? WHERE source='call' AND ticker=? AND dir<>? AND status IN ('pending','open')",
+                        (c.get("why"), c["ticker"], c["keep_dir"]))
+        else:
+            con.execute("UPDATE positions SET status='closing', close_why=? WHERE source='desk' AND ticker=? AND status IN ('pending','open')",
+                        (c.get("why"), c["ticker"]))
     spy = px.get("SPY")
     filled = marked = closed = 0
     for r in con.execute("SELECT * FROM positions WHERE status IN ('pending','open','closing')").fetchall():
@@ -249,7 +308,10 @@ def book(positions, closes, px, now=None):
         d = px.get(r["ticker"])
         if d is None or spy is None:
             continue
-        if r["status"] == "pending" or (r["status"] == "closing" and r["entry"] is None):
+        if r["status"] == "closing" and r["entry"] is None:
+            con.execute("UPDATE positions SET status='void', closed=?, updated=? WHERE id=?", (stamp, stamp, r["id"]))
+            continue
+        if r["status"] == "pending":
             after = d[d.index.strftime("%Y-%m-%d") > r["issued"][:10]]
             s_after = spy[spy.index.strftime("%Y-%m-%d") > r["issued"][:10]]
             if not len(after) or not len(s_after):

@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**480 files, 96,785 lines.**
+**480 files, 96,874 lines.**
 
 ## Repo root
 
-*11 files, 2,241 lines*
+*11 files, 2,244 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 559 | 43 KB |
-| `MANIFEST.md` | 692 | 28 KB |
+| `MANIFEST.md` | 695 | 28 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -109,7 +109,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*85 files, 24,750 lines*
+*85 files, 24,814 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -132,7 +132,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/dashboard_app.py` | 378 | 15 KB |
 | `04_live_system/dashboard_single.py` | 609 | 30 KB |
 | `04_live_system/desk_notes.py` | 590 | 26 KB |
-| `04_live_system/desk_trades.py` | 311 | 15 KB |
+| `04_live_system/desk_trades.py` | 373 | 19 KB |
 | `04_live_system/direction_signals.py` | 71 | 4 KB |
 | `04_live_system/earnings_vol.py` | 203 | 10 KB |
 | `04_live_system/edge_panel.py` | 306 | 14 KB |
@@ -149,7 +149,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/graduation.py` | 413 | 21 KB |
 | `04_live_system/growth_plan.py` | 135 | 7 KB |
 | `04_live_system/index_overlay.py` | 169 | 7 KB |
-| `04_live_system/ingest_desk_notes.sh` | 140 | 8 KB |
+| `04_live_system/ingest_desk_notes.sh` | 142 | 8 KB |
 | `04_live_system/insider_score.py` | 255 | 12 KB |
 | `04_live_system/intraday_live.py` | 103 | 5 KB |
 | `04_live_system/kalshi_recorder.py` | 235 | 11 KB |
@@ -519,13 +519,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*15 files, 2,704 lines*
+*15 files, 2,726 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `test/conftest.py` | 65 | 2 KB |
 | `test/test_continuity.py` | 96 | 4 KB |
-| `test/test_desk_trades.py` | 113 | 7 KB |
+| `test/test_desk_trades.py` | 135 | 9 KB |
 | `test/test_gamma_direction.py` | 43 | 2 KB |
 | `test/test_gates.py` | 140 | 6 KB |
 | `test/test_index_overlay.py` | 52 | 2 KB |

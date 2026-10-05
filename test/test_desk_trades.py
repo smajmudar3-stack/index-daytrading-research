@@ -24,10 +24,30 @@ def _px(open_, close, n=80, end="2026-10-05"):
     ("closed the GLD position at ~$25.14", 1, "close"),
     ("shorted IWM against the QQQ long", -1, "open"),
     ("bought Oct puts as protection over the weekend", -1, "hedge"),
-    ("sold the call credit spread", -1, "reduce"),
+    ("monetized 280/285 call spread expiring Oct 9", 1, "close"),
+    ("stopped out of the Copper trade", 1, "close"),
+    ("went long, indicative ~$1.1352", 1, "open"),
+    ("entered Oct 30 280/270 put spread at indicative ~$2.10", -1, "open"),
+    ("took position from half size to full size on the pullback", 1, "add"),
+    ("kept position open despite closing below our stops", 1, "hold"),
 ])
 def test_parse_action_reads_the_desks_own_words(text, direction, kind):
-    assert dt.parse_action(text) == (direction, kind)
+    assert dt.parse_action(text)[:2] == (direction, kind)
+
+
+def test_desk_state_treats_a_put_spread_on_a_long_as_a_hedge_and_a_monetized_structure_as_flat():
+    uso = [{"date": "2026-09-24 10:00", "action": "added another half size at indicative ~$152.31"},
+           {"date": "2026-09-30 11:00", "action": "put on Oct 2 146/143 put debit spread"},
+           {"date": "2026-09-30 15:00", "action": "closed Oct 2 146/143 put spread, indicative ~$1.36"},
+           {"date": "2026-10-02 15:40", "action": "bought Oct 9 146/143 put debit spread"}]
+    state, trail = dt.desk_state(uso)
+    assert state == 1 and [t[1] for t in trail] == ["add", "hedge", "hedge closed", "hedge"]
+    iwm = [{"date": "2026-09-24 10:00", "action": "took profit on our puts in the morning"},
+           {"date": "2026-09-28 10:00", "action": "entered Oct 30 280/270 put spread at indicative ~$2"},
+           {"date": "2026-10-01 10:00", "action": "already bought upside in IWM as our breadth proxy"},
+           {"date": "2026-10-02 10:00", "action": "monetized 280/285 call spread expiring Oct 9"}]
+    state, trail = dt.desk_state(iwm)
+    assert [t[2] for t in trail] == [0, -1, 1, 0] and state == 0
 
 
 def test_positions_from_the_overlay_by_source_with_conflicts_stated():
@@ -41,6 +61,7 @@ def test_positions_from_the_overlay_by_source_with_conflicts_stated():
             {"asset": "WEAT", "action": "bought", "date": "2026-08-01 09:00"},              # too old
         ],
         "trade_calls": [
+            {"instrument": "XLF", "direction": "short", "horizon": "weeks", "why": "older, reversed", "date": "2026-09-28 09:43"},
             {"instrument": "XLF", "direction": "long", "horizon": "weeks", "conviction": "high", "why": "steepener", "date": "2026-10-02 09:43"},
             {"instrument": "XHB", "direction": "avoid", "horizon": "months", "why": "rates", "date": "2026-10-02 09:43"},
             {"instrument": "Brent crude", "direction": "short", "horizon": "days", "why": "x", "date": "2026-10-02 09:43"},
@@ -54,12 +75,13 @@ def test_positions_from_the_overlay_by_source_with_conflicts_stated():
     }
     pos, closes, conflicts, skipped = dt.positions_from(ov, now=now)
     by = {(p["source"], p["ticker"]): p for p in pos}
-    assert by[("desk", "USO")]["dir"] == -1                                   # the put spread, mirrored short
-    assert [c["ticker"] for c in closes] == ["GLD"]                           # the reduce closes GLD
+    assert by[("desk", "USO")]["dir"] == -1                                   # a put spread on a FLAT book is a short view
+    assert ("desk", "GLD") not in by and any(c["ticker"] == "GLD" for c in closes)   # reduced with no open -> flat
     assert ("desk", "BRENT CRUDE") not in by and any(s["what"] == "BRENT CRUDE" for s in skipped)
     assert not any(p["ticker"] == "WEAT" for p in pos)                         # outside the window
-    assert any("hedge" in s["why"] for s in skipped)                           # protection is not a view
-    assert by[("call", "XLF")]["dir"] == 1 and by[("call", "XLF")]["hold"] == 21
+    assert by[("call", "XLF")]["dir"] == 1 and by[("call", "XLF")]["hold"] == 21   # the newest call wins
+    assert sum(1 for p in pos if p["source"] == "call" and p["ticker"] == "XLF") == 1
+    assert any("superseded" in s["why"] for s in skipped)
     assert by[("call", "XHB")]["dir"] == -1 and by[("call", "XHB")]["hold"] == 63  # avoid = paper short, months
     assert not any(k[0] == "call" and "CRUDE" in k[1] for k in by)            # a commodity word is not a ticker
     assert by[("theme", "BAC")]["dir"] == 1 and by[("theme", "ITB")]["dir"] == -1
@@ -84,7 +106,7 @@ def test_ledger_fills_marks_shorts_with_the_right_sign_and_closes_on_the_desks_e
     # the same call again does not open a second position
     assert dt.book(pos, [], px, now=pd.Timestamp("2026-10-03 17:00", tz=dt.ET))["added"] == 0
     # the desk exits USO -> the mirror closes on the next mark
-    dt.book([], [{"ticker": "USO", "why": "closed the put spread"}], px, now=pd.Timestamp("2026-10-04 16:00", tz=dt.ET))
+    dt.book([], [{"ticker": "USO", "why": "closed the position"}], px, now=pd.Timestamp("2026-10-04 16:00", tz=dt.ET))
     assert [x["ticker"] for x in dt.ledger()["closed"]] == ["USO"]
     assert dt.ledger()["by_source"]["desk"]["closed"]["n"] == 1
 
