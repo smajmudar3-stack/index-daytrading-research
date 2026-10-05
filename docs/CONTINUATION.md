@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-10-02, 16:00 ET)
+## Where things stand (2026-10-05, 16:00 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,16 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-10-05, opening range (Sholo: "test intraday opening ranges on NDX and SPX, first 15
+minutes"):** `05_studies/opening_range_study.py`, verdict `02_findings/opening_range.md`:
+direction null (every cell alive in year one is flat/negative in year two; G was trap 6 and
+is zero from the break level), volatility real (OR width → rest-of-day range t 14–27). NEXT
+BUILD from it: feed the 09:45 opening-range width into the 0DTE expected range on Today
+(currently set from prior-close GEX only). Desk-note ingest confirmed running after the
+re-login (10-01, 10-02 ×2, 10-05; overlay 94 themes, newest note 10-02). The Anthropic API
+account is still out of credit, so `master_call`/`analyst` (the "what does this mean" prose)
+fail every cycle — Sholo's to top up.
 
 **2026-10-02, "ok but no suggestions still":** the Today decision panel now states this week's
 swing cohorts (ranker 25 names, stress 40 names with their regime label) whenever the index

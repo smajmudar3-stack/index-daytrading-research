@@ -389,6 +389,17 @@ Rules:
   names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
   books under the cards (`_side_books`), and `today.answer` states the stress cohort as
   THE decision on the day it issues — the only place an action is stated.
+- **The first 15 minutes forecast the SIZE of the day, never its direction.** `05_studies/
+  opening_range_study.py` on SPY/QQQ 1-minute bars, 554 sessions 2024-07 → 2026-10, 56
+  pre-registered cells: no conditioning on the opening range (direction, position in the
+  range, gap, width, volume, first side broken) survives the second year or a 2 bp round
+  trip; the best cell is one half-year (2025H1). The width of the open forecasts the
+  rest-of-day range at t 14–27 in both halves (wide SPY open → 1.36% vs 0.80% narrow), which
+  is a 0DTE sizing input, not a trade. Day shape: the range is broken within 2 minutes on
+  the median day, both sides on 52–59% of days, and the day's high or low is set inside the
+  first 15 minutes on 41–48% of days. Trap 6 caught again: conditioning on "which side broke
+  first" and measuring from 09:45 reads t 2.5–2.9 and is 9–13 bp of unearnable drift.
+  `02_findings/opening_range.md`.
 - **The swing books are THE decision when the index has none.** For weeks `today.answer`
   said STAND DOWN (the 0DTE gates are shut most sessions by design) while three share books
   issued cohorts two cards down on the Markets page ("no suggestions still", 2026-10-02).

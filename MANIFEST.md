@@ -9,18 +9,18 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**475 files, 95,716 lines.**
+**477 files, 96,090 lines.**
 
 ## Repo root
 
-*11 files, 2,214 lines*
+*11 files, 2,225 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `.env.example` | 74 | 4 KB |
 | `.gitignore` | 25 | 461 B |
 | `AGENTS.md` | 160 | 9 KB |
-| `CLAUDE.md` | 534 | 41 KB |
+| `CLAUDE.md` | 545 | 41 KB |
 | `MANIFEST.md` | 690 | 27 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
@@ -43,7 +43,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*21 files, 2,863 lines*
+*22 files, 2,968 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -62,6 +62,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
 | `02_findings/online_methods.md` | 103 | 21 KB |
+| `02_findings/opening_range.md` | 105 | 7 KB |
 | `02_findings/signal_accuracy.md` | 155 | 10 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/stress_reversal.md` | 61 | 4 KB |
@@ -275,7 +276,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*74 files, 11,929 lines*
+*75 files, 12,177 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -325,6 +326,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/momentum_scan.py` | 71 | 3 KB |
 | `05_studies/momentum_stocks.py` | 74 | 4 KB |
 | `05_studies/multi_edge.py` | 95 | 4 KB |
+| `05_studies/opening_range_study.py` | 248 | 14 KB |
 | `05_studies/orb_proper.py` | 117 | 5 KB |
 | `05_studies/per_name_weights_test.py` | 136 | 6 KB |
 | `05_studies/polymarket_score.py` | 111 | 6 KB |
@@ -478,12 +480,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,533 lines*
+*6 files, 1,543 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 250 | 19 KB |
+| `docs/CONTINUATION.md` | 260 | 19 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
