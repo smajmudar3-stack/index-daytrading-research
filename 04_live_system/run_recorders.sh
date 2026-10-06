@@ -20,5 +20,7 @@ P2=$!
 P3=$!
 "$PY" kalshi_recorder.py >> "$REPO/logs/kalshi_recorder.out" 2>&1 &
 P4=$!
-trap 'kill $P1 $P2 $P3 $P4 2>/dev/null' TERM INT
+"$PY" pumpfun_recorder.py >> "$REPO/logs/pumpfun_recorder.out" 2>&1 &
+P5=$!
+trap 'kill $P1 $P2 $P3 $P4 $P5 2>/dev/null' TERM INT
 wait

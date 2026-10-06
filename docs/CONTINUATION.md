@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-10-05, 16:00 ET)
+## Where things stand (2026-10-06, 20:00 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,18 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-10-06, memecoins (Sholo trades on GMGN; "test every aspect like the options, then
+automate"):** `05_studies/memecoin_factors.py` on the 4,344 recorded launches → `02_findings/
+memecoins.md`: retail side loses at every horizon, every momentum factor negative, only
+old+liquid Solana scalps net +3.8% at 1h (hit 0.34) and nothing holds longer; BSC/ETH DEX
+launches are the lead (hit ~0.4, n 50–90, gas unmodelled). Built `pumpfun_recorder.py`
+(seconds-after-mint, curve state, creator history, socials, 1-min marks) and added it to
+the recorders job. NEXT: after ~1 week run `memecoin_factors.py --pumpfun` (to be written:
+same tables on the pumpfun.db panel, first-minute factors incl. creator_prior_*, buys/sells
+ratio, curve fill rate, socials); if any cell clears cost in both halves, build a PAPER
+book with a ledger (same contract as the others) before any execution path. Nothing places
+an order; a live GMGN/Jupiter path needs Sholo's written go and a wallet he funds.
 
 **2026-10-05 ~17:00 ET, "the email should be heavily helping with trades":** built
 `04_live_system/desk_trades.py` + panel + Today rows + scan wiring; overlay now accumulates

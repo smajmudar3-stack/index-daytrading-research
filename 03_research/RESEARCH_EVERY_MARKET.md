@@ -29,7 +29,7 @@ flowchart TD
   OPT --> O6[Vendor flow / unusual activity<br/>2 years own history: NULL]
 
   CR --> C1[Cross-exchange arbitrage<br/>47% of checks show a gap, max 5 bp, 0 beat fees]
-  CR --> C2[Memecoin launch sniping<br/>RECORDING; literature: 69% die day one, <2% graduate]
+  CR --> C2[Memecoin launch sniping<br/>4,344 launches: median -64% at 24h, every momentum factor negative; only BSC/ETH DEX cells > 0, n 50-90]
   CR --> C3[Funding-rate carry<br/>8-20%/yr in positive regimes; venues closed to US]
   CR --> C4[MEV / on-chain<br/>validator-ordered; retail is last in queue]
   CR --> C5[Grid / DCA / signal bots<br/>short volatility wearing a bot]

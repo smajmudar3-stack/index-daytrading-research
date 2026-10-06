@@ -389,6 +389,18 @@ Rules:
   names: a name's own weights are its own accidents. `panels/weekly.trades` renders both
   books under the cards (`_side_books`), and `today.answer` states the stress cohort as
   THE decision on the day it issues — the only place an action is stated.
+- **Memecoins were measured like the options, and the retail side loses at every horizon.**
+  `05_studies/memecoin_factors.py` on 4,344 launches (`memecoin_recorder.py`, 2026-09-23 →):
+  median −23% at 30 min and −64% at a day from the price a retail wallet first sees; the
+  best mark a token EVER reaches in 24h has a median of −2%; every momentum factor (5-min
+  change, 1h change, volume, early path) has a NEGATIVE IC at every horizon in both weeks;
+  age at first sight is the strongest factor and it is survivorship. Buy-every-launch nets
+  −49% at $100 (impact on a $3k pool is 7% a side). The one Solana rule that nets positive
+  (age > 60 min, liquidity ≥ $20k, sold at 1h: +3.8%, hit 0.34, 144 trades) is negative at
+  6h and 24h. BSC/Ethereum DEX launches show hit rates near 0.4 on 50–90 tokens with gas
+  unmodelled: the lead. `pumpfun_recorder.py` (fifth recorder in `com.daytrading.recorders`)
+  now records every mint seconds after creation with curve state, creator history, socials
+  and 1-minute marks. `02_findings/memecoins.md`. Nothing places an order.
 - **The emails are trades now, not only a gate.** Sholo (2026-10-05): "the email should be
   heavily helping with trades, not just desk notes." `desk_notes.merge_note` ACCUMULATES the
   desk's own trades (`desk_book` was overwritten by whichever note last carried one, so a week
