@@ -76,6 +76,7 @@ def copy_trades(tr, kl):
         if k is None or len(k) < 5:
             continue
         d = {"tx": r.tx, "src": r.src, "tags": r.tags or "", "token": r.token, "symbol": r.symbol, "ts": r.ts, "seen": r.seen,
+             "chain": getattr(r, "chain", "sol"),
              "lead_px": r.price_usd, "amount_usd": r.amount_usd, "opening": r.is_open_or_close, "launchpad": r.launchpad,
              "half": "A" if r.ts < buys.ts.min() + (buys.ts.max() - buys.ts.min()) / 2 else "B"}
         for lag in (30, 60):
@@ -148,6 +149,7 @@ def launch_factors(fs, snaps, kl):
              ("renowned_count", +1), ("tg_call_count", +1), ("holder_count", +1), ("top_10_holder_rate", -1), ("fresh_wallet_rate", -1),
              ("progress", +1), ("market_cap", +1), ("volume_24h", +1), ("buy_sell_ratio", +1), ("image_dup", -1), ("twitter_dup", -1),
              ("is_wash_trading", -1), ("dexscr_ad", +1), ("has_twitter", +1), ("has_telegram", +1)]
+    d["chain"] = d.address.map(fs.set_index("address").get("chain", pd.Series(dtype=object))).fillna("sol") if "chain" in fs else "sol"
     for kind in ("new_creation", "near_completion", "completed"):
         s = d[d.kind == kind]
         for y in ("ret_3600", "ret_86400"):
@@ -155,8 +157,9 @@ def launch_factors(fs, snaps, kl):
             if len(x) < 60:
                 print(f"\n  {kind} -> {y}: n {len(x)} too few settled yet")
                 continue
+            by_chain = {ch: f"{g[y].median()*100:+.0f}% (n{len(g)})" for ch, g in x.groupby("chain")}
             print(f"\n  LAUNCH FACTORS, {kind} ({len(x)} tokens) -> {y}: base median {x[y].median()*100:+.1f}%, up {(x[y]>0).mean()*100:.0f}%, "
-                  f"doubled {(x[y]>=1).mean()*100:.1f}%  [mean columns capped at {CAP:.0f}x; A/B halves]")
+                  f"doubled {(x[y]>=1).mean()*100:.1f}%  by chain {by_chain}  [mean columns capped at {CAP:.0f}x; A/B halves]")
             out = []
             for f, sgn in feats:
                 xx = x[[f, y, "half"]].dropna()
@@ -191,6 +194,8 @@ def main():
             report_copy(ct[ct.src == src], f"source = {src}")
         report_copy(ct[ct.opening == 0], "leader OPENING a position (is_open_or_close=0)")
         report_copy(ct[ct.opening == 1], "leader closing/reducing flagged as buy (=1)")
+        for ch, g in ct.groupby(ct.chain.fillna("sol")):
+            report_copy(g, f"chain = {ch}")
         for lp, g in ct.groupby(ct.launchpad.fillna("none")):
             report_copy(g, f"launchpad = {lp}")
         for tag in ("smart_degen", "kol", "renowned", "sniper", "arbitrager", "fresh_wallet", "bullx", "axiom", "photon", "gmgn"):

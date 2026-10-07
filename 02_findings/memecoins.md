@@ -122,7 +122,12 @@ MEV** (wash share rises toward the top of every trending list, 17% → 21% → 8
 "winners"; the slippage setting is the sandwich attack surface, 147k attacks in one day),
 and **exits and sizing** (the one profitable bot exits on a dev-sell or a 20-second clock;
 at the measured distribution the Kelly fraction is negative, so the correct position size
-is zero until the distribution changes).
+is zero until the distribution changes). Batch three: **cross-chain** (gas is the only clean
+chain difference and it is negligible on BSC; four.meme is the venue to measure next, and the
+GMGN recorder covers BSC and Base since 2026-10-07) and **open-source bots** (twelve repos,
+no audited P&L anywhere; one posts users' private keys to a third party; the only rule tied
+to any real profit is the creator-history filter, which the GMGN trenches fields
+`creator_created_count` / `creator_created_open_ratio` make testable on our own tape).
 
 **What is now being measured that was not before.** `gmgn_recorder.py` records every
 smart-money and KOL trade GMGN shows, every trenches token with GMGN's own sixty risk fields

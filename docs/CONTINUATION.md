@@ -24,8 +24,9 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 GMGN traders use, launch a ton of agents, I want near-infinite research, I want you buying
 and selling within seconds." Gate wording that worked: "Build the memecoin briefs. Use claude
 for everything this session. continue edge hunt." Batch 1 DONE (copytrading, kol-calls,
-sniping, data-stack, who-profits → rows in online_methods.md + memecoins.md); batch 2 IN
-FLIGHT (curve-plays, manipulation-mev, exits-sizing). Installed GMGN skills + gmgn-cli with
+sniping, data-stack, who-profits → rows in online_methods.md + memecoins.md); batch 2 DONE (curve-plays,
+manipulation-mev, exits-sizing) and batch 3 DONE (cross-chain, open-bots): ten memecoin
+briefs, all rows in online_methods.md. GMGN recorder extended to bsc + base (2026-10-07). Installed GMGN skills + gmgn-cli with
 the public read-only key (NO private key); built `gmgn_recorder.py` (smart/KOL trades,
 trenches with 60 risk fields, signals, 30s/1m candle queue) and `pumpfun_trades_recorder.py`;
 7 recorders now run. NEXT (after ≥24h of gmgn.db): `memecoin_gmgn_score.py` — the copy-trade

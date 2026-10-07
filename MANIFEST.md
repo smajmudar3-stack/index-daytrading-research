@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**492 files, 99,060 lines.**
+**497 files, 99,858 lines.**
 
 ## Repo root
 
-*12 files, 2,383 lines*
+*12 files, 2,392 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 29 | 585 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 584 | 45 KB |
-| `MANIFEST.md` | 698 | 28 KB |
+| `MANIFEST.md` | 707 | 28 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -44,7 +44,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*23 files, 3,108 lines*
+*23 files, 3,126 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -62,8 +62,8 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 130 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/memecoins.md` | 133 | 9 KB |
-| `02_findings/online_methods.md` | 110 | 24 KB |
+| `02_findings/memecoins.md` | 146 | 10 KB |
+| `02_findings/online_methods.md` | 115 | 26 KB |
 | `02_findings/opening_range.md` | 105 | 7 KB |
 | `02_findings/signal_accuracy.md` | 155 | 10 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
@@ -111,7 +111,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*88 files, 25,374 lines*
+*88 files, 25,386 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -148,7 +148,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/gex_periscope.py` | 490 | 24 KB |
 | `04_live_system/gex_regime.py` | 103 | 6 KB |
 | `04_live_system/gex_signal.py` | 422 | 25 KB |
-| `04_live_system/gmgn_recorder.py` | 200 | 11 KB |
+| `04_live_system/gmgn_recorder.py` | 212 | 12 KB |
 | `04_live_system/graduation.py` | 413 | 21 KB |
 | `04_live_system/growth_plan.py` | 135 | 7 KB |
 | `04_live_system/index_overlay.py` | 169 | 7 KB |
@@ -283,7 +283,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*77 files, 12,620 lines*
+*77 files, 12,625 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -325,7 +325,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/kalshi_score.py` | 74 | 4 KB |
 | `05_studies/live_path.py` | 34 | 1 KB |
 | `05_studies/memecoin_factors.py` | 233 | 13 KB |
-| `05_studies/memecoin_gmgn_score.py` | 210 | 11 KB |
+| `05_studies/memecoin_gmgn_score.py` | 215 | 11 KB |
 | `05_studies/memecoin_score.py` | 62 | 3 KB |
 | `05_studies/merge_optimize.py` | 52 | 2 KB |
 | `05_studies/mes_overnight.py` | 86 | 4 KB |
@@ -489,12 +489,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,576 lines*
+*6 files, 1,577 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 293 | 22 KB |
+| `docs/CONTINUATION.md` | 294 | 22 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
@@ -662,7 +662,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs/briefs — other
 
-*31 files, 4,326 lines*
+*36 files, 5,079 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -682,8 +682,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/briefs/leverage-growth.md` | 175 | 13 KB |
 | `docs/briefs/llm-news.md` | 199 | 14 KB |
 | `docs/briefs/memecoin-copytrading.md` | 151 | 15 KB |
+| `docs/briefs/memecoin-cross-chain.md` | 173 | 15 KB |
+| `docs/briefs/memecoin-curve-plays.md` | 154 | 13 KB |
 | `docs/briefs/memecoin-data-stack.md` | 143 | 12 KB |
+| `docs/briefs/memecoin-exits-sizing.md` | 156 | 13 KB |
 | `docs/briefs/memecoin-kol-calls.md` | 198 | 16 KB |
+| `docs/briefs/memecoin-manipulation-mev.md` | 174 | 14 KB |
+| `docs/briefs/memecoin-open-bots.md` | 96 | 13 KB |
 | `docs/briefs/memecoin-sniping.md` | 225 | 19 KB |
 | `docs/briefs/memecoin-who-profits.md` | 162 | 14 KB |
 | `docs/briefs/memecoins.md` | 70 | 13 KB |

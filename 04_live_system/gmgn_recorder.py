@@ -10,7 +10,8 @@ way the options were — IF it is recorded at the moment it was visible and sett
 price a copier would have paid seconds later. GMGN's read API (gmgn-cli, read-only key)
 exposes all of it; its website is Cloudflare-gated to scripts and useless for this.
 
-Every POLL_S seconds, on Solana:
+Every POLL_S seconds, on Solana, BSC and Base (BSC added 2026-10-07 on the cross-chain
+brief: gas $0.008 a swap, and the one net-positive cell in memecoins.md was BSC):
   trenches   new_creation / near_completion / completed, 80 each: one row per token per
              poll with the full field set as JSON and the key fields as columns
              (creator_created_count, creator_created_open_ratio, bundler_trader_amount_rate,
@@ -40,7 +41,7 @@ from idt import paths
 
 DB = paths.state("gmgn.db")
 CLI = "gmgn-cli"
-CHAIN = "sol"
+CHAINS = ("sol", "bsc", "base")   # BSC added 2026-10-07: gas $0.008/swap and the one net-positive cell in memecoins.md
 POLL_S = 60
 KLINE_PER_MIN = 20
 SAMPLE_EVERY = 4
@@ -77,6 +78,10 @@ def con():
     c.execute("""CREATE TABLE IF NOT EXISTS kline_jobs (id INTEGER PRIMARY KEY, address TEXT, resolution TEXT, t_from REAL, t_to REAL,
                  due REAL, why TEXT, done INTEGER DEFAULT 0, err TEXT)""")
     c.execute("CREATE INDEX IF NOT EXISTS ix_kj ON kline_jobs(done, due)")
+    for tbl in ("trench_snaps", "first_seen", "smart_trades", "signals", "klines", "kline_jobs"):
+        cols = {r[1] for r in c.execute(f"PRAGMA table_info({tbl})")}
+        if "chain" not in cols:
+            c.execute(f"ALTER TABLE {tbl} ADD COLUMN chain TEXT DEFAULT 'sol'")
     return c
 
 
@@ -89,8 +94,8 @@ def _num(x):
         return None
 
 
-def record_trenches(c, now):
-    d = cli("market", "trenches", "--chain", CHAIN, "--limit", "80")
+def record_trenches(c, now, chain):
+    d = cli("market", "trenches", "--chain", chain, "--limit", "80")
     n_new = 0
     for kind in ("new_creation", "near_completion", "completed"):
         for t in d.get(kind) or []:
@@ -101,24 +106,25 @@ def record_trenches(c, now):
             for k in KEY_FIELDS:
                 v = t.get(k)
                 vals.append(v if k in ("creator", "creator_token_status", "twitter", "telegram", "website", "launchpad", "launchpad_platform", "exchange") else _num(v))
-            c.execute(f"INSERT INTO trench_snaps VALUES ({','.join('?' * (5 + len(KEY_FIELDS)))})",
-                      (now, addr, kind, t.get("symbol"), *vals, json.dumps(t)[:6000]))
+            c.execute(f"INSERT INTO trench_snaps (ts, address, kind, symbol, {', '.join(KEY_FIELDS)}, raw, chain) VALUES ({','.join('?' * (6 + len(KEY_FIELDS)))})",
+                      (now, addr, kind, t.get("symbol"), *vals, json.dumps(t)[:6000], chain))
             if not c.execute("SELECT 1 FROM first_seen WHERE address=?", (addr,)).fetchone():
                 n_new += 1
-                sampled = int(kind != "new_creation" or (n_new % SAMPLE_EVERY == 0))
-                c.execute("INSERT INTO first_seen VALUES (?,?,?,?,?,?)", (addr, now, kind, _num(t.get("price")), _num(t.get("market_cap")), sampled))
+                sampled = int(kind != "new_creation" or chain != "sol" or (n_new % SAMPLE_EVERY == 0))
+                c.execute("INSERT INTO first_seen (address, ts, kind, price, market_cap, sampled, chain) VALUES (?,?,?,?,?,?,?)",
+                          (addr, now, kind, _num(t.get("price")), _num(t.get("market_cap")), sampled, chain))
                 if sampled:
                     for h in (3600, 86400):
-                        c.execute("INSERT INTO kline_jobs (address, resolution, t_from, t_to, due, why) VALUES (?,?,?,?,?,?)",
-                                  (addr, "1m", now - 120, now + h, now + h + 60, f"{kind}+{h}"))
+                        c.execute("INSERT INTO kline_jobs (address, resolution, t_from, t_to, due, why, chain) VALUES (?,?,?,?,?,?,?)",
+                                  (addr, "1m", now - 120, now + h, now + h + 60, f"{kind}+{h}", chain))
     return n_new
 
 
-def record_trades(c, now):
+def record_trades(c, now, chain):
     n = 0
     for src in ("smartmoney", "kol"):
         try:
-            d = cli("track", src, "--chain", CHAIN, "--limit", "100")
+            d = cli("track", src, "--chain", chain, "--limit", "100")
         except Exception:                                     # noqa: BLE001
             continue
         for t in d.get("list") or []:
@@ -128,20 +134,21 @@ def record_trades(c, now):
             tok = t.get("base_address")
             bt = t.get("base_token") or {}
             mi = t.get("maker_info") or {}
-            c.execute("INSERT OR IGNORE INTO smart_trades VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            c.execute("INSERT OR IGNORE INTO smart_trades (tx, seen, ts, src, maker, tags, token, symbol, side, price_usd, amount_usd, is_open_or_close, launchpad, chain) "
+                      "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                       (tx, now, _num(t.get("timestamp")), src, t.get("maker"), ",".join(mi.get("tags") or []), tok, bt.get("symbol"),
-                       t.get("side"), _num(t.get("price_usd")), _num(t.get("amount_usd")), t.get("is_open_or_close"), bt.get("launchpad")))
+                       t.get("side"), _num(t.get("price_usd")), _num(t.get("amount_usd")), t.get("is_open_or_close"), bt.get("launchpad"), chain))
             n += 1
             if t.get("side") == "buy" and tok:
                 ts = _num(t.get("timestamp")) or now
-                c.execute("INSERT INTO kline_jobs (address, resolution, t_from, t_to, due, why) VALUES (?,?,?,?,?,?)",
-                          (tok, "30s", ts - 60, ts + 3600, ts + 3660, f"{src}_buy"))
+                c.execute("INSERT INTO kline_jobs (address, resolution, t_from, t_to, due, why, chain) VALUES (?,?,?,?,?,?,?)",
+                          (tok, "30s", ts - 60, ts + 3600, ts + 3660, f"{src}_buy", chain))
     return n
 
 
-def record_signals(c, now):
+def record_signals(c, now, chain):
     try:
-        d = cli("market", "signal", "--chain", CHAIN)
+        d = cli("market", "signal", "--chain", chain)
     except Exception:                                         # noqa: BLE001
         return 0
     items = d if isinstance(d, list) else (d.get("list") or d.get("signals") or [])
@@ -150,22 +157,23 @@ def record_signals(c, now):
         if not isinstance(s, dict):
             continue
         tok = s.get("token_address") or s.get("address") or (s.get("token") or {}).get("address")
-        c.execute("INSERT INTO signals VALUES (?,?,?,?,?)", (now, _num(s.get("timestamp")), tok, str(s.get("signal_type")), json.dumps(s)[:3000]))
+        c.execute("INSERT INTO signals (seen, ts, token, signal_type, raw, chain) VALUES (?,?,?,?,?,?)",
+                  (now, _num(s.get("trigger_at") or s.get("timestamp")), tok, str(s.get("signal_type")), json.dumps(s)[:3000], chain))
         n += 1
     return n
 
 
 def run_klines(c, now, budget):
-    jobs = c.execute("SELECT id, address, resolution, t_from, t_to FROM kline_jobs WHERE done=0 AND due<=? ORDER BY due LIMIT ?",
+    jobs = c.execute("SELECT id, address, resolution, t_from, t_to, COALESCE(chain,'sol') FROM kline_jobs WHERE done=0 AND due<=? ORDER BY due LIMIT ?",
                      (now, budget)).fetchall()
-    for jid, addr, res, t_from, t_to in jobs:
+    for jid, addr, res, t_from, t_to, chain in jobs:
         try:
-            d = cli("market", "kline", "--chain", CHAIN, "--address", addr, "--resolution", res,
+            d = cli("market", "kline", "--chain", chain, "--address", addr, "--resolution", res,
                     "--from", str(int(t_from)), "--to", str(int(t_to)))
             for k in d.get("list") or []:
-                c.execute("INSERT OR IGNORE INTO klines VALUES (?,?,?,?,?,?,?,?)",
+                c.execute("INSERT OR IGNORE INTO klines (address, resolution, t, o, h, l, c, v, chain) VALUES (?,?,?,?,?,?,?,?,?)",
                           (addr, res, _num(k.get("time")) / 1000.0, _num(k.get("open")), _num(k.get("high")), _num(k.get("low")),
-                           _num(k.get("close")), _num(k.get("volume"))))
+                           _num(k.get("close")), _num(k.get("volume")), chain))
             c.execute("UPDATE kline_jobs SET done=1 WHERE id=?", (jid,))
         except Exception as e:                                # noqa: BLE001
             c.execute("UPDATE kline_jobs SET done=-1, err=? WHERE id=?", (str(e)[:200], jid))
@@ -178,12 +186,16 @@ def loop(max_secs=None):
     t0, n = time.time(), 0
     while max_secs is None or time.time() - t0 < max_secs:
         now = time.time()
-        try:
-            nt = record_trenches(c, now)
-        except Exception as e:                                # noqa: BLE001
-            nt = f"err {str(e)[:60]}"
-        ntr = record_trades(c, now)
-        ns = record_signals(c, now) if n % 5 == 0 else 0
+        nt, ntr, ns = {}, 0, 0
+        for chain in CHAINS:
+            try:
+                nt[chain] = record_trenches(c, now, chain)
+            except Exception as e:                            # noqa: BLE001
+                nt[chain] = f"err {str(e)[:40]}"
+            ntr += record_trades(c, now, chain)
+            if n % 5 == 0:
+                ns += record_signals(c, now, chain)
+            time.sleep(0.5)
         c.commit()
         nk = run_klines(c, now, KLINE_PER_MIN)
         c.commit()
