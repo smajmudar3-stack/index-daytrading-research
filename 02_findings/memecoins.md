@@ -175,6 +175,41 @@ trades, hit 0.45), is a single cell out of 150 scored (noise bar t ≈ 3.2) with
 fixed in advance and left alone is the only kind of evidence that cannot be argued with;
 it is on the Markets page as "Memecoin paper book".
 
+## The birth tape: every pump.fun mint from its first minute (first day, 2026-10-07)
+
+`pumpfun_recorder.py` + `memecoin_pumpfun_score.py`. 9,361 mints seen a median 18 seconds
+after creation; 5,511 with a curve price at +1 minute (the first moment a wallet outside
+the creation block can act); the dev's own first buy known for 31% (PumpPortal creates).
+Prices are the curve's own (virtual SOL ÷ virtual tokens, read from the chain), so there is
+no venue to disagree with; cost is the trader's exact impact on the curve plus 1.5% a side.
+
+- **Half of all mints never trade again after minute one.** At +10 minutes 50.9% sit at
+  exactly their +1-minute price. Of the half that move at all, 13% are up. The best curve
+  price a mint ever reaches after +1 minute has a median of **+0%** and a 75th percentile
+  of **+0%**; the 95th is +20%. 1.69% graduated in the sample (1,331 `complete` flags
+  across 9,361 mints), against the literature's 0.2–0.6%; the recorder sees the busiest
+  hours of the day over-represented.
+- **Money arriving early is the worst sign.** Real SOL on the curve at +1 minute has IC
+  −0.63 to −0.73 against every later return (t −31 to −39): the mints that attract 5+ SOL
+  in the first minute are the bundled ones, and they lose 32% by +10 minutes, 37% by an
+  hour. A high starting market cap reads the same way (IC −0.3).
+- **Creator history and socials predict GRADUATION, not return.** A creator's first launch
+  graduates 3.05% of the time against 0.59% for a repeat creator and 0.44% for a serial
+  one; three socials 3.8% against 1.1% for none; a dev first buy in the top fifth 4.9%
+  against 0.3% in the bottom. But the graduates' own median return from the +1-minute
+  price is −2% at an hour and +12% at six: graduation is survival, not profit, from where
+  a retail wallet gets in.
+- **Every rule from the +1-minute price is net negative at $100**: every mint −19%, first
+  launch only −15%, dev buy ≤ 1 SOL −16%, the orcACR filter (first launch, dev buy ≤ 4 SOL,
+  a social) −8% to −13%, all three socials −7%. Hit rates 0.02–0.05.
+- **The one cell that looked above water was trap 6.** The first draft scored "a mint whose
+  curve price rose ≥ 50% between +1 and +2 minutes, sold at +10" from the +1-minute price,
+  which includes the wave itself, and read +13% net on 51 mints. Measured from the +2-minute
+  price, where the signal is first known, the same rule is **−45% net, hit 0.06** (the paper
+  book's Rule B, 49 signals, both halves negative). The study now carries returns from +2
+  for any rule conditioned on the second minute. Nothing in the first minute of a pump.fun
+  launch, measured at the moment it is visible, nets positive at $100.
+
 ## On automation
 
 Nothing in this repo places an order, and that stands. A GMGN/Jupiter execution path is

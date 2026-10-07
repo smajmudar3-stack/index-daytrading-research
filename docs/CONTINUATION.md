@@ -20,6 +20,16 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
 
+**2026-10-07 evening, the pump.fun birth study:** `05_studies/memecoin_pumpfun_score.py` on
+5,511 mints with a +1-min curve price: half never trade again, best-ever price median +0%,
+early money is the worst sign (fill1 IC −0.7), creator history predicts graduation (3.05%
+first launch vs 0.44% serial) but not return, every +1-min rule net negative. The one
+cell that read +13% (the "first wave" +50% between +1 and +2 min) was TRAP 6 — scored from
+the +1 price, which includes the wave; from +2 it is −45% net, hit 0.06 (Rule B of
+`memecoin_book.py`, 49 signals, both halves negative; the study now carries `ret2_*`).
+NEXT: re-run both scorers after 48 h for completeness; the memecoin verdict is effectively
+final — nothing retail-visible nets positive on Solana at any horizon.
+
 **2026-10-07 afternoon, the GMGN replay:** 17 h of tape, 2,405 smart-money/KOL buys settled
 at copier latency: **−17% net at 5 min, hit 0.14, −30% at 15 and 60 min; the copier's fill
 is already 2–4% BELOW the leader's price** — the smart-money buy is the top. Only cell > 0:

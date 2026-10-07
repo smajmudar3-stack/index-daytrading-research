@@ -12,6 +12,13 @@ buys were +6-8% net at five minutes (hit 0.27, payoff ~4) and negative by an hou
 halves disagreed (A −12%, B +1%). So the book books exactly this, every signal, and the
 ledger decides. It is NOT a recommendation: the measured expectation is inside the noise.
 
+RULE B (added 2026-10-07 from the pump.fun birth study, the one cell of ~100 above water):
+    a mint whose curve price rose >= 50% between the +1 and +2 minute marks; buy at the
+    +2 minute curve price (the trader's own impact charged exactly), sell at the +10 minute
+    curve price; $100. Settled straight from pumpfun.db's RPC curve readings, no API call.
+    The study's +13% on 51 mints was measured from the +1 price (trap 6); this book measures
+    from +2 and its first 49 signals were -45% net, hit 0.06. Kept running as the record.
+
 HOW. Every RUN_S seconds: every smartmoney/sol BUY in gmgn.db older than SETTLE_AFTER_S
 and not yet booked gets one 30-second kline pull covering [ts-30, ts+480]; the fill and the
 exit are read from it; a trade with no fill candle is recorded as `unfilled`, never
@@ -118,10 +125,101 @@ def run_once(now=None, max_new=40):
         time.sleep(0.5)
     c.commit()
     c.close()
+    try:
+        wave = run_wave_once(now)
+    except Exception as e:                                    # noqa: BLE001
+        wave = {"error": str(e)[:120]}
     out = {"ok": True, "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "rule": RULE, "booked_this_run": booked,
-           "filled_this_run": filled, "ledger": ledger()}
+           "filled_this_run": filled, "ledger": ledger(), "wave_rule": {"signal": f"curve price +{int(WAVE_MIN_R01*100)}% between +1 and +2 min",
+           "entry": "+2 min curve price", "exit": "+10 min curve price", "notional": NOTIONAL, "fixed_on": "2026-10-07",
+           "basis": "pump.fun birth study cell (+13% from the +1 price) was trap 6; from the +2 price the first 49 signals were -45% net, hit 0.06"}, "wave_run": wave, "wave_ledger": wave_ledger()}
     snapshots.write(OUT, out)
     return out
+
+
+PF_DB = paths.state("pumpfun.db")
+WAVE_MIN_R01 = 0.50
+
+
+def _curve_cost(usd, vsol, sol_usd):
+    x = usd / max(sol_usd, 1.0)
+    imp = x / max(vsol, 1.0)
+    return 1 - (1 - 0.015) ** 2 / ((1 + imp) ** 2)
+
+
+def _at(ks, age, tol):
+    best = min(ks, key=lambda r: abs(r["age_s"] - age), default=None)
+    return best if best is not None and abs(best["age_s"] - age) <= tol else None
+
+
+def run_wave_once(now=None):
+    """RULE B, settled from the curve readings already recorded. Idempotent per mint."""
+    now = now or _now()
+    c = con()
+    c.execute("""CREATE TABLE IF NOT EXISTS wave_trades (mint TEXT PRIMARY KEY, booked REAL, created REAL, symbol TEXT, r01 REAL,
+                 vsol2 REAL, fill_px REAL, exit_px REAL, gross REAL, net REAL, pnl_usd REAL, status TEXT)""")
+    try:
+        pf = sqlite3.connect(PF_DB)
+        pf.row_factory = sqlite3.Row
+        mints = pf.execute("SELECT mint, created, symbol, sol_usd0 FROM mints WHERE created <= ? AND created >= ?",
+                           (now - 720, now - 86400)).fetchall()
+        booked = filled = 0
+        for m in mints:
+            if c.execute("SELECT 1 FROM wave_trades WHERE mint=?", (m["mint"],)).fetchone():
+                continue
+            ks = pf.execute("SELECT age_s, price_sol, vsol FROM marks WHERE mint=? AND price_sol IS NOT NULL ORDER BY age_s", (m["mint"],)).fetchall()
+            k1, k2, k10 = _at(ks, 60, 45), _at(ks, 120, 45), _at(ks, 600, 150)
+            if k1 is None or k2 is None or not k1["price_sol"] or not k2["price_sol"]:
+                continue
+            if k10 is None:
+                continue                                         # not settled yet; re-tried next run
+            r01 = k2["price_sol"] / k1["price_sol"] - 1
+            booked += 1
+            if r01 < WAVE_MIN_R01:
+                c.execute("INSERT OR IGNORE INTO wave_trades (mint, booked, created, symbol, r01, status) VALUES (?,?,?,?,?,'no_signal')",
+                          (m["mint"], now, m["created"], m["symbol"], r01))
+                continue
+            fill, exit_ = k2["price_sol"], (k10["price_sol"] or 0)
+            gross = (exit_ / fill - 1) if exit_ > 0 else -1.0
+            cost = _curve_cost(NOTIONAL, (k2["vsol"] or 30e9) / 1e9, m["sol_usd0"] or 120.0)
+            net = -1.0 if gross <= -0.999 else (1 + gross) * (1 - cost) - 1
+            c.execute("INSERT OR IGNORE INTO wave_trades VALUES (?,?,?,?,?,?,?,?,?,?,?,'closed')",
+                      (m["mint"], now, m["created"], m["symbol"], r01, (k2["vsol"] or 0) / 1e9, fill, exit_, gross, net, NOTIONAL * net))
+            filled += 1
+        pf.close()
+        c.commit()
+    finally:
+        c.close()
+    return {"scanned": booked, "signals": filled}
+
+
+def wave_ledger():
+    c = con()
+    c.row_factory = sqlite3.Row
+    try:
+        rows = [dict(r) for r in c.execute("SELECT * FROM wave_trades WHERE status='closed' ORDER BY created DESC LIMIT 400").fetchall()]
+        n_scan = c.execute("SELECT COUNT(*) FROM wave_trades").fetchone()[0]
+    except sqlite3.Error:
+        rows, n_scan = [], 0
+    c.close()
+    if not rows:
+        return {"recent": [], "summary": {"n": 0, "scanned": n_scan}}
+    nets = [r["net"] for r in rows]
+    wins = [x for x in nets if x > 0]
+    losses = [x for x in nets if x <= 0]
+    mid = sorted(r["created"] for r in rows)[len(rows) // 2]
+
+    def _s(rs):
+        if not rs:
+            return {"n": 0}
+        n = [r["net"] for r in rs]
+        return {"n": len(rs), "hit": round(sum(1 for x in n if x > 0) / len(n), 3), "mean_net_pct": round(100 * sum(n) / len(n), 2),
+                "pnl_usd": round(sum(r["pnl_usd"] for r in rs), 2)}
+    return {"recent": rows[:60], "summary": {"n": len(rows), "scanned": n_scan, "hit": round(len(wins) / len(nets), 3),
+                                              "mean_net_pct": round(100 * sum(nets) / len(nets), 2), "median_net_pct": round(100 * sorted(nets)[len(nets) // 2], 2),
+                                              "payoff": round((sum(wins) / len(wins)) / (-sum(losses) / len(losses)), 2) if wins and losses else None,
+                                              "pnl_usd": round(sum(r["pnl_usd"] for r in rows), 2),
+                                              "half_A": _s([r for r in rows if r["created"] < mid]), "half_B": _s([r for r in rows if r["created"] >= mid])}}
 
 
 def ledger():

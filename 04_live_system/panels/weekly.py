@@ -443,7 +443,9 @@ def memecoin_book():
         return unavailable("memecoin_book", title, why, fix=fix)
     led = p.get("ledger") or {}
     sm = led.get("summary") or {}
-    body = {"rule": p.get("rule") or {}, "summary": sm, "recent": (led.get("recent") or [])[:40]}
+    wl = p.get("wave_ledger") or {}
+    body = {"rule": p.get("rule") or {}, "summary": sm, "recent": (led.get("recent") or [])[:40],
+            "wave_rule": p.get("wave_rule") or {}, "wave_summary": wl.get("summary") or {}, "wave_recent": (wl.get("recent") or [])[:20]}
     if not sm.get("n"):
         return panel("memecoin_book", title, state=EMPTY, body=body, note="no signal has settled yet", age_min=_age_min(mb.OUT))
     note = (f"{sm['n']} smart-money buys copied at a 60-second lag and sold five minutes later, $100 each, 7% round-trip cost: "

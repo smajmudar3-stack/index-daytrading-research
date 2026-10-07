@@ -29,6 +29,13 @@
     </tbody>
   </table>
   {% endif %}
+  {% set w = p.body.wave_rule %}{% set ws = p.body.wave_summary %}
+  <div class="wk-sidebook">
+    <div class="wk-back-hd">Rule B · pump.fun first wave: {{ w.signal }}, buy at {{ w.entry }}, sell at {{ w.exit }}, ${{ (w.notional or 100)|round|int }}, exact curve impact
+      {% if ws.n %}<span class="chip">{{ ws.n }} signals of {{ ws.scanned }} mints · hit {{ (ws.hit * 100)|round|int }}% · mean {{ '%+.1f'|format(ws.mean_net_pct) }}% · P&amp;L ${{ '%+.0f'|format(ws.pnl_usd) }}
+        · halves {{ (ws.half_A or {}).get('mean_net_pct') }}% / {{ (ws.half_B or {}).get('mean_net_pct') }}%</span>{% else %}<span class="chip">no settled signal yet</span>{% endif %}</div>
+    <p class="note">Basis: {{ w.basis }}. Settled from the recorder's own curve readings; nothing is fetched.</p>
+  </div>
   <p class="wk-back-ft">Basis: {{ r.basis }}. Every smart-money buy GMGN shows on Solana is booked, none is chosen; the fill is the first 30-second candle a minute after the leader, the exit five minutes later. This is the copy-trade test nobody publishes, on GMGN's own tape.</p>
   {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
 </section>

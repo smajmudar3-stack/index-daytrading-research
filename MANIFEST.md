@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**499 files, 100,163 lines.**
+**500 files, 100,535 lines.**
 
 ## Repo root
 
-*12 files, 2,401 lines*
+*12 files, 2,403 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 29 | 585 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 588 | 45 KB |
-| `MANIFEST.md` | 712 | 29 KB |
+| `MANIFEST.md` | 714 | 29 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -44,7 +44,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*23 files, 3,164 lines*
+*23 files, 3,199 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -62,7 +62,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/fundamentals.md` | 130 | 8 KB |
 | `02_findings/goal_feasibility.md` | 236 | 11 KB |
 | `02_findings/influencer_report.md` | 160 | 8 KB |
-| `02_findings/memecoins.md` | 184 | 12 KB |
+| `02_findings/memecoins.md` | 219 | 15 KB |
 | `02_findings/online_methods.md` | 115 | 26 KB |
 | `02_findings/opening_range.md` | 105 | 7 KB |
 | `02_findings/signal_accuracy.md` | 155 | 10 KB |
@@ -111,7 +111,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*89 files, 25,561 lines*
+*89 files, 25,659 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -162,7 +162,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/maintenance.py` | 169 | 7 KB |
 | `04_live_system/market_basis.py` | 260 | 13 KB |
 | `04_live_system/master_call.py` | 315 | 17 KB |
-| `04_live_system/memecoin_book.py` | 173 | 8 KB |
+| `04_live_system/memecoin_book.py` | 271 | 13 KB |
 | `04_live_system/memecoin_recorder.py` | 120 | 5 KB |
 | `04_live_system/mes_dashboard.py` | 243 | 13 KB |
 | `04_live_system/mes_signals.py` | 114 | 4 KB |
@@ -207,7 +207,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,718 lines*
+*10 files, 2,720 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -220,7 +220,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 498 | 23 KB |
 | `04_live_system/panels/views.py` | 161 | 7 KB |
-| `04_live_system/panels/weekly.py` | 695 | 38 KB |
+| `04_live_system/panels/weekly.py` | 697 | 38 KB |
 
 ## 04_live_system/templates — Jinja templates
 
@@ -236,7 +236,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*33 files, 1,002 lines*
+*33 files, 1,009 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -257,7 +257,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/gamma_structures.html` | 22 | 914 B |
 | `04_live_system/templates/panels/gates.html` | 17 | 855 B |
 | `04_live_system/templates/panels/index_overlay.html` | 25 | 2 KB |
-| `04_live_system/templates/panels/memecoin_book.html` | 34 | 3 KB |
+| `04_live_system/templates/panels/memecoin_book.html` | 41 | 3 KB |
 | `04_live_system/templates/panels/patterns.html` | 45 | 1 KB |
 | `04_live_system/templates/panels/peri_ndx.html` | 1 | 39 B |
 | `04_live_system/templates/panels/peri_spx.html` | 1 | 39 B |
@@ -285,7 +285,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 05_studies — backtest and hunt harnesses
 
-*77 files, 12,630 lines*
+*78 files, 12,848 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -328,6 +328,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/live_path.py` | 34 | 1 KB |
 | `05_studies/memecoin_factors.py` | 233 | 13 KB |
 | `05_studies/memecoin_gmgn_score.py` | 220 | 11 KB |
+| `05_studies/memecoin_pumpfun_score.py` | 218 | 12 KB |
 | `05_studies/memecoin_score.py` | 62 | 3 KB |
 | `05_studies/merge_optimize.py` | 52 | 2 KB |
 | `05_studies/mes_overnight.py` | 86 | 4 KB |
@@ -491,12 +492,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,589 lines*
+*6 files, 1,599 lines*
 
 | file | lines | size |
 |---|---:|---:|
 | `docs/AUDIT.md` | 285 | 15 KB |
-| `docs/CONTINUATION.md` | 306 | 23 KB |
+| `docs/CONTINUATION.md` | 316 | 24 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
