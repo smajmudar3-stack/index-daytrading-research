@@ -137,6 +137,44 @@ settle them. `05_studies/memecoin_gmgn_score.py` replays every smart-money buy a
 30 s and 60 s latency and scores every trenches field as a predictor — the copy-trade
 backtest that no one has published, on GMGN's own tape. First results after a day.
 
+## The GMGN tape: copy-trading smart money, replayed (first 17 hours, 2026-10-07)
+
+`gmgn_recorder.py` + `memecoin_gmgn_score.py`. 28,478 smart-money and KOL trades from
+1,363 wallets on Solana, BSC and Base; 2,405 BUYS settled on GMGN's own 30-second candles.
+The copier's fill is the first candle close 30 s or 60 s after the leader's timestamp;
+exits at +5, +15 and +60 minutes; net of 1% venue + 0.5% router + 2% slippage each way.
+
+| cell | n | +5 min net | hit | +15 min net | +60 min net |
+|---|---:|---:|---:|---:|---:|
+| **all smart-money + KOL buys, 60 s lag** | 1,484 | **−16.6%** | 0.14 | −29.3% | −29.9% |
+| smart money only | 1,232 | −17.2% | 0.13 | −30.7% | −32.3% |
+| KOL only | 252 | −13.5% | 0.15 | −21.7% | −17.3% |
+| leader opening a new position | 726 | −11.5% | 0.13 | −20.5% | −21.3% |
+| leader adding / flagged as reduce | 758 | −21.4% | 0.15 | −37.6% | −40.2% |
+| Solana | 1,325 | −16.9% | 0.14 | −30.4% | −30.8% |
+| BSC | 98 | −15.3% | 0.07 | −22.6% | −15.6% |
+| Base | 61 | −11.3% | 0.25 | −17.5% | −34.0% |
+| pump.fun tokens | 948 | −21.2% | 0.12 | −36.4% | −46.0% |
+| Raydium LaunchLab (Bonk) tokens | 180 | −0.2% | 0.28 | −14.2% | +10.1% (n 77, hit 0.45) |
+| leader tagged `fresh_wallet` | 78 | −39.1% | 0.14 | −48.6% | −50.2% |
+| leader tagged `bullx` | 76 | +0.6% | 0.30 | −9.4% | +4.1% (n 22) |
+
+**The copier does not even pay more than the leader: the median fill 60 s later is 2.3%
+BELOW the leader's price, and 3.9% below on Solana.** The smart-money buy is the local top:
+the token is already falling by the time anyone copying it can act, and keeps falling for
+an hour. The first 325 settled trades (the first hour) had shown smart money +6–8% net at
+five minutes; by 2,405 it is −17%, which is what a one-hour sample of a fat-tailed loser
+looks like. The one cell above water, Raydium-LaunchLab tokens held an hour (+10% on 77
+trades, hit 0.45), is a single cell out of 150 scored (noise bar t ≈ 3.2) with nothing at
+5 or 15 minutes, and goes into the next re-score, not into a book.
+
+**The paper book.** `memecoin_book.py` was fixed on this day's first numbers before the
+17-hour result came in: copy every GMGN smart-money buy on Solana, fill at +60 s, sell at
++5 min, $100, 7% round trip. Its first 38 settled trades: hit 0.05, mean −57%, median
+−33%, P&L −$2,154 on $3,800 risked. It keeps running every five minutes because a rule
+fixed in advance and left alone is the only kind of evidence that cannot be argued with;
+it is on the Markets page as "Memecoin paper book".
+
 ## On automation
 
 Nothing in this repo places an order, and that stands. A GMGN/Jupiter execution path is

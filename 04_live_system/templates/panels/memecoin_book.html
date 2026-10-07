@@ -1,0 +1,34 @@
+{# The memecoin paper book: one fixed rule, every signal booked, the ledger shown as it is. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }} <span class="chip watch">paper · forward test</span></h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+  {% set r = p.body.rule %}{% set s = p.body.summary %}
+  <div class="bk-sum">
+    <span><b>rule</b> copy GMGN "{{ r.source }}" buys on {{ r.chain }}, fill +{{ r.lag_s }}s, sell +{{ r.hold_s }}s, ${{ r.notional|round|int }} each, {{ (r.cost_side * 200)|round|int }}% round trip</span>
+    {% if s.n %}<span><b>closed</b> {{ s.n }}</span><span><b>hit</b> {{ (s.hit * 100)|round|int }}%</span>
+    <span class="{{ 'up' if (s.mean_net_pct or 0) > 0 else 'down' }}"><b>mean</b> {{ '%+.1f'|format(s.mean_net_pct) }}%</span>
+    <span class="{{ 'up' if (s.pnl_usd or 0) > 0 else 'down' }}"><b>P&amp;L</b> ${{ '%+.0f'|format(s.pnl_usd) }}</span>
+    {% if s.payoff %}<span><b>wins ÷ losses</b> {{ s.payoff }}x</span>{% endif %}
+    <span><b>unfilled</b> {{ s.unfilled }}</span>{% endif %}
+  </div>
+  {% if p.body.recent %}
+  <table class="tbl">
+    <thead><tr><th>signal (UTC)</th><th>token</th><th>leader tags</th><th>launchpad</th><th>fill</th><th>exit</th><th>gross</th><th>net</th><th>$</th></tr></thead>
+    <tbody>
+    {% for t in p.body.recent %}
+      <tr>
+        <td>{{ (t.signal_ts * 1000)|int if false else t.signal_ts|int }}</td>
+        <td><b>{{ t.symbol or t.token[:6] }}</b></td><td>{{ t.tags }}</td><td>{{ t.launchpad }}</td>
+        <td>{% if t.fill_px %}{{ '%.3g'|format(t.fill_px) }}{% else %}{{ t.status }}{% endif %}</td>
+        <td>{% if t.exit_px %}{{ '%.3g'|format(t.exit_px) }}{% else %}—{% endif %}</td>
+        <td class="{{ 'up' if (t.gross or 0) > 0 else 'down' }}">{% if t.gross is not none %}{{ '%+.1f'|format(t.gross * 100) }}%{% else %}—{% endif %}</td>
+        <td class="{{ 'up' if (t.net or 0) > 0 else 'down' }}">{% if t.net is not none %}{{ '%+.1f'|format(t.net * 100) }}%{% else %}—{% endif %}</td>
+        <td class="{{ 'up' if (t.pnl_usd or 0) > 0 else 'down' }}">{% if t.pnl_usd is not none %}{{ '%+.0f'|format(t.pnl_usd) }}{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <p class="wk-back-ft">Basis: {{ r.basis }}. Every smart-money buy GMGN shows on Solana is booked, none is chosen; the fill is the first 30-second candle a minute after the leader, the exit five minutes later. This is the copy-trade test nobody publishes, on GMGN's own tape.</p>
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

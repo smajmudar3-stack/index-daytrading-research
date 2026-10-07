@@ -77,8 +77,7 @@ def copy_trades(tr, kl):
             continue
         d = {"tx": r.tx, "src": r.src, "tags": r.tags or "", "token": r.token, "symbol": r.symbol, "ts": r.ts, "seen": r.seen,
              "chain": getattr(r, "chain", "sol"),
-             "lead_px": r.price_usd, "amount_usd": r.amount_usd, "opening": r.is_open_or_close, "launchpad": r.launchpad,
-             "half": "A" if r.ts < buys.ts.min() + (buys.ts.max() - buys.ts.min()) / 2 else "B"}
+             "lead_px": r.price_usd, "amount_usd": r.amount_usd, "opening": r.is_open_or_close, "launchpad": r.launchpad}
         for lag in (30, 60):
             fill = price_at(k, r.ts + lag, after=True, tol=120)
             d[f"fill{lag}"] = fill
@@ -87,7 +86,13 @@ def copy_trades(tr, kl):
                 px = price_at(k, r.ts + lag + h, after=False, tol=180)
                 d[f"r{lag}_{h}"] = (px / fill - 1) if (fill and px) else np.nan
         rows.append(d)
-    return pd.DataFrame(rows)
+    d = pd.DataFrame(rows)
+    if len(d):
+        # halves of the SETTLED set (the candle queue settles in order, so splitting on all
+        # buys' timestamps left half B empty on 2026-10-07)
+        mid = d.ts.min() + (d.ts.max() - d.ts.min()) / 2
+        d["half"] = np.where(d.ts < mid, "A", "B")
+    return d
 
 
 def report_copy(d, label, impact=0.0):

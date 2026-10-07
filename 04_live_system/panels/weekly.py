@@ -430,6 +430,30 @@ def desk_trades():
                  source="desk_trades.run() after each desk-note ingest · desk_notes.json · 04_live_system/desk_trades.py")
 
 
+@safe
+@describe("memecoin_book", "Memecoin paper book: copying GMGN smart money, every signal, scored")
+def memecoin_book():
+    """The one pre-registered memecoin rule, booked on every signal with a ledger. Context:
+    it exists to show whether the rule pays, and so far it says no. Never a vendor call."""
+    import memecoin_book as mb
+    title = "Memecoin paper book: copying GMGN smart money, every signal, scored"
+    p, st = snapshots.read(mb.OUT)
+    if p is None or st in ("absent", "unreadable", "wrong_version", "incomplete"):
+        why, fix = snapshots.explain(mb.OUT, st)
+        return unavailable("memecoin_book", title, why, fix=fix)
+    led = p.get("ledger") or {}
+    sm = led.get("summary") or {}
+    body = {"rule": p.get("rule") or {}, "summary": sm, "recent": (led.get("recent") or [])[:40]}
+    if not sm.get("n"):
+        return panel("memecoin_book", title, state=EMPTY, body=body, note="no signal has settled yet", age_min=_age_min(mb.OUT))
+    note = (f"{sm['n']} smart-money buys copied at a 60-second lag and sold five minutes later, $100 each, 7% round-trip cost: "
+            f"hit rate {sm.get('hit')}, mean {sm.get('mean_net_pct')}%, median {sm.get('median_net_pct')}%, P&L ${sm.get('pnl_usd')}. "
+            f"Halves: A {((sm.get('half_A') or {}).get('mean_net_pct'))}% / B {((sm.get('half_B') or {}).get('mean_net_pct'))}%. "
+            f"Paper. The rule was fixed on {p.get('rule', {}).get('fixed_on')} and is not changed to fit the ledger.")
+    return panel("memecoin_book", title, state=STALE if st == "stale" else OK, body=body, note=note, age_min=_age_min(mb.OUT),
+                 source="memecoin_book.py every 5 min · GMGN smart-money trades and 30-second candles · 02_findings/memecoins.md")
+
+
 def _side_books():
     """The two stock books that ride on the swing panel: the weekly ranker (surprise +
     residual momentum + 12-1, top 25, 21 sessions) and the stress book (biggest losers,

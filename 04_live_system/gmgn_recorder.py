@@ -43,8 +43,8 @@ DB = paths.state("gmgn.db")
 CLI = "gmgn-cli"
 CHAINS = ("sol", "bsc", "base")   # BSC added 2026-10-07: gas $0.008/swap and the one net-positive cell in memecoins.md
 POLL_S = 60
-KLINE_PER_MIN = 20
-SAMPLE_EVERY = 4
+KLINE_PER_MIN = 60                                           # 2 weight each: 2/s of the 5/s bucket; the queue ran 20:1 behind at 20
+SAMPLE_EVERY = 6
 KEY_FIELDS = ["creator", "creator_created_count", "creator_created_open_count", "creator_created_open_ratio", "creator_balance_rate",
               "creator_token_status", "bundler_trader_amount_rate", "top70_sniper_hold_rate", "suspected_insider_hold_rate",
               "rat_trader_amount_rate", "rug_ratio", "smart_degen_count", "renowned_count", "bot_degen_count", "tg_call_count",
@@ -110,7 +110,7 @@ def record_trenches(c, now, chain):
                       (now, addr, kind, t.get("symbol"), *vals, json.dumps(t)[:6000], chain))
             if not c.execute("SELECT 1 FROM first_seen WHERE address=?", (addr,)).fetchone():
                 n_new += 1
-                sampled = int(kind != "new_creation" or chain != "sol" or (n_new % SAMPLE_EVERY == 0))
+                sampled = int(kind != "new_creation" or (n_new % SAMPLE_EVERY == 0))
                 c.execute("INSERT INTO first_seen (address, ts, kind, price, market_cap, sampled, chain) VALUES (?,?,?,?,?,?,?)",
                           (addr, now, kind, _num(t.get("price")), _num(t.get("market_cap")), sampled, chain))
                 if sampled:

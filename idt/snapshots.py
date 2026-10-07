@@ -107,6 +107,14 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    "memecoin_book": {
+        "version": 1,
+        "files": ("memecoin_book_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("rule", "ledger"),
+        "not_null": (),
+        "max_age_min": 120,
+    },
     "desk_trades": {
         "version": 1,
         "files": ("desk_trades_snapshot.json",),

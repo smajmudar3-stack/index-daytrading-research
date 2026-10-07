@@ -4,7 +4,7 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-10-06, 23:00 ET)
+## Where things stand (2026-10-07, 15:30 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -19,6 +19,18 @@ wired, seeded; stock book filled at the 09-23 open (TCOM, AEO, RH, TEN, ODD).
 **2026-09-23 evening:** `engine_combo_test.py` (whole engine 15–18%/yr), `xsec_diffusion_test.py`
 (null), `kalshi_recorder.py` + `kalshi_score.py` (fourth recorder in the keep-alive job),
 `test_macro_calendar` clock pinned (suite fully green). Four recorders now run.
+
+**2026-10-07 afternoon, the GMGN replay:** 17 h of tape, 2,405 smart-money/KOL buys settled
+at copier latency: **−17% net at 5 min, hit 0.14, −30% at 15 and 60 min; the copier's fill
+is already 2–4% BELOW the leader's price** — the smart-money buy is the top. Only cell > 0:
+Raydium-LaunchLab tokens at +60 min (+10%, n 77, hit 0.45), 1 of 150 cells. Built the paper
+book anyway (`memecoin_book.py`, rule fixed from the first-hour numbers: smart-money sol buy,
++60 s fill, +5 min exit, $100, 7% RT) — first 38 trades −57% mean — and its Markets card
+`memecoin_book`. Recorder kline budget raised to 60/min (queue was 20:1 behind). NEXT: (1)
+re-run `memecoin_gmgn_score.py` after 48 h for the launch-factor tables (1 h / 24 h) and the
+LaunchLab cell; (2) write `memecoin_factors.py --pumpfun` for pumpfun.db (first-minute curve
+factors, creator history, dev first buy); (3) if nothing clears, write the memecoin verdict
+as final and unload the pump.fun and PumpPortal recorders after a week.
 
 **2026-10-06 night, the memecoin swarm + GMGN tape:** Sholo: "backtest every strategy good
 GMGN traders use, launch a ton of agents, I want near-infinite research, I want you buying

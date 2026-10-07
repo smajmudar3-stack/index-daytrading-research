@@ -413,7 +413,11 @@ Rules:
   `05_studies/memecoin_gmgn_score.py` replays every smart-money buy at 30 s and 60 s copier
   latency and scores every trenches field. `pumpfun_trades_recorder.py` (sixth) records
   creates with the dev's first buy and migrations from PumpPortal; its trade stream is
-  metered and recorded nothing on the free tier. Eight memecoin briefs in `docs/briefs/`.
+  metered and recorded nothing on the free tier. Ten memecoin briefs in `docs/briefs/`.
+  **First replay (17 h, 2,405 buys): copying GMGN smart money is −17% net at five minutes,
+  hit 0.14, and the copier's fill is already 2–4% below the leader's price.** The paper book
+  `memecoin_book.py` (rule fixed from the first hour's numbers, never refit) runs every five
+  minutes and is on Markets; its first 38 trades were −57%. `02_findings/memecoins.md`.
 - **The emails are trades now, not only a gate.** Sholo (2026-10-05): "the email should be
   heavily helping with trades, not just desk notes." `desk_notes.merge_note` ACCUMULATES the
   desk's own trades (`desk_book` was overwritten by whichever note last carried one, so a week

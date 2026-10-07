@@ -56,7 +56,7 @@ VIEWS = [
         # because it is a promise about future measurement, not a reason to act today.
         # The week's share cohorts lead: they are what there is to act on most weeks. The
         # options cards, the overlay (always long, boost rarely on) and the ledgers follow.
-        "panels": [weekly.books, weekly.desk_trades, weekly.trades, weekly.overlay, weekly.book, weekly.stock_picks, weekly.stress_book,
+        "panels": [weekly.books, weekly.desk_trades, weekly.memecoin_book, weekly.trades, weekly.overlay, weekly.book, weekly.stock_picks, weekly.stress_book,
                    weekly.calendar, weekly.earnings_vol,
                    weekly.macro, weekly.index,
                    structures.gamma_structures,
