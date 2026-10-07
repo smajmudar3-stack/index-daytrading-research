@@ -114,7 +114,15 @@ creator-history model is AUROC 0.46 out of sample; no rug detector publishes pre
 the curve stage), **the data stack** (tick and wallet history is paid; GMGN's read API is
 free and is now recorded), and **who profits** (1 in 30,000 wallets ever clears $100k; every
 profitable cohort is the deployer, a bundler, a KOL selling to followers, an MEV searcher or
-the platform). The verdict rows are in `online_methods.md`.
+the platform). The verdict rows are in `online_methods.md`. Batch two added **curve and graduation plays**
+(graduation probability sits below the breakeven curve at every curve position; 60% of
+migrations lose 80% within 20 minutes — the 84%-below-0.3× figure quoted above in the
+options-era brief does not match the paper and is withdrawn), **manufactured momentum and
+MEV** (wash share rises toward the top of every trending list, 17% → 21% → 83% of the
+"winners"; the slippage setting is the sandwich attack surface, 147k attacks in one day),
+and **exits and sizing** (the one profitable bot exits on a dev-sell or a 20-second clock;
+at the measured distribution the Kelly fraction is negative, so the correct position size
+is zero until the distribution changes).
 
 **What is now being measured that was not before.** `gmgn_recorder.py` records every
 smart-money and KOL trade GMGN shows, every trenches token with GMGN's own sixty risk fields
