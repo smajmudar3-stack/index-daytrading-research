@@ -401,6 +401,19 @@ Rules:
   unmodelled: the lead. `pumpfun_recorder.py` (fifth recorder in `com.daytrading.recorders`)
   now records every mint seconds after creation with curve state, creator history, socials
   and 1-minute marks. `02_findings/memecoins.md`. Nothing places an order.
+- **GMGN's own tape is recorded, and the GMGN skills are installed but keyless.** Sholo trades
+  on GMGN (2026-10-06). `npx skills add GMGNAI/gmgn-skills` put 17 skills under `.agents/`
+  (git-ignored; reinstall on a fresh clone) and `npm install -g gmgn-cli` at /opt/homebrew/bin;
+  `~/.config/gmgn/.env` holds only the PUBLIC read-only demo key. The swap skill holds a
+  private key and places trades: it stays unconfigured until a memecoin rule nets positive
+  in a paper ledger in both halves of its data, and Sholo funds a wallet himself.
+  `04_live_system/gmgn_recorder.py` (seventh recorder; needs /opt/homebrew/bin on PATH) polls
+  every minute: every smart-money and KOL trade, every trenches token with GMGN's sixty risk
+  fields, its signals, and queues 30-second / 1-minute candles to settle them.
+  `05_studies/memecoin_gmgn_score.py` replays every smart-money buy at 30 s and 60 s copier
+  latency and scores every trenches field. `pumpfun_trades_recorder.py` (sixth) records
+  creates with the dev's first buy and migrations from PumpPortal; its trade stream is
+  metered and recorded nothing on the free tier. Eight memecoin briefs in `docs/briefs/`.
 - **The emails are trades now, not only a gate.** Sholo (2026-10-05): "the email should be
   heavily helping with trades, not just desk notes." `desk_notes.merge_note` ACCUMULATES the
   desk's own trades (`desk_book` was overwritten by whichever note last carried one, so a week

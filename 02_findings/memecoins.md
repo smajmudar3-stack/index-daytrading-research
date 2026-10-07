@@ -103,6 +103,27 @@ first-minute factor (creator history, socials, curve fill rate, buy/sell ratio) 
 the 0.2% that graduate from the rest at retail latency, it will show there; the paper
 that tried this at scale (arXiv 2607.02823 v4) got AUROC 0.46 out of sample.
 
+## What the research swarm added (2026-10-06, `docs/briefs/memecoin-*.md`)
+
+Five briefs on the strategies Sholo named, each with sources: **copy-trading** (no
+published measurement of copier returns exists; the one reverse-engineered profitable bot
+exits ~20 s after entry, before a copier's order lands), **KOL and Telegram calls** (the one
+fixed-hold study: median negative at every horizon from 30 s; LIBRA's followers −$250M
+against one cluster's +$87M), **sniping** (slot-0 needs sub-35 ms co-location; the largest
+creator-history model is AUROC 0.46 out of sample; no rug detector publishes precision at
+the curve stage), **the data stack** (tick and wallet history is paid; GMGN's read API is
+free and is now recorded), and **who profits** (1 in 30,000 wallets ever clears $100k; every
+profitable cohort is the deployer, a bundler, a KOL selling to followers, an MEV searcher or
+the platform). The verdict rows are in `online_methods.md`.
+
+**What is now being measured that was not before.** `gmgn_recorder.py` records every
+smart-money and KOL trade GMGN shows, every trenches token with GMGN's own sixty risk fields
+(bundler rate, sniper hold, insider hold, rug ratio, creator history, smart-degen count,
+Telegram-call count, wash flag …), its signals, and the 30-second and 1-minute candles that
+settle them. `05_studies/memecoin_gmgn_score.py` replays every smart-money buy at a copier's
+30 s and 60 s latency and scores every trenches field as a predictor — the copy-trade
+backtest that no one has published, on GMGN's own tape. First results after a day.
+
 ## On automation
 
 Nothing in this repo places an order, and that stands. A GMGN/Jupiter execution path is

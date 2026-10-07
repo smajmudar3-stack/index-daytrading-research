@@ -24,5 +24,8 @@ P4=$!
 P5=$!
 "$PY" pumpfun_trades_recorder.py >> "$REPO/logs/pumpfun_trades_recorder.out" 2>&1 &
 P6=$!
-trap 'kill $P1 $P2 $P3 $P4 $P5 $P6 2>/dev/null' TERM INT
+export PATH="/opt/homebrew/bin:$PATH"      # gmgn-cli lives here; launchd's PATH does not include it
+"$PY" gmgn_recorder.py >> "$REPO/logs/gmgn_recorder.out" 2>&1 &
+P7=$!
+trap 'kill $P1 $P2 $P3 $P4 $P5 $P6 $P7 2>/dev/null' TERM INT
 wait

@@ -32,12 +32,19 @@ X/Twitter-sourced KOL calls from Telegram-sourced ones, so whether a tweet call 
 differently is **not verified** — the underlying venue (a pump.fun bonding curve) and the
 economics of being last to know are the same regardless of which platform carried the message.
 
-The academic literature backs the direction without matching the venue. Xu & Livshits,
+The academic literature backs the direction without matching the venue, and two papers that
+look alike are easy to conflate. Hamrick, Rouhi, Mukherjee, Feder, Gandal, Moore & Vasek,
+["The Economics of Cryptocurrency Pump and Dump Schemes"](https://par.nsf.gov/servlets/purl/10098691)
+(WEIS), joined pump groups on Discord and Telegram directly, scraped the calls via API, and
+matched them to 5-minute price data from CoinMarketCap across ~2,000 coins and 220 exchanges,
+Jan–Jul 2018; they identified **nearly 5,000 distinct pump-and-dump schemes** in that six-month
+window and confirmed prices "often rise significantly" right before the dump. Xu & Livshits,
 ["The Anatomy of a Cryptocurrency Pump-and-Dump Scheme"](https://arxiv.org/abs/1811.10109)
-(USENIX Security 2019), studied 412 Telegram-organized pump-and-dumps (Jun 2018–Feb 2019) and
-found returns "as high as 60% on small retail investments" — but that figure describes the
-*organizer's* early position, not a follower reacting to the public call; their own detection
-model exists because the public call is the exit liquidity, not the edge. Clough & Edwards,
+(USENIX Security 2019), is a different study — 412 Telegram-organized pump-and-dumps (Jun
+2018–Feb 2019) with a predictive model showing returns "as high as 60% on small retail
+investments" — but that figure describes the *organizer's* early position, not a follower
+reacting to the public call; their own detection model exists because the public call is the
+exit liquidity, not the edge. Clough & Edwards,
 ["Pump, Dump, and then What?"](https://arxiv.org/abs/2309.06608), found the long-term effect of
 a pump-and-dump is an average **30% relative price drop a year later** — there is no "buy the
 rumor, hold" rescue. La Morgia et al.'s
@@ -45,42 +52,59 @@ rumor, hold" rescue. La Morgia et al.'s
 Telegram/Discord pump groups for three years and detected ~900 events with a 94.5% F1 detector
 — useful for flagging the scheme, silent on what a follower's P&L looks like inside it.
 
-No public Dune dashboard tracking KOL-wallet PnL specifically (as opposed to general trader
-PnL, which `memecoins.md` already covers: 0.76% of pump.fun wallets ever clear $1,000) could be
-located this session — **not verified**, flagged rather than guessed at.
+A Dune dashboard specifically for KOL-wallet PnL does exist — ["SOL KOL PNL Tracker"
+by mwuhjyf](https://dune.com/mwuhjyf/sol-kol-pnl-tracker) — but Dune renders its charts
+client-side, so no headline number (win rate, % net-profitable) could be extracted through a
+fetch; what fraction of tracked KOL wallets are actually profitable is **not verified** from
+this dashboard, only its existence is confirmed. General pump.fun trader PnL is already in
+`memecoins.md`: 0.76% of wallets ever clear $1,000.
 
 ## 2. The economics of paid promotion, and the KOL as the exit
 
-No rate card for what a crypto KOL charges per promoted call could be confirmed this session —
-**not verified**. What is confirmed, from the two highest-profile cases of 2024–2025, is the
-split between what the promoter keeps and what followers lose:
+No dollar-denominated rate card for a crypto KOL's shill tweet could be confirmed this session
+— **not verified**. What is confirmed is something arguably more damning: a documented
+*in-kind* rate card, and the split between what the promoter keeps and what followers lose on
+the highest-profile cases.
 
+- **The LAB token "KOL capital pitch" (reported by ZachXBT via The Block,
+  [May 7](https://www.theblock.co/news/regulation/2026-05-07-zachxbt-accuses-projects-like-lab-of-highly-questionable-price-action-posts-10000-bounty-for-info-on-alleged-market-manipulation-400465)
+  and [May 14, 2026](https://www.theblock.co/news/ecosystems/2026-05-14-zachxbt-alleges-95-insider-control-of-lab-token-in-investigation-into-ai-terminals-6-billion-fdv-project-401290)).**
+  ZachXBT alleged **95% insider control** of a token carrying a **$6B** fully-diluted
+  valuation, with ~100M tokens (**~$482M**) moved May 11–12 and **$12M** of a related token
+  (RIVER) sent to exchange deposit addresses. The pitch deck he surfaced describes paying KOLs
+  not in cash but in **discounted tokens (80% off), vesting in two tranches, conditioned on the
+  KOL posting promotional content multiple times or being blacklisted from the deal** — a rate
+  card denominated in supply and promotional output rather than dollars. ZachXBT posted a
+  $10,000 bounty (funding $1,500 of it himself) for further evidence. The chain was **not
+  specified** in reporting found this session — **not verified as Solana** specifically, so
+  treat it as evidence about the KOL-economics pattern generally, not a Solana-only data point.
 - **$LIBRA (Argentina, Feb 2025).** President Javier Milei tweeted the contract address three
-  minutes after the token's creation; price ran from $0.000001 to $5.20 in 40 minutes, then
-  dropped 85% within hours. Nine founding accounts captured roughly **$87 million**; one
-  figure, from Hayden Davis, claims **$113 million** personally. An Argentine congressional
-  investigation's 200-page report (late Nov 2025) put aggregate investor losses at
-  **$251 million** across an estimated **44,000–74,000** affected wallets, with 112 criminal
-  complaints filed in the first 48 hours. ([Wikipedia, sourced to the congressional report and
-  on-chain analysis](https://en.wikipedia.org/wiki/Libra_cryptocurrency_scandal)) This is the
-  cleanest documented case of a KOL-grade promotion where the promoter's side profited by
-  roughly a third of what followers lost in aggregate.
-- **$HAWK (Dec 2024).** Haliey Welch ("Hawk Tuah girl") promoted a token that peaked near
-  **$500 million** market cap and collapsed to **$25 million** — a ~95% drawdown. Coffeezilla
-  publicly alleged insider trading and an exit scam; a lawsuit was filed in the EDNY against
-  the token's creators (not Welch) for unlawfully promoting an unregistered security. Welch's
-  own claim — that she "only got paid a marketing fee" and made nothing from the coin itself —
-  is **not independently verified** here; no on-chain figure for her specific take, or for the
-  number of losing wallets, could be confirmed via fetchable sources this session.
+  minutes after the token's creation; price ran from $0.000001 to $5.20 in 40 minutes. Per
+  [Bubblemaps' on-chain reconstruction](https://blog.bubblemaps.io/the-libra-playbook-how-one-cluster-drained-87-million-in-a-single-hour/),
+  one wallet cluster at **82% concentration** extracted **~$87 million** inside the first hour
+  (≈$29.6M + $13.8M in SOL tranches, ~$44.6M in USDC, plus $25M in that hour's LP fees); Hayden
+  Davis separately claimed **$113 million** personally. An Argentine congressional
+  investigation's 200-page report (late Nov 2025) put aggregate investor losses above
+  **$250 million** across an estimated **44,000–74,000** affected wallets, with 112 criminal
+  complaints filed in the first 48 hours and the token down 85% within a day.
+- **$HAWK (Dec 2024).** Per [Bubblemaps' "Anatomy of a Celebrity Rug"](https://blog.bubblemaps.io/hawk-anatomy-of-a-celebrity-rug/),
+  **96% of supply sat in one cluster at launch** (80%+ team-held, 17% to 285 fully-unlocked
+  presale wallets, 3% LP); **155 of the 285 presale wallets sold, realizing $3.3 million
+  combined**. Market cap went from near **$500 million to $25 million**, a ~98% collapse.
+  Coffeezilla publicly alleged insider trading and an exit scam; a lawsuit was filed in the
+  EDNY against the token's creators (not Haliey Welch personally) for unlawfully promoting an
+  unregistered security, and at least one SEC complaint was filed by an investor. Welch's own
+  claim — that she "only got paid a marketing fee" — is **not independently verified**, and
+  whether any DOJ criminal charges followed by 2026 is also **not verified**.
 - **Gen Z Quant (Nov 2024).** A 13-year-old streamed promotion of his own pump.fun token live,
   reached a $1 million market cap, and sold into the viewers who'd just watched him promote it
   — a reported **$50,000** take. Small scale, but it is the mechanism in miniature: the
   "influencer" is also the counterparty.
 
-ZachXBT-style on-chain exposés of individual KOLs selling into their own calls are widely
-reported in crypto press, but no specific named case with dollar figures could be confirmed via
-a fetchable primary source this session — flagged **not verified** rather than asserted from
-memory.
+No other ZachXBT exposé naming a specific KOL selling into their own Solana call, with dollar
+figures, could be confirmed via a fetchable primary source this session — flagged
+**not verified** rather than asserted from memory, despite being a widely-discussed pattern in
+crypto press.
 
 ## 3. Latency: how fast a token moves, and what a tweet-sniper actually claims
 
@@ -98,21 +122,30 @@ second via polling** from tweet to order, reporting "100%+ from Elon's doge twee
 leveraged futures and "+25%" on new-listing tweets. That is a self-reported anecdote on a
 handful of Elon Musk tweets during a period (2021–2023) when a single account could move
 Dogecoin broadly — not an out-of-sample backtest, and not transferable evidence for a Solana
-memecoin call today. Other repos found —
+memecoin call today. [TopTrenDev/twitter-sniper-bot](https://github.com/TopTrenDev/twitter-sniper-bot)
+(7 stars) is purpose-built for exactly this strategy — "listens to a specific Twitter account
+in real-time, detects predefined keywords, and instantly buys via Jupiter swap, with MEV
+protection" — and, like every repo found,
 [Crypto-X-Twitter-Trader-2023](https://github.com/MyLinuxChoice/Crypto-X-Twitter-Trader-2023)
 (25 stars) and a Twitter-sourced meme-coin bot by
-[Navaneeth-R-Krishnan](https://github.com/Navaneeth-R-Krishnan) — publish no performance
-numbers at all. This matches the pattern `memecoins.md` already found for pure sniper bots: no
-vendor publishes a signed, audited wallet history.
+[Navaneeth-R-Krishnan](https://github.com/Navaneeth-R-Krishnan) included, publishes **no
+performance numbers at all**. This matches the pattern `memecoins.md` already found for pure
+sniper bots: no vendor publishes a signed, audited wallet history.
 
-X's own API economics work against a retail tweet-sniper. X cut its free read tier in Feb 2023
-(confirmed: [Wikipedia, Twitter under Elon Musk](https://en.wikipedia.org/wiki/Twitter_under_Elon_Musk)
-— "announced it would be removing the free tier... and replacing it with a basic paid tier").
-The widely-reported (but **not independently re-verified live this session**, so flagged)
-2023–2025 pricing ladder is Basic ≈ $200/month for a capped monthly read allowance, Pro ≈
-$5,000/month, Enterprise custom-quoted in five figures a month for full-archive, high-volume
-streaming access — the tier a serious tweet-sniper would actually need to watch many KOL
-accounts simultaneously without being rate-limited into missing the window.
+X's API economics work against a retail tweet-sniper, and the structure changed in 2026. The
+free read tier was cut in Feb 2023 (confirmed:
+[Wikipedia, Twitter under Elon Musk](https://en.wikipedia.org/wiki/Twitter_under_Elon_Musk) —
+"announced it would be removing the free tier... and replacing it with a basic paid tier"), and
+by 2026 the named Free/Basic/Pro/Enterprise subscription ladder from that era had itself been
+replaced: per X's current pricing docs, access now runs on a **pay-per-usage credit model** —
+post reads $0.005 each, user reads $0.010, likes/mutes/blocks $0.001, post writes $0.015, a
+post containing a URL $0.200, capped at 3,000,000 post reads per monthly billing cycle, no
+minimum spend, new accounts get up to $70 in free credits, and up to 20% of spend above $200
+comes back as xAI credits. A tweet-sniper watching many KOL accounts simultaneously is a reads
+business, not a writes business, so the practical cap is the 3M-reads/month ceiling and the
+per-read charge, not a flat monthly subscription — cheaper to start than the old $200/month
+Basic tier implied, but metered in a way that scales badly if the bot polls many accounts at
+high frequency to keep latency down.
 
 ## 4. "Cabal" trading: evidence insiders coordinate, none that outsiders can ride it
 
@@ -148,8 +181,9 @@ smaller dataset.
 | Buy-the-rumor-hold-a-year | avg −30% relative to market, 1yr later | Telegram dataset | Clough & Edwards, arXiv 2309.06608 | No long-run rescue |
 | Tweet-detection sniper bot | Self-reported "100%+" on Elon Musk doge tweets, ~1–5s latency | 1 anecdote, unaudited | Repo author (jaimindp) | Survivorship-biased anecdote, not a backtest |
 | Ride a coordinated "cabal" launch as an outsider | 36.5% of supply bundled; 84% of survivors fall below 0.3x migration price in 20min | 41,470 migrated tokens | MELT, arXiv 2602.13480 | Outsider is the exit liquidity, not a participant in the edge |
-| Presidential/celebrity call (LIBRA) | Promoter side +$87M–$113M; followers −$251M across ~44k–74k wallets | 1 event, Feb 2025 | Argentine congressional report + on-chain data | Textbook pump-and-dump; retail loses en masse |
-| Celebrity-licensed token (HAWK) | Market cap $500M → $25M (−95%) | 1 event, Dec 2024 | EDNY lawsuit, Coffeezilla | Same pattern; specific insider take not verified |
+| Presidential/celebrity call (LIBRA) | One cluster +$87M in first hour (82% concentration); followers −$250M+ across ~44k–74k wallets | 1 event, Feb 2025 | Bubblemaps + Argentine congressional report | Textbook pump-and-dump; retail loses en masse |
+| Celebrity-licensed token (HAWK) | 96% supply in one cluster; 155/285 presale wallets sold for $3.3M; mcap $500M→$25M (−98%) | 1 event, Dec 2024 | Bubblemaps, EDNY lawsuit, Coffeezilla | Same pattern; Welch's own take not independently verified |
+| "KOL capital pitch" — paid in discounted tokens for promotion, conditioned on posting | 95% insider control alleged; ~$482M moved in 2 days; KOLs got 80%-off tokens, vesting on compliance | 1 event, May 2026, chain not confirmed as Solana | ZachXBT via The Block | Documented pay-for-promotion rate card; retail is explicitly the exit |
 | LLM/sentiment-scraper bot on tweets | No published result found | — | not verified | No evidence either way; unproven |
 
 **Bottom line:** every number that can be traced to a primary source points the same way.
