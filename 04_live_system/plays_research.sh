@@ -9,8 +9,9 @@
 # market's read), and writes ONE JSON file. It never picks a play and never changes a
 # number the engine computed: research is the reasoning stack, not the signal.
 set -u
-cd "$(dirname "$0")" || exit 1
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)" || exit 1      # resolve before any cd: $0 may be relative
+REPO="$(dirname "$HERE")"
+cd "$HERE" || exit 1
 [ -f "$REPO/local.env" ] && . "$REPO/local.env"
 export IDT_STATE_ROOT="${IDT_STATE_ROOT:-$REPO/04_live_system/data}"
 export IDT_DATA_ROOT="${IDT_DATA_ROOT:-$REPO/data}"
