@@ -1,0 +1,44 @@
+{# Promised against delivered, and the priors table every promise comes from. The only
+   colour is on the delivered column, because it is the only one that carries a verdict. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
+  </h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
+  {% set s = p.body.score %}
+  <div class="stats">
+    <div class="stat"><div class="n">{{ s.n_open or 0 }}</div><div class="l">open</div></div>
+    <div class="stat"><div class="n">{{ s.n_closed or 0 }}</div><div class="l">closed</div></div>
+    <div class="stat {{ 'live' if (s.hit or 0) >= 0.5 else ('watch' if s.n_closed else '') }}"><div class="n">{% if s.hit is defined and s.hit is not none %}{{ '%.0f'|format(s.hit * 100) }}%{% else %}—{% endif %}</div><div class="l">hit rate</div></div>
+    <div class="stat {{ 'live' if (s.avg_pnl_pct or 0) > 0 else ('stop' if s.n_closed else '') }}"><div class="n">{% if s.avg_pnl_pct is defined and s.avg_pnl_pct is not none %}{{ '%+.1f'|format(s.avg_pnl_pct) }}%{% else %}—{% endif %}</div><div class="l">avg of risk, closed</div></div>
+    <div class="stat"><div class="n">{% if s.promised_vs_delivered is defined and s.promised_vs_delivered is not none %}{{ '%+.1f'|format(s.promised_vs_delivered) }}{% else %}—{% endif %}</div><div class="l">delivered − promised, pts</div></div>
+    <div class="stat {{ 'live' if (s.open_pnl_usd or 0) > 0 else ('stop' if (s.open_pnl_usd or 0) < 0 else '') }}"><div class="n">{% if s.open_pnl_usd is defined and s.open_pnl_usd is not none %}${{ '{:,.0f}'.format(s.open_pnl_usd) }}{% else %}—{% endif %}</div><div class="l">open P&amp;L</div></div>
+  </div>
+
+  {% if p.body.priors %}
+  <div class="bk-closed">
+    <div class="bk-hd2">The priors: each signal as each structure, held to expiry on real chains</div>
+    <table class="tbl">
+      <thead><tr><th>signal</th><th>structure</th><th>trades</th><th>mean</th><th>median</th><th>hit</th><th>payoff</th><th>spread</th><th>A · B · C</th><th>t</th></tr></thead>
+      <tbody>
+      {% for r in p.body.priors %}
+        <tr class="{{ 'faint' if r.mean <= 0 }}">
+          <td><b>{{ r.signal }}</b></td><td>{{ r.label }}</td><td>{{ r.n }}</td>
+          <td class="{{ 'up' if r.mean > 0 else 'down' }}">{{ '%+.1f'|format(r.mean * 100) }}%</td>
+          <td>{{ '%+.1f'|format(r.median * 100) }}%</td>
+          <td>{{ '%.0f'|format(r.hit * 100) }}%</td>
+          <td>{{ r.payoff or '—' }}</td>
+          <td>{{ r.cost_pct }}%</td>
+          <td class="splits">{% for k in ['A','B','C'] %}{% set v = r.splits[k] %}<span class="{{ 'up' if v is not none and v > 0 else ('down' if v is not none else '') }}">{% if v is none %}·{% else %}{{ '%+.0f'|format(v * 100) }}{% endif %}</span>{% endfor %}</td>
+          <td>{{ r.t or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="wk-back-ft">Mean and median are P&amp;L per dollar of max risk, at the ask in and the bid out, losses capped at the premium.
+      A: 2019–21, B: 2022–23, C: 2024–26. A cell negative in any split cannot issue a play.</p>
+  </div>
+  {% endif %}
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

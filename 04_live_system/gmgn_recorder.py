@@ -43,7 +43,7 @@ DB = paths.state("gmgn.db")
 CLI = "gmgn-cli"
 CHAINS = ("sol", "bsc", "base")   # BSC added 2026-10-07: gas $0.008/swap and the one net-positive cell in memecoins.md
 POLL_S = 60
-KLINE_PER_MIN = 60                                           # 2 weight each: 2/s of the 5/s bucket; the queue ran 20:1 behind at 20
+KLINE_PER_MIN = 15                                           # 60/min tripped RATE_LIMIT_BANNED on the shared demo key (2026-10-07); a personal key lifts it
 SAMPLE_EVERY = 6
 KEY_FIELDS = ["creator", "creator_created_count", "creator_created_open_count", "creator_created_open_ratio", "creator_balance_rate",
               "creator_token_status", "bundler_trader_amount_rate", "top70_sniper_hold_rate", "suspected_insider_hold_rate",
@@ -54,10 +54,23 @@ KEY_FIELDS = ["creator", "creator_created_count", "creator_created_open_count", 
               "launchpad", "launchpad_platform", "created_timestamp", "open_timestamp", "complete_timestamp", "exchange"]
 
 
+BANNED_UNTIL = 0.0
+
+
 def cli(*args, timeout=40):
+    """One gmgn-cli call. A RATE_LIMIT_BANNED answer parks every call until the reset the
+    server names (plus a minute): repeated requests during a ban extend it."""
+    global BANNED_UNTIL
+    if time.time() < BANNED_UNTIL:
+        raise RuntimeError(f"banned until {datetime.fromtimestamp(BANNED_UNTIL, tz=timezone.utc):%H:%M:%S}Z")
     r = subprocess.run([CLI, *args, "--raw"], capture_output=True, text=True, timeout=timeout)
     if r.returncode != 0 or not r.stdout.strip():
-        raise RuntimeError((r.stderr or r.stdout or "no output")[:200])
+        msg = (r.stderr or r.stdout or "no output")
+        if "RATE_LIMIT_BANNED" in msg or "temporarily banned" in msg:
+            import re
+            m = re.search(r"~(\d+)s remaining", msg)
+            BANNED_UNTIL = time.time() + (int(m.group(1)) if m else 600) + 60
+        raise RuntimeError(msg[:200])
     return json.loads(r.stdout)
 
 

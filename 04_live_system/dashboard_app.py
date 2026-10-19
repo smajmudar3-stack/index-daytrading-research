@@ -109,6 +109,10 @@ env = Environment(
 )
 
 FOOTER = (
+    "A play is a stock signal this repo measured, expressed the way that measured best: shares, "
+    "because every option structure tested on these signals lost per dollar of risk after the "
+    "round trip (02_findings/play_structures.md). The option legs are printed beside each play "
+    "with their own measured number. "
     "Dealer gamma forecasts the day's RANGE, never its direction. Three signals survived "
     "honest out-of-sample testing: short interest with a negative sign, VIX backwardation, "
     "and low dealer gamma as a regime filter. The 0DTE condor is approximately break-even "
@@ -162,8 +166,8 @@ def render_view(slug, partial=False):
     panels = views.build(slug)
     v = views.view_by_slug(slug)
     ctx = {
-        "title": "Index Options Desk",
-        "subtitle": "SPX / NDX 0DTE, swing and risk. Paper only.",
+        "title": "Plays Desk",
+        "subtitle": "Swing plays, paper books, the tape, the research tree. Paper only.",
         **_session_ctx(),
         "views": [{"slug": x["slug"], "label": x["label"]} for x in views.VIEWS],
         "view": v["slug"],
@@ -358,6 +362,11 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         slug = path.lstrip("/")
+        if slug in views.LEGACY:
+            self.send_response(301)
+            self.send_header("Location", f"/{views.LEGACY[slug]}")
+            self.end_headers()
+            return
         if slug not in [v["slug"] for v in views.VIEWS]:
             self._send(f"no such view: {slug}", "text/plain; charset=utf-8", 404)
             return
@@ -370,7 +379,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    print(f"Index options desk -> http://127.0.0.1:{PORT}")
+    print(f"Plays desk -> http://127.0.0.1:{PORT}")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
 
 

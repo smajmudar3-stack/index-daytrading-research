@@ -349,6 +349,25 @@ if _stale("stress_reversal.db", 4 * 3600):
     except Exception as _e:                       # noqa: BLE001
         print(f"stress_reversal.mark failed: {type(_e).__name__}: {_e}")
 
+# THE PLAYS DESK, once a day after the stock books it reads: candidates from the measured
+# cohorts, priced off the live ladder, at most N_PER_WEEK issued on its issue days; its
+# ledger marks on the 4h clock. 04_live_system/plays.py.
+if _due("plays_snapshot.json", STOCK_REGEN_S):
+    try:
+        import plays
+        _pl = plays.issue()
+        print(f"plays: {len(_pl.get('considered') or [])} considered, {len(_pl.get('issued') or [])} issued, "
+              f"{len(_pl.get('refused') or [])} refused" + ("" if _pl.get("priors_available") else " (priors missing)"))
+    except Exception as _e:                       # noqa: BLE001
+        print(f"plays failed: {type(_e).__name__}: {_e}")
+if _stale("plays.db", 4 * 3600):
+    try:
+        import plays
+        _plm = plays.mark()
+        print(f"plays.mark: {_plm}")
+    except Exception as _e:                       # noqa: BLE001
+        print(f"plays.mark failed: {type(_e).__name__}: {_e}")
+
 # THE LEDGER RUNS EVERY CYCLE, not on the generator's 4h clock. Two different jobs: the
 # generator decides what is worth proposing, this marks what was already proposed against
 # the live chain. Marking on the slower clock would leave the page showing a P&L from four

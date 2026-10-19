@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The weekly branch hunt: the strategy tree grows by one measured branch.
+
+  INSTALL:
+    cp 04_live_system/com.daytrading.branch-hunt.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.daytrading.branch-hunt.plist
+
+  REMOVE:
+    launchctl unload ~/Library/LaunchAgents/com.daytrading.branch-hunt.plist
+    rm ~/Library/LaunchAgents/com.daytrading.branch-hunt.plist
+
+  RUN ONE NOW:
+    /bin/zsh 04_live_system/branch_hunt.sh
+
+  A headless Claude session reads docs/strategy_tree.json, picks the most promising
+  waiting branch whose data is on this machine, writes and runs the study the house way
+  (real fills, three splits, the noise bar), records the verdict on the tree with the
+  children it suggests, and appends the row to 02_findings/online_methods.md. It commits
+  nothing; the next interactive session reviews and commits.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.daytrading.branch-hunt</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system/branch_hunt.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/sahilmajmudar/index-daytrading-dev</string>
+  <key>StandardOutPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/branch_hunt.launchd.out</string>
+  <key>StandardErrorPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/branch_hunt.launchd.err</string>
+
+  <!-- Saturday 09:00: the market is shut, the recorders are quiet, and a study that loads
+       a year of chains at a time has the machine to itself. -->
+  <key>StartCalendarInterval</key>
+  <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+</dict>
+</plist>

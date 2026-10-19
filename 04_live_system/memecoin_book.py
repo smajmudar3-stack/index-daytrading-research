@@ -90,7 +90,7 @@ def settle(bars, signal_ts):
     return fts, fpx, ets, epx, gross, net
 
 
-def run_once(now=None, max_new=40):
+def run_once(now=None, max_new=15):
     now = now or _now()
     c = con()
     src = sqlite3.connect(SRC_DB)
@@ -122,7 +122,7 @@ def run_once(now=None, max_new=40):
                   (r["tx"], now, r["ts"], r["token"], r["symbol"], r["maker"], r["tags"], r["launchpad"], r["price_usd"],
                    fts, fpx, ets, epx, gross, net, NOTIONAL * net))
         filled += 1
-        time.sleep(0.5)
+        time.sleep(1.5)
     c.commit()
     c.close()
     try:

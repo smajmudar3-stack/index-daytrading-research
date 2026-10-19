@@ -193,32 +193,19 @@ def select(rows, top=TOP_SHARE, max_picks=MAX_PICKS):
 
 # --------------------------------------------------------------------- run ---
 
-def _prices(tickers):
-    """{ticker: DataFrame[open, close, volume]} for ~70 sessions, batched. Never raises."""
+def _prices(tickers, days=130):
+    """{ticker: DataFrame[open, high, low, close, volume]} from the shared price cache
+    (`price_cache.py`): served from disk, refreshed only where stale, so a throttled vendor
+    leaves a few names a day old instead of blocking the book. Never raises."""
     if not tickers:
         return {}
     try:
-        import yfinance as yf
+        import price_cache
+        out = price_cache.history(sorted(set(tickers) | {"SPY"}), days=days)
+        out.pop("_report", None)
+        return {k: v for k, v in out.items() if len(v) >= 5}
     except Exception:                                         # noqa: BLE001
         return {}
-    names = sorted(set(tickers) | {"SPY"})
-    out = {}
-    # batches of 120, the size weekly_swing._prefetch measured as fast and under the rate limit
-    for i in range(0, len(names), 120):
-        chunk = names[i:i + 120]
-        try:
-            raw = yf.download(chunk, period="4mo", interval="1d", progress=False, auto_adjust=True,
-                              group_by="ticker", threads=True)
-        except Exception:                                     # noqa: BLE001
-            continue
-        for tk in chunk:
-            try:
-                d = (raw[tk] if len(chunk) > 1 else raw).dropna(how="all").rename(columns=str.lower)
-                if len(d) >= 5 and "close" in d:
-                    out[tk] = d
-            except (KeyError, TypeError, AttributeError):
-                continue
-    return out
 
 
 def run(now=None):

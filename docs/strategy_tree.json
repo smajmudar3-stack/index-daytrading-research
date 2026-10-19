@@ -1,0 +1,454 @@
+{
+ "as_of": "2026-10-19",
+ "root": "money",
+ "legend": {
+  "status": [
+   "measured",
+   "proposed",
+   "untested",
+   "recording",
+   "live-paper"
+  ],
+  "verdict": [
+   "real",
+   "weak",
+   "null",
+   "dead",
+   "not-measurable"
+  ]
+ },
+ "nodes": {
+  "money": {
+   "label": "A repeatable edge from a US retail account",
+   "status": "measured",
+   "verdict": "weak",
+   "children": [
+    "equities",
+    "options",
+    "index",
+    "crypto",
+    "prediction",
+    "income",
+    "other-markets"
+   ]
+  },
+  "equities": {
+   "label": "US equities, shares",
+   "status": "measured",
+   "verdict": "real",
+   "children": [
+    "earnings-surprise",
+    "ranker",
+    "stress-reversal",
+    "momentum",
+    "value",
+    "diffusion",
+    "short-side",
+    "pairs"
+   ]
+  },
+  "earnings-surprise": {
+   "label": "Top-25 earnings surprise, 63-session hold",
+   "status": "live-paper",
+   "verdict": "real",
+   "numbers": "+4.24%/quarter over SPY, t 2.3, hit 0.49, payoff 1.6, all splits",
+   "study": "05_studies/signal_accuracy.py",
+   "findings": "02_findings/signal_accuracy.md",
+   "live": "swing_stock.py",
+   "children": [
+    "surprise-x-revision",
+    "surprise-x-guidance",
+    "surprise-short-side"
+   ]
+  },
+  "surprise-x-revision": {
+   "label": "Surprise + analyst revision direction in the 10 sessions after",
+   "status": "proposed",
+   "rule": "top-25 SUE among 63-session reporters AND consensus EPS for next quarter revised UP since the print (yfinance earnings_estimate history); 63-session hold; vs surprise alone",
+   "children": []
+  },
+  "surprise-x-guidance": {
+   "label": "Surprise + raised guidance (8-K text)",
+   "status": "proposed",
+   "rule": "surprise top quintile AND the 8-K/press release contains a raised full-year guide (LLM tag from EDGAR text); 63 sessions",
+   "children": []
+  },
+  "surprise-short-side": {
+   "label": "Bottom-25 surprise as a short / put debit",
+   "status": "proposed",
+   "rule": "bottom 25 SUE among 63-session reporters, short 63 sessions in shares and as a 70/40 put debit; the Q1 leg measured ~0 long-only, test the short",
+   "children": []
+  },
+  "ranker": {
+   "label": "Surprise + residual momentum + 12-1, top 25, 21 sessions",
+   "status": "live-paper",
+   "verdict": "weak",
+   "numbers": "+0.84%/4wk, hit 0.49, +9.3%/yr net, all splits",
+   "study": "05_studies/signal_accuracy.py",
+   "findings": "02_findings/signal_accuracy.md",
+   "live": "swing_ranker.py",
+   "children": [
+    "ranker-sector-cap"
+   ]
+  },
+  "ranker-sector-cap": {
+   "label": "Ranker with a 5-per-sector cap",
+   "status": "proposed",
+   "rule": "same ranker, at most 5 names per GICS sector; the live cohort was 60% refiners",
+   "children": []
+  },
+  "stress-reversal": {
+   "label": "Bottom-40 reversal composite, 10-session hold, VIX > 25",
+   "status": "live-paper",
+   "verdict": "real",
+   "numbers": "+2.59%/hold in regime, hit 0.56; out of regime flat to negative; first live cohort (out of regime) +4.1%",
+   "study": "05_studies/regime_reversal_test.py",
+   "findings": "02_findings/stress_reversal.md",
+   "live": "stress_reversal.py",
+   "children": [
+    "stress-options",
+    "stress-sector-neutral",
+    "stress-vix-term"
+   ]
+  },
+  "stress-options": {
+   "label": "Stress reversal expressed as 21-DTE call debit",
+   "status": "measured",
+   "rule": "see play_structures_test.py stress_vix25 rows",
+   "children": [],
+   "verdict": "dead",
+   "date": "2026-10-19",
+   "findings": "02_findings/play_structures.md",
+   "numbers": "21-DTE 70/40 call debit -5% in regime, -16% out; long calls +4% in regime with median -36%, -11% out"
+  },
+  "stress-sector-neutral": {
+   "label": "Stress reversal, losers vs own sector ETF",
+   "status": "proposed",
+   "rule": "composite on the name's return minus its sector ETF; 10 sessions; VIX > 25",
+   "children": []
+  },
+  "stress-vix-term": {
+   "label": "Regime = VIX/VIX3M > 1 instead of VIX > 25",
+   "status": "proposed",
+   "rule": "same book, regime defined by backwardation; compare hit and payoff",
+   "children": []
+  },
+  "momentum": {
+   "label": "12-1 and residual momentum, monthly",
+   "status": "measured",
+   "verdict": "weak",
+   "numbers": "IC +0.024/+0.040 at 4 weeks, inside the noise bar, positive in all splits",
+   "findings": "02_findings/signal_accuracy.md",
+   "children": [
+    "momentum-crash-filter"
+   ]
+  },
+  "momentum-crash-filter": {
+   "label": "Momentum switched off when VIX > 30 (Daniel-Moskowitz)",
+   "status": "proposed",
+   "rule": "12-1 top decile long only when trailing-21 SPY vol < 30%; 21 sessions",
+   "children": []
+  },
+  "value": {
+   "label": "FCF yield, buyback yield, net issuance",
+   "status": "measured",
+   "verdict": "weak",
+   "numbers": "t 3-3.5, strong 2022-23, flat since",
+   "findings": "02_findings/fundamentals.md",
+   "children": []
+  },
+  "diffusion": {
+   "label": "Information diffusion, six channels",
+   "status": "measured",
+   "verdict": "null",
+   "numbers": "combined model -9.1%/yr net",
+   "findings": "02_findings/diffusion.md",
+   "children": []
+  },
+  "short-side": {
+   "label": "Short equities",
+   "status": "untested",
+   "children": [
+    "surprise-short-side",
+    "overextended-short"
+   ]
+  },
+  "overextended-short": {
+   "label": "Short the top decile of 1-week return in bull tapes (the mirror of stress)",
+   "status": "proposed",
+   "rule": "top-40 reversal composite, short 10 sessions, VIX < 15; shares and 70/40 put debit",
+   "children": []
+  },
+  "pairs": {
+   "label": "Statistical arbitrage",
+   "status": "measured",
+   "verdict": "dead",
+   "numbers": "net negative at every hold",
+   "findings": "02_findings/statarb.md",
+   "children": []
+  },
+  "options": {
+   "label": "Options structures",
+   "status": "measured",
+   "verdict": "weak",
+   "children": [
+    "plays-desk",
+    "play-structures",
+    "weekly-direction",
+    "zero-dte",
+    "put-write",
+    "covered-call",
+    "earnings-vrp",
+    "condors"
+   ]
+  },
+  "play-structures": {
+   "label": "Measured stock signals as option structures, held to expiry",
+   "status": "measured",
+   "rule": "surprise/ranker/stress x {70/40 and 50/25 call debit, 60d and 80d long call, 30/15 put credit} vs shares, held to expiry",
+   "study": "05_studies/play_structures_test.py",
+   "children": [
+    "play-structures-exit-rules",
+    "play-structures-roll",
+    "covered-call-on-book",
+    "surprise-call-80d-resample"
+   ],
+   "verdict": "dead",
+   "date": "2026-10-19",
+   "numbers": "every option cell negative per $ risk after the round trip (bid-ask 12-57% of risk); shares +7.4%/+1.9%/+5.6%/+0.9% on the same dates; the stress long-call +100% was split-mismatched chains, +4% median -36% once removed",
+   "findings": "02_findings/play_structures.md"
+  },
+  "play-structures-exit-rules": {
+   "label": "Take-profit at 50% of max reward vs hold to expiry",
+   "status": "proposed",
+   "rule": "same cells, exit when the spread reaches 50%/75% of width; needs daily chain marks (thinned chain caveat)",
+   "children": []
+  },
+  "play-structures-roll": {
+   "label": "Roll the 70/40 debit up at +50%",
+   "status": "proposed",
+   "children": []
+  },
+  "weekly-direction": {
+   "label": "Weekly single-name direction with 14-DTE verticals",
+   "status": "measured",
+   "verdict": "dead",
+   "numbers": "direction 52%, spread 8-15% of risk",
+   "findings": "02_findings/weekly_structure.md",
+   "children": []
+  },
+  "zero-dte": {
+   "label": "0DTE index credit structures",
+   "status": "measured",
+   "verdict": "dead",
+   "numbers": "147,350 real trades, all negative",
+   "findings": "02_findings/WHAT_FAILED.md",
+   "children": []
+  },
+  "put-write": {
+   "label": "Monthly SPY put-write",
+   "status": "measured",
+   "verdict": "weak",
+   "numbers": "15-delta 4.7%/yr, Sharpe 2.1, DD -3.3%",
+   "findings": "02_findings/online_methods.md",
+   "children": [
+    "put-write-vix-sized"
+   ]
+  },
+  "put-write-vix-sized": {
+   "label": "Put-write sized by VIX percentile",
+   "status": "proposed",
+   "rule": "15-delta monthly, 2x size when VIX > 25, 0.5x when < 13",
+   "children": []
+  },
+  "covered-call": {
+   "label": "30-delta covered calls on SPY",
+   "status": "measured",
+   "verdict": "weak",
+   "numbers": "7.6%/yr vs 10% SPY",
+   "children": [
+    "covered-call-on-book"
+   ]
+  },
+  "covered-call-on-book": {
+   "label": "Covered calls on the stock book's own names",
+   "status": "proposed",
+   "rule": "surprise top-25 held 63 sessions with a 30-delta monthly call sold against each; vs shares alone",
+   "children": []
+  },
+  "earnings-vrp": {
+   "label": "Earnings variance risk premium",
+   "status": "measured",
+   "verdict": "weak",
+   "numbers": "+3.6pt seller edge in points; not reproduced in straddle P&L",
+   "findings": "02_findings/earnings_vrp.md",
+   "children": []
+  },
+  "condors": {
+   "label": "Iron condors and butterflies",
+   "status": "measured",
+   "verdict": "dead",
+   "numbers": "-0.25% and -0.35% per trade, 0DTE",
+   "children": [
+    "condor-45dte-vrp"
+   ]
+  },
+  "condor-45dte-vrp": {
+   "label": "45-DTE SPX condor only when VIX - realised > 5 pts",
+   "status": "proposed",
+   "rule": "16-delta wings, 45 DTE, exit at 21 DTE, only when VRP > 5; real SPXW quotes",
+   "children": []
+  },
+  "index": {
+   "label": "Index exposure and timing",
+   "status": "measured",
+   "verdict": "real",
+   "children": [
+    "vix-overlay",
+    "opening-range",
+    "calendar"
+   ]
+  },
+  "vix-overlay": {
+   "label": "1x always, 2x when VIX > VIX3M inside a golden cross",
+   "status": "live-paper",
+   "verdict": "real",
+   "numbers": "15.3%/yr vs 11.5% 2006-2026, DD 59%; must be margin not a leveraged ETF",
+   "live": "index_overlay.py",
+   "children": [
+    "overlay-stock-sleeve"
+   ]
+  },
+  "overlay-stock-sleeve": {
+   "label": "Overlay's stock sleeve tilted to the surprise book",
+   "status": "proposed",
+   "children": []
+  },
+  "opening-range": {
+   "label": "First 15 minutes -> rest of day",
+   "status": "measured",
+   "verdict": "null",
+   "numbers": "direction null; width forecasts range t 14-27",
+   "findings": "02_findings/opening_range.md",
+   "children": [
+    "or-width-sizing"
+   ]
+  },
+  "or-width-sizing": {
+   "label": "Feed the 09:45 range width into the 0DTE expected range",
+   "status": "proposed",
+   "children": []
+  },
+  "calendar": {
+   "label": "Turn of month, pre-FOMC, overnight",
+   "status": "measured",
+   "verdict": "null",
+   "findings": "docs/briefs/calendar-macro.md",
+   "children": []
+  },
+  "crypto": {
+   "label": "Crypto",
+   "status": "measured",
+   "verdict": "dead",
+   "children": [
+    "memecoins",
+    "crypto-intraday",
+    "cross-exchange",
+    "funding-carry"
+   ]
+  },
+  "memecoins": {
+   "label": "Memecoins, every retail-visible strategy",
+   "status": "live-paper",
+   "verdict": "dead",
+   "numbers": "copying GMGN smart money -17% net at 5 min; birth-tape rules all negative; paper books A -9% (900), B -23% (400)",
+   "findings": "02_findings/memecoins.md",
+   "children": [
+    "memecoin-bsc"
+   ]
+  },
+  "memecoin-bsc": {
+   "label": "four.meme (BSC) launches at retail latency",
+   "status": "recording",
+   "rule": "gmgn_recorder.py records bsc; score after a week",
+   "children": []
+  },
+  "crypto-intraday": {
+   "label": "Hourly BTC/ETH rules",
+   "status": "measured",
+   "verdict": "null",
+   "findings": "docs/briefs/crypto-intraday.md",
+   "children": []
+  },
+  "cross-exchange": {
+   "label": "Cross-exchange spot arbitrage",
+   "status": "measured",
+   "verdict": "dead",
+   "children": []
+  },
+  "funding-carry": {
+   "label": "Perp funding carry",
+   "status": "measured",
+   "verdict": "not-measurable",
+   "numbers": "venues closed to US persons",
+   "children": []
+  },
+  "prediction": {
+   "label": "Prediction markets",
+   "status": "measured",
+   "verdict": "null",
+   "children": [
+    "polymarket-5m",
+    "kalshi-pairs"
+   ]
+  },
+  "polymarket-5m": {
+   "label": "Polymarket 5-minute crypto vs spot",
+   "status": "measured",
+   "verdict": "null",
+   "children": []
+  },
+  "kalshi-pairs": {
+   "label": "Kalshi vs Polymarket same-window pairs",
+   "status": "recording",
+   "numbers": "+1-2c per $1 pair on ~100 contracts, last 2 minutes; venue closed to US",
+   "children": []
+  },
+  "income": {
+   "label": "Add capital",
+   "status": "measured",
+   "verdict": "real",
+   "numbers": "the only measured route to $50k in 5 months",
+   "findings": "docs/briefs/income-routes.md",
+   "children": []
+  },
+  "other-markets": {
+   "label": "Futures, FX, commodities, vol ETPs, special situations",
+   "status": "measured",
+   "verdict": "weak",
+   "findings": "docs/briefs/",
+   "children": [
+    "vol-etp-timed"
+   ]
+  },
+  "vol-etp-timed": {
+   "label": "Short vol ETP only in contango with a real tail hedge",
+   "status": "proposed",
+   "rule": "short UVXY when VIX/VIX3M < 0.9, hedged with a 10% OTM VIX call priced at the ask; 2011-2026",
+   "children": []
+  },
+  "surprise-call-80d-resample": {
+   "label": "80-delta surprise call on a doubled chain sample",
+   "status": "proposed",
+   "rule": "the one option cell near zero (+5%, n 80, B positive, C flat): re-pull chains for the surprise cohorts missing from the Dolt panel and re-measure; needs 300+ trades before it can lead",
+   "children": []
+  },
+  "plays-desk": {
+   "label": "The Plays desk: measured signals as sized, timed, reasoned plays",
+   "status": "live-paper",
+   "live": "plays.py",
+   "rule": "<=3 a week, Mon/Wed, shares lead (the measured expression), option legs printed with their measured number, ledger scores promised vs delivered",
+   "children": []
+  }
+ }
+}

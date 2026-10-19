@@ -1,0 +1,43 @@
+{# The tree: one column per department, every branch with its verdict, the waiting branches
+   at the end. Colour is verdict: green real, amber weak, red dead, faint null, blue waiting. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }} tree-card" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    <span class="chip">{{ p.body.n_nodes }} branches · as of {{ p.body.as_of }}</span>
+  </h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
+  <div class="stats">
+    <div class="stat live"><div class="n">{{ p.body.verdicts.real }}</div><div class="l">measured real</div></div>
+    <div class="stat watch"><div class="n">{{ p.body.verdicts.weak }}</div><div class="l">weak</div></div>
+    <div class="stat stop"><div class="n">{{ p.body.verdicts.null + p.body.verdicts.dead }}</div><div class="l">null or dead</div></div>
+    <div class="stat info"><div class="n">{{ p.body.counts.proposed + p.body.counts.untested }}</div><div class="l">waiting to be tested</div></div>
+    <div class="stat"><div class="n">{{ p.body.counts['live-paper'] }}</div><div class="l">running in paper</div></div>
+  </div>
+
+  <div class="tree">
+    {% for d in p.body.departments %}
+    <div class="dept">
+      <div class="dept-h"><span class="dot {{ d.sev }}"></span>{{ d.label }}{% if d.verdict %} <em>{{ d.verdict }}</em>{% endif %}</div>
+      {% for r in d.rows %}
+      <div class="node d{{ r.depth }} {{ r.sev }} st-{{ r.status }}" title="{{ r.rule or r.numbers or '' }}">
+        <span class="nd-l">{{ r.label }}</span>
+        <span class="nd-s">{% if r.status in ('proposed', 'untested') %}waiting{% elif r.status == 'recording' %}recording{% elif r.status == 'live-paper' %}paper{% else %}{{ r.verdict }}{% endif %}</span>
+        {% if r.numbers %}<span class="nd-n">{{ r.numbers }}</span>{% endif %}
+        {% if r.rule and r.status in ('proposed', 'untested') %}<span class="nd-n rule">{{ r.rule }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if p.body.hunt %}
+  <div class="bk-closed">
+    <div class="bk-hd2">Last branch hunt</div>
+    <p class="note">started {{ p.body.hunt.started or '—' }} · {{ p.body.hunt.exit or 'still running or never finished' }}</p>
+    {% if p.body.hunt.tail %}<pre>{{ p.body.hunt.tail|join('\n') }}</pre>{% endif %}
+  </div>
+  {% else %}
+  <p class="wk-back-ft">The branch hunt has not run yet. It runs Saturdays, or now with: /bin/zsh 04_live_system/branch_hunt.sh</p>
+  {% endif %}
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

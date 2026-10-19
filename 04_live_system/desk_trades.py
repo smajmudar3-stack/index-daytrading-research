@@ -174,7 +174,10 @@ def positions_from(overlay, now=None):
     # THEIR CALLS: the NEWEST call per instrument wins; an older call the desk has since
     # reversed is superseded, not held beside it (USO long and USO short were both booked once)
     latest = {}
-    for c in desk_notes.calls(overlay, within_days=CALL_WINDOW_DAYS):      # newest first
+    recent_calls = [c for c in (overlay.get("trade_calls") or []) if isinstance(c, dict)
+                    and (desk_notes._parse_stamp(c.get("date")) or 0) >= now.timestamp() - CALL_WINDOW_DAYS * 86400]
+    recent_calls.sort(key=lambda c: c.get("date") or "", reverse=True)
+    for c in recent_calls:                                                  # newest first
         tk = str(c.get("instrument") or "").upper().strip()
         if not TICKER_RE.match(tk):
             skipped.append({"source": "call", "what": tk or "?", "why": "instrument is not a ticker"})

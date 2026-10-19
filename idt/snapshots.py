@@ -139,6 +139,14 @@ SCHEMAS = {
         "not_null": (),
         "max_age_min": 1500,
     },
+    "plays": {
+        "version": 1,
+        "files": ("plays_snapshot.json",),
+        "required": ("as_of", "ok"),
+        "required_when_ok": ("considered", "issue_window"),
+        "not_null": (),
+        "max_age_min": 1500,
+    },
     "weekly": {
         "version": 1,
         "files": ("weekly_snapshot.json",),

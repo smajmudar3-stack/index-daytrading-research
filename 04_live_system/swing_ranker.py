@@ -101,28 +101,16 @@ def reporters():
 
 
 def _prices(tickers, period="14mo"):
-    """{ticker: DataFrame[open, close, volume]}, batched by 120. Never raises."""
+    """{ticker: DataFrame} from the shared price cache (price_cache.py). `period` is kept for
+    callers: "14mo" asks for ~430 days of bars, "4mo" for ~130. Never raises."""
+    days = 430 if period.startswith("14") else 130
     try:
-        import yfinance as yf
+        import price_cache
+        out = price_cache.history(sorted(set(tickers) | {"SPY"}), days=days)
+        out.pop("_report", None)
+        return {k: v for k, v in out.items() if len(v) >= 5}
     except Exception:                                         # noqa: BLE001
         return {}
-    names = sorted(set(tickers) | {"SPY"})
-    out = {}
-    for i in range(0, len(names), 120):
-        chunk = names[i:i + 120]
-        try:
-            raw = yf.download(chunk, period=period, interval="1d", progress=False, auto_adjust=True,
-                              group_by="ticker", threads=True)
-        except Exception:                                     # noqa: BLE001
-            continue
-        for tk in chunk:
-            try:
-                d = (raw[tk] if len(chunk) > 1 else raw).dropna(how="all").rename(columns=str.lower)
-                if len(d) >= 5 and "close" in d:
-                    out[tk] = d
-            except (KeyError, TypeError, AttributeError):
-                continue
-    return out
 
 
 def momentum(d, spy):

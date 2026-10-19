@@ -1,0 +1,40 @@
+{# What the engine priced and ranked, and every refusal with its gate. Ranked context: the
+   plays panel states what was issued; this says what nearly was, and why the rest was not. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}
+    {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
+  </h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
+  {% if p.body.considered %}
+  <table class="tbl">
+    <thead><tr><th>#</th><th>name</th><th>books</th><th>structure</th><th>expected</th><th>hit</th><th>spread</th><th>confidence</th></tr></thead>
+    <tbody>
+    {% for c in p.body.considered %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><b>{{ c.ticker }}</b></td>
+        <td>{{ c.sources|join(' + ') }}</td>
+        <td>{{ c.structure }}</td>
+        <td class="{{ 'up' if (c.expected_pct or 0) > 0 else 'down' }}">{% if c.expected_pct is not none %}{{ '%+.1f'|format(c.expected_pct) }}%{% else %}—{% endif %}</td>
+        <td>{% if c.hit is not none %}{{ '%.0f'|format(c.hit * 100) }}%{% else %}—{% endif %}</td>
+        <td>{{ '%.0f'|format(c.cost_pct or 0) }}%</td>
+        <td><span class="chip2 {{ c.conf_sev }}"><span class="cs"></span>{{ c.confidence }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if p.body.groups %}
+  <div class="bk-closed">
+    <div class="bk-hd2">Refused, by gate</div>
+    {% for why, names in p.body.groups %}
+    <div class="row"><div class="rmain"><span class="k">{{ why }}</span><span class="v">{{ names|length }}</span></div>
+      <p class="rsub">{{ names[:18]|join(', ') }}{% if names|length > 18 %} and {{ names|length - 18 }} more{% endif %}</p></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if p.body.notes %}<p class="wk-back-ft">{{ p.body.notes|join(' · ') }}</p>{% endif %}
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

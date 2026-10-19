@@ -82,16 +82,17 @@ def test_no_panel_makes_a_network_call_at_render_time():
     Unusual Whales requests. Every other panel in this repo reads a snapshot; that is why the
     page renders in milliseconds and survives a dead vendor. Rendering against the vendor hung
     the suite and would have hung `/markets` under the same rate limiting the scan already
-    meets. A panel must be fast and offline, so this asserts the whole markets view renders
+    meets. A panel must be fast and offline, so this asserts the books, tape and plays views render
     inside a budget no network round trip could fit into.
     """
     import time as _t
 
     from panels import views
-    spec = next(v for v in views.VIEWS if v.get("slug") == "markets")
     t0 = _t.time()
-    for fn in spec["panels"]:
-        fn()
+    for slug in ("books", "tape", "plays"):
+        spec = next(v for v in views.VIEWS if v.get("slug") == slug)
+        for fn in spec["panels"]:
+            fn()
     assert _t.time() - t0 < 8.0, (
         "a markets panel is doing network work at render time — move it into the scan and "
         "read the result from the snapshot")

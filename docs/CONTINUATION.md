@@ -4,7 +4,45 @@ This file is the hand-off. It is rewritten at the end of every working block so 
 session can pick up exactly where the last one stopped. Read it top to bottom, then the
 three findings files it points at, and do the "next" list in order.
 
-## Where things stand (2026-10-07, 15:30 ET)
+## Where things stand (2026-10-19, 16:30 ET)
+
+**The dashboard is the Plays desk now.** Sholo asked for option swing plays with reasoning,
+a timeline and an expected profit, drawn from the emails, Unusual Whales and research, a
+couple a week, with agents and schedules as needed and the whole workflow a tree that grows
+when something fails. Built in this block:
+
+- `04_live_system/plays.py` — the engine. Candidates are the names the measured books hold
+  (surprise 63 s, ranker 21 s, stress 10 s in/out of regime); each is priced as the structure
+  that measured best for its signal, sized at $500 notional, given a dated timeline and an
+  enumerated reasoning stack (signal / structure / macro theme / catalysts / research), at
+  most 3 a week on Mon+Wed, recorded in `plays.db` and scored against what it promised.
+  Snapshot `plays_snapshot.json`; `scan_all.py` runs `issue()` daily and `mark()` every 4 h.
+- **The structure verdict, measured first:** `05_studies/play_structures_test.py` →
+  `02_findings/play_structures.md`. Every option structure loses on every measured signal
+  after the round trip; shares win. The stress long-call "+100%" was split-mismatched chains
+  (filtered to 0.5–1.5× spot, clipped at 3×: +4%, median −36%). So a play LEADS with shares
+  and prints the 80-delta call priced off the live ladder beside it with that cell's measured
+  number. The gate for an option lead stays in `best_structure` (all splits > 0, median >
+  −35%, n ≥ 100); nothing clears it today.
+- First plays issued 2026-10-19 (Monday): SMCI, AEO, AFRM, all surprise-book shares,
+  +6.4% expected per the prior; the ledger marks them from the next open.
+- The page: views Plays / Books / Tape / Research / System (`panels/views.py`, default
+  `/plays`, old slugs redirect), panels `panels/plays.py` (desk, considered, scorecard,
+  strategy tree), templates `plays*.html`, `strategy_tree.html`, new CSS sections, rewritten
+  `base.html`. 208 tests pass; verify and ruff clean.
+- Two new headless sessions: `plays_research.sh` (`com.daytrading.plays-research`, weekdays
+  07:40 → `plays_research.json`, the research pillar on each card) and `branch_hunt.sh`
+  (`com.daytrading.branch-hunt`, Saturdays 09:00 → grows `docs/strategy_tree.json` by one
+  measured branch, 52 nodes today, 17 waiting). Both installed and loaded; the research
+  session was run once by hand at 16:20 — check `logs/plays_research.out`.
+- `price_cache.py` (`prices.db`, 1,571 names): the books had been blocked by yfinance
+  throttling since 10-02; all three re-issued cohorts on 10-19 from the cache.
+
+**What Sholo has not yet seen:** that the answer to "give me options plays" is "the options
+lose, here are the shares, and here is the option priced next to it with its number." Say it
+plainly when he asks; the numbers are in `play_structures.md`.
+
+## Where things stood before (2026-10-07, 15:30 ET)
 
 **Since the last hand-off:** seven swarm briefs filed in `docs/briefs/` (prediction-markets,
 memecoins, crypto-derivatives, options-income, sports-betting, yields-altdata,
@@ -274,6 +312,23 @@ ended: re-run it (the prompts are the bullet text; ask for 1,200–2,000 words w
 
 ## Next, in order
 
+0. **Tuesday morning:** open `/plays`; SMCI/AEO/AFRM should show a fill and a mark. Read
+   `logs/plays_research.out`; if the research pillar is empty on the cards, the headless
+   session failed (login? WebSearch budget?) — the script alerts on "Failed to authenticate".
+1. **Saturday after 09:00:** the branch hunt leaves uncommitted files (a study, a findings
+   file, the tree, a methods row). Review, run verify/pytest/ruff, commit. If it did not run,
+   `tail logs/branch_hunt.out`.
+2. **After the first plays close (mid-January for the 63-session ones; the ranker/stress ones
+   sooner):** the scorecard panel shows promised vs delivered. Nothing in `plays.py` is tuned
+   to the ledger.
+3. The surprise 80-delta call is the one option cell near zero (+5%, n 80). The tree carries
+   `surprise-call-80d-resample`: re-pull chains for the surprise cohorts the Dolt panel lacks
+   and re-measure with 300+ trades before it may lead.
+4. Items from the previous hand-off still open: re-score the recorders after a week, the
+   vendor flow alerts in ~3 months, the overlay's stock sleeve.
+
+## Next, in order (as of 2026-10-07)
+
 0. DONE 2026-09-23: all 26 swarm briefs filed and their verdicts tabled. The two cheap
    follow-ups the briefs named, if Sholo wants them: a Loughran-McDonald tone score on 8-Ks
    at EDGAR's 1–3 minute lag, and a small replication of the Lopez-Lira & Tang overnight
@@ -312,5 +367,5 @@ ended: re-run it (the prompts are the bullet text; ask for 1,200–2,000 words w
 
 ## How to resume in one line
 
-> continue edge hunt — read docs/CONTINUATION.md, run the two scorers, write the numbers in,
-> then do item 2.
+> continue edge hunt — read docs/CONTINUATION.md, check /plays and the research log, review
+> the branch hunt's output if it is Saturday or later, then do item 2.

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The morning research session for the Plays desk.
+
+  INSTALL:
+    cp 04_live_system/com.daytrading.plays-research.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.daytrading.plays-research.plist
+
+  REMOVE:
+    launchctl unload ~/Library/LaunchAgents/com.daytrading.plays-research.plist
+    rm ~/Library/LaunchAgents/com.daytrading.plays-research.plist
+
+  RUN ONE NOW:
+    /bin/zsh 04_live_system/plays_research.sh
+
+  A headless Claude session reads the names the engine is holding or considering, finds
+  and cites the last print, the fortnight's news, the dated catalysts, the analyst actions
+  and the case against each, and writes plays_research.json. The engine then rebuilds the
+  cards so the research shows beside the signal. It never picks a play.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.daytrading.plays-research</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system/plays_research.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/sahilmajmudar/index-daytrading-dev/04_live_system</string>
+  <key>StandardOutPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/plays_research.launchd.out</string>
+  <key>StandardErrorPath</key><string>/Users/sahilmajmudar/index-daytrading-dev/logs/plays_research.launchd.err</string>
+
+  <!-- Weekdays at 07:40 ET: after the overnight desk notes, before the open, and after
+       the 5-minute dev refresh has rebuilt the books on the morning's prices. One run a
+       day; the session costs real minutes and the names change at most daily. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>40</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>40</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>40</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>40</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>40</integer></dict>
+  </array>
+
+  <!-- Not RunAtLoad: loading this should not spend a Claude session. -->
+</dict>
+</plist>

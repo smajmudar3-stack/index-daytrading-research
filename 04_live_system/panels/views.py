@@ -1,81 +1,88 @@
-"""The information architecture: four views, one question each.
+"""The information architecture: five views, one question each, plays first.
 
-The old page had five CSS-only tabs plus five panels stacked above them, 26 render
-slots across about 22 panels, and no view had a stated purpose. Between them the
-panels emitted at least seventeen different action verbs with no arbitration.
+The page used to open on the index desk's 0DTE decision, which is STAND DOWN on four
+sessions in five by design, while the things there actually were to act on — the week's
+stock cohorts, the stress book, the desk's calls — sat two cards down on another view.
+"No suggestions still" (2026-10-02) was the operator reading the wrong page first, and the
+page's fault for making it the first page.
 
-The rule that produced this structure: if two panels answer the same question
-differently, one of them is deleted, not restyled. And exactly one panel on the whole
-site is allowed to contain an action verb.
+The order now is the order the operator needs it in: what to be in this week (Plays), what
+every paper book has made against SPY (Books), what the index is doing today and what is
+dated ahead (Tape), what has been measured and what grows next (Research), and what is
+switched off or stale (System).
+
+Two rules survive from the first redesign. If two panels answer the same question
+differently, one of them is deleted, not restyled. And only two panels on the whole site
+may state a trade: the Plays desk (a play names its legs) and Today's decision; everything
+else is context and says so, and a test walks every view to keep it that way.
 """
 import os
 import time
 
 from idt import paths
 
-from . import signals, structures, evidence, markets, risk, today, direction, weekly
+from . import direction, evidence, markets, plays, risk, signals, structures, today, weekly
 
 VIEWS = [
     {
-        "slug": "today",
-        "label": "Today",
-        "question": "Is there anything to do right now, and how much should I trust it?",
-        "panels": [signals.patterns, direction.call, today.answer,
-                   signals.gamma_meter, direction.regime,
-                   direction.structure_note,
-                   today.gates, today.regime, today.positions],
+        "slug": "plays",
+        "label": "Plays",
+        "question": "What should I be in this week, why, and what is it expected to make?",
+        # The plays first, with their reasoning and timeline; then what was considered and
+        # why the rest was refused; then promised against delivered, with the priors table
+        # every promise comes from.
+        "panels": [plays.desk, plays.considered, plays.scorecard],
     },
     {
-        "slug": "evidence",
-        "label": "Evidence",
-        "question": "How much of what this system tells me is measured, and how much is a guess?",
-        # Order is layout: the grid places panels two-up, so the two half-width
-        # panels (meters, scorecard) sit side by side and the two full-width lists
-        # (verdicts, weights) follow.
-        "panels": [evidence.meters, evidence.scorecard, evidence.verdicts, evidence.weights],
+        "slug": "books",
+        "label": "Books",
+        "question": "Every paper book this desk runs, and what each has made against SPY.",
+        # The two stock cohorts lead (they are what there is to act on most weeks), then the
+        # quarterly book, the stress book, the emails as trades, the index overlay, the
+        # weekly options cards and their ledger, the memecoin book, and the refusals.
+        "panels": [weekly.books, weekly.stock_picks, weekly.stress_book, weekly.desk_trades, weekly.overlay,
+                   weekly.trades, weekly.book, weekly.memecoin_book, weekly.refused],
     },
     {
-        # THE SWING PANEL IS GONE FROM HERE, not restyled. `markets.swing` ranked ~100
-        # names on momentum and always found eight, at strikes computed as a rounded
-        # percentage of spot -- which produced a zero-width spread on TTD and two strikes
-        # that do not exist on COST. It answered the same question the weekly book now
-        # answers, and answered it worse, so the rule applies: one of them is deleted.
-        #
-        # Order is the order you need it in. What to trade, then how the last lot is
-        # actually doing, then where the view came from, then the tape underneath it.
-        # The ledger sits directly under the cards on purpose: a page that shows fresh
-        # suggestions without showing what happened to the last ones is a brochure.
-        "slug": "markets",
-        "label": "Markets",
-        "question": "What is worth being in this week, how are those trades doing, "
-                    "and what is the tape underneath?",
-        # ORDER IS THE ARGUMENT THE PAGE MAKES. The answer first (trades), then what is
-        # already at risk (book), then the two dated things that outrank any thesis — the
-        # macro calendar and the earnings window — because a print landing on an expiry beats
-        # every opinion below it. Context follows, and the flow-history counter sits last
-        # because it is a promise about future measurement, not a reason to act today.
-        # The week's share cohorts lead: they are what there is to act on most weeks. The
-        # options cards, the overlay (always long, boost rarely on) and the ledgers follow.
-        "panels": [weekly.books, weekly.desk_trades, weekly.memecoin_book, weekly.trades, weekly.overlay, weekly.book, weekly.stock_picks, weekly.stress_book,
-                   weekly.calendar, weekly.earnings_vol,
-                   weekly.macro, weekly.index,
+        "slug": "tape",
+        "label": "Tape",
+        "question": "What is the index doing today, what is dated ahead, and which gates are shut?",
+        # The decision first, then the two dated things that outrank any thesis — the macro
+        # calendar and the earnings window — then the gamma read and the levels under it.
+        "panels": [today.answer, signals.patterns, direction.call,
+                   signals.gamma_meter, direction.regime, direction.structure_note,
+                   today.gates, today.regime, today.positions,
+                   weekly.calendar, weekly.earnings_vol, weekly.macro, weekly.index,
                    structures.gamma_structures,
                    markets.periscope_spx, markets.periscope_ndx,
-                   markets.gaps, markets.blackswan,
-                   weekly.data_lake, weekly.freshness, weekly.refused],
+                   markets.gaps, markets.blackswan],
     },
     {
-        "slug": "risk",
-        "label": "Risk & account",
+        "slug": "research",
+        "label": "Research",
+        "question": "What has been measured, what is being recorded, and which branch grows next?",
+        # The tree first: every branch tested with its verdict and the waiting ones. Then
+        # the evidence meters, the scorecard, the retired claims, the weights, and the
+        # recorders' counters.
+        "panels": [plays.tree, evidence.meters, evidence.scorecard, evidence.verdicts, evidence.weights,
+                   weekly.data_lake, weekly.freshness],
+    },
+    {
+        "slug": "system",
+        "label": "System",
         "question": "What am I allowed to risk, what is switched off, and what is stale?",
         "panels": [risk.events, risk.account, risk.graduation, risk.services],
     },
 ]
 
-DEFAULT_VIEW = "today"
+DEFAULT_VIEW = "plays"
+
+# The first redesign's slugs, kept as redirects so a bookmark or a runbook line still lands.
+LEGACY = {"today": "tape", "markets": "books", "evidence": "research", "risk": "system"}
 
 
 def view_by_slug(slug):
+    slug = LEGACY.get(slug, slug)
     for v in VIEWS:
         if v["slug"] == slug:
             return v
@@ -94,10 +101,11 @@ def build(slug):
 # The limits are the ones audit_dash.py already enforces, so the banner and the
 # audit cannot disagree about what "fresh" means.
 FRESHNESS = [
+    ("plays_snapshot.json", 1500, "plays"),
+    ("swing_stock_snapshot.json", 1500, "stock book"),
     ("periscope_SPX.json", 20, "periscope"),
     ("gap_snapshot.json", 30, "gap scan"),
     ("gex_snapshot.json", 90, "gamma regime"),
-    ("swing_snapshot.json", 1500, "swing"),
 ]
 
 
@@ -111,9 +119,8 @@ def _age_min(name):
 def status():
     """One status line. It replaced four banners that could disagree with each other.
 
-    It answers, in order: is the market awake, is the data fresh, did the last cycle
-    actually work. That last one is new. Clicking Refresh used to return an identical
-    302 whether every engine ran or every engine threw.
+    It answers, in order: is the data fresh, did the last cycle actually work. Clicking
+    Refresh used to return an identical 302 whether every engine ran or every engine threw.
     """
     chips = []
     worst = None
@@ -123,10 +130,10 @@ def status():
             chips.append({"label": f"{label}: missing", "severity": "stop"})
             worst = "stop"
         elif age > limit:
-            chips.append({"label": f"{label}: {age:.0f}m", "severity": "watch"})
+            chips.append({"label": f"{label}: {age / 60:.0f}h" if age > 120 else f"{label}: {age:.0f}m", "severity": "watch"})
             worst = worst or "watch"
         else:
-            chips.append({"label": f"{label}: {age:.0f}m", "severity": None})
+            chips.append({"label": f"{label}: {age / 60:.0f}h" if age > 120 else f"{label}: {age:.0f}m", "severity": None})
 
     detail = ""
     cycle = os.path.join(paths.STATE_ROOT, "cycle_report.json")
@@ -149,8 +156,6 @@ def status():
         detail = "no cycle has run yet"
         worst = worst or "watch"
 
-    # The masthead owns the market-open state; repeating it here in a different
-    # colour recreates the two-sources-disagree shape this strip replaced.
     if worst == "stop":
         headline = "Data missing or last cycle failed"
     elif worst == "watch":

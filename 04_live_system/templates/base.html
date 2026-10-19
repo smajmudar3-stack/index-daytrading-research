@@ -8,14 +8,13 @@
 </head>
 <body data-view="{{ view }}">
 
-{# The dossier layout: a fixed left rail carrying identity, navigation and the
-   system's vital signs, and a paper page on the right. This replaced the
-   dark-theme masthead-and-stacked-cards shape entirely: the product is a research
-   dossier, and it now reads like one. #}
+{# A fixed left rail carrying identity, navigation and the system's vital signs, and a
+   page on the right that opens on the plays. The rail is the only navigation: five views,
+   each a real URL that answers one question, plus the findings. #}
 <aside class=rail>
   <div class=railtop>
-    <a class=nameplate href="/today">
-      <span class=np1>The Index</span>
+    <a class=nameplate href="/plays">
+      <span class=np1>Plays</span>
       <span class=np2>Desk</span>
     </a>
 
@@ -32,7 +31,7 @@
       </a>
       {% endfor %}
       <a href="/docs" class="{{ 'on' if view == 'docs' else '' }}">
-        <span class=num>05</span>Findings
+        <span class=num>{{ "%02d"|format(views|length + 1) }}</span>Findings
       </a>
     </nav>
   </div>

@@ -520,6 +520,43 @@ Rules:
   window (six firings, one of them March 2020). `kalshi_recorder.py` pairs the same Bitcoin
   event on Kalshi and Polymarket; note the daily strikes resolve at 5pm ET on Kalshi and
   noon on Polymarket, so only the 15-minute windows are the same event.
+- **The page opens on the Plays desk, and a play is the measured expression of a measured
+  signal.** `04_live_system/plays.py` takes the names the stock books hold (surprise 63
+  sessions, ranker 21, stress 10 in and out of regime), prices the structure that measured
+  best for that signal on seven years of real chains, sizes it, writes a dated timeline and
+  an enumerated reasoning stack (signal / structure / macro theme / catalysts / research),
+  issues at most three a week on Monday and Wednesday, records each in `plays.db` the day it
+  is issued and scores it against what it promised. `confidence` is a label earned from the
+  prior's splits, hit and median, never typed. Views are now Plays / Books / Tape / Research /
+  System (`panels/views.py`; the old slugs redirect). Only the plays panel and Today's
+  decision may name a trade; the action-verb test still walks every view.
+- **Every option structure tested on the measured stock signals LOSES; shares win.**
+  `05_studies/play_structures_test.py` on 23,521 real-fill trades: 70/40 and 50/25 call
+  debits, 60- and 80-delta long calls at 21–95 DTE are negative per dollar of risk for
+  surprise, ranker and stress alike — the round-trip bid-ask is 12–57% of max risk. The
+  stress long calls printed +100% (t 7) and it was 1,289 rows of chains quoted in pre-split
+  units against split-adjusted spots (VEON at 812 with a 1-strike call paying 1,722x) plus
+  the top 5% of trades; filtered to strikes within 0.5–1.5x spot and clipped at 3x they are
+  +4% with a median of −36%. So a play LEADS with shares and prints the 80-delta call off the
+  live ladder beside it with that cell's own measured number. The gate that would let an
+  option cell lead (positive in every split, median above −35%, 100+ trades) stays in the
+  code so a later backtest can change the answer without a code change.
+  `02_findings/play_structures.md`.
+- **Two more headless Claude sessions run on launchd.** `plays_research.sh`
+  (`com.daytrading.plays-research`, weekdays 07:40) researches every held and considered
+  name with sources into `plays_research.json`, which the cards show as the research
+  pillar; `branch_hunt.sh` (`com.daytrading.branch-hunt`, Saturdays 09:00) reads
+  `docs/strategy_tree.json`, measures the most promising waiting branch the house way,
+  records the verdict and proposes children. The tree is the registry of every hypothesis
+  tested here across every department (stocks long and short, every option shape, index,
+  crypto, prediction markets, income) and the Research view renders it. Neither session
+  commits; the next interactive session reviews.
+- **Books share one daily-bar cache.** `price_cache.py` (`prices.db`, 1,571 names) serves the
+  stock book, the ranker and the stress book from disk and fetches only what is missing
+  since the last close, in batches of 40 with backoff. Before it, every book re-downloaded
+  its whole universe each run and the vendor throttled exactly that: all three books were
+  blocked from 2026-10-02 to 10-19 ("prices came back for 321 of 1692"). A throttled name
+  now stays at yesterday's bar, flagged, instead of blocking the cohort.
 - **Colour means severity and nothing else** (`info` / `watch` / `stop`). It previously meant
   three unrelated things at once, so green and red next to each other told you nothing.
 - **Verify before claiming done:** `scripts/verify.py` (7 checks), `pytest test/` (47 tests),

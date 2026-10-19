@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**500 files, 100,535 lines.**
+**515 files, 102,905 lines.**
 
 ## Repo root
 
-*12 files, 2,403 lines*
+*12 files, 2,404 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 29 | 585 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 588 | 45 KB |
-| `MANIFEST.md` | 714 | 29 KB |
+| `MANIFEST.md` | 715 | 29 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -44,7 +44,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*23 files, 3,199 lines*
+*24 files, 3,278 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -65,6 +65,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/memecoins.md` | 219 | 15 KB |
 | `02_findings/online_methods.md` | 115 | 26 KB |
 | `02_findings/opening_range.md` | 105 | 7 KB |
+| `02_findings/play_structures.md` | 79 | 5 KB |
 | `02_findings/signal_accuracy.md` | 155 | 10 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/stress_reversal.md` | 61 | 4 KB |
@@ -111,7 +112,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*89 files, 25,659 lines*
+*95 files, 26,791 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -121,9 +122,12 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/analyst.py` | 195 | 10 KB |
 | `04_live_system/audit_dash.py` | 343 | 15 KB |
 | `04_live_system/blackswan_panel.py` | 324 | 14 KB |
+| `04_live_system/branch_hunt.sh` | 68 | 4 KB |
 | `04_live_system/build_snapshot.py` | 197 | 9 KB |
+| `04_live_system/com.daytrading.branch-hunt.plist` | 39 | 2 KB |
 | `04_live_system/com.daytrading.calendar.plist` | 33 | 2 KB |
 | `04_live_system/com.daytrading.desknotes.plist` | 61 | 4 KB |
+| `04_live_system/com.daytrading.plays-research.plist` | 47 | 2 KB |
 | `04_live_system/com.daytrading.recorders.plist` | 18 | 852 B |
 | `04_live_system/committee.py` | 217 | 11 KB |
 | `04_live_system/condor.py` | 127 | 6 KB |
@@ -131,10 +135,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/crypto_venue_recorder.py` | 98 | 4 KB |
 | `04_live_system/daily_edges.py` | 75 | 3 KB |
 | `04_live_system/dashboard.py` | 167 | 10 KB |
-| `04_live_system/dashboard_app.py` | 378 | 15 KB |
+| `04_live_system/dashboard_app.py` | 387 | 16 KB |
 | `04_live_system/dashboard_single.py` | 609 | 30 KB |
 | `04_live_system/desk_notes.py` | 590 | 26 KB |
-| `04_live_system/desk_trades.py` | 373 | 19 KB |
+| `04_live_system/desk_trades.py` | 376 | 20 KB |
 | `04_live_system/direction_signals.py` | 71 | 4 KB |
 | `04_live_system/earnings_vol.py` | 203 | 10 KB |
 | `04_live_system/edge_panel.py` | 306 | 14 KB |
@@ -148,7 +152,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/gex_periscope.py` | 490 | 24 KB |
 | `04_live_system/gex_regime.py` | 103 | 6 KB |
 | `04_live_system/gex_signal.py` | 422 | 25 KB |
-| `04_live_system/gmgn_recorder.py` | 212 | 12 KB |
+| `04_live_system/gmgn_recorder.py` | 225 | 13 KB |
 | `04_live_system/graduation.py` | 413 | 21 KB |
 | `04_live_system/growth_plan.py` | 135 | 7 KB |
 | `04_live_system/index_overlay.py` | 169 | 7 KB |
@@ -169,8 +173,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/monitor.py` | 68 | 2 KB |
 | `04_live_system/option_pricer.py` | 290 | 12 KB |
 | `04_live_system/pead.py` | 100 | 5 KB |
+| `04_live_system/plays.py` | 710 | 37 KB |
+| `04_live_system/plays_research.sh` | 84 | 5 KB |
 | `04_live_system/polymarket_recorder.py` | 166 | 7 KB |
 | `04_live_system/positions.py` | 320 | 15 KB |
+| `04_live_system/price_cache.py` | 165 | 7 KB |
 | `04_live_system/pumpfun_recorder.py` | 203 | 10 KB |
 | `04_live_system/pumpfun_trades_recorder.py` | 150 | 8 KB |
 | `04_live_system/refresh_calendar.sh` | 94 | 5 KB |
@@ -179,7 +186,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/risk_gates.py` | 663 | 32 KB |
 | `04_live_system/rules.py` | 316 | 16 KB |
 | `04_live_system/run_recorders.sh` | 33 | 1 KB |
-| `04_live_system/scan_all.py` | 417 | 20 KB |
+| `04_live_system/scan_all.py` | 436 | 21 KB |
 | `04_live_system/scorecard.py` | 343 | 16 KB |
 | `04_live_system/session.py` | 91 | 3 KB |
 | `04_live_system/signal_tracker.py` | 392 | 20 KB |
@@ -189,9 +196,9 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/sleeves.py` | 157 | 6 KB |
 | `04_live_system/spx_ndx_advisor.py` | 474 | 22 KB |
 | `04_live_system/stress_reversal.py` | 368 | 17 KB |
-| `04_live_system/swing_ranker.py` | 354 | 16 KB |
+| `04_live_system/swing_ranker.py` | 342 | 16 KB |
 | `04_live_system/swing_signals.py` | 453 | 23 KB |
-| `04_live_system/swing_stock.py` | 383 | 18 KB |
+| `04_live_system/swing_stock.py` | 370 | 17 KB |
 | `04_live_system/ticket.py` | 241 | 12 KB |
 | `04_live_system/tickets.py` | 500 | 22 KB |
 | `04_live_system/universe_builder.py` | 195 | 8 KB |
@@ -207,7 +214,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/panels — panel functions, one dict each
 
-*10 files, 2,720 lines*
+*11 files, 2,982 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -215,20 +222,21 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/panels/direction.py` | 189 | 9 KB |
 | `04_live_system/panels/evidence.py` | 206 | 10 KB |
 | `04_live_system/panels/markets.py` | 242 | 12 KB |
+| `04_live_system/panels/plays.py` | 257 | 14 KB |
 | `04_live_system/panels/risk.py` | 163 | 8 KB |
 | `04_live_system/panels/signals.py` | 244 | 11 KB |
 | `04_live_system/panels/structures.py` | 211 | 11 KB |
 | `04_live_system/panels/today.py` | 498 | 23 KB |
-| `04_live_system/panels/views.py` | 161 | 7 KB |
+| `04_live_system/panels/views.py` | 166 | 7 KB |
 | `04_live_system/panels/weekly.py` | 697 | 38 KB |
 
 ## 04_live_system/templates — Jinja templates
 
-*5 files, 95 lines*
+*5 files, 94 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/templates/base.html` | 70 | 2 KB |
+| `04_live_system/templates/base.html` | 69 | 2 KB |
 | `04_live_system/templates/docs.html` | 6 | 114 B |
 | `04_live_system/templates/panel.html` | 13 | 642 B |
 | `04_live_system/templates/status.html` | 2 | 144 B |
@@ -236,7 +244,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/templates/panels — one per panel
 
-*33 files, 1,009 lines*
+*37 files, 1,266 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -261,9 +269,13 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/templates/panels/patterns.html` | 45 | 1 KB |
 | `04_live_system/templates/panels/peri_ndx.html` | 1 | 39 B |
 | `04_live_system/templates/panels/peri_spx.html` | 1 | 39 B |
+| `04_live_system/templates/panels/plays.html` | 130 | 10 KB |
+| `04_live_system/templates/panels/plays_considered.html` | 40 | 2 KB |
+| `04_live_system/templates/panels/plays_scorecard.html` | 44 | 3 KB |
 | `04_live_system/templates/panels/regime.html` | 29 | 1 KB |
 | `04_live_system/templates/panels/scorecard.html` | 10 | 387 B |
 | `04_live_system/templates/panels/services.html` | 19 | 793 B |
+| `04_live_system/templates/panels/strategy_tree.html` | 43 | 2 KB |
 | `04_live_system/templates/panels/stress_reversal.html` | 62 | 3 KB |
 | `04_live_system/templates/panels/swing.html` | 15 | 672 B |
 | `04_live_system/templates/panels/swing_stock.html` | 63 | 3 KB |
@@ -276,16 +288,16 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system/static — stylesheet and refresh script
 
-*2 files, 800 lines*
+*2 files, 932 lines*
 
 | file | lines | size |
 |---|---:|---:|
-| `04_live_system/static/app.css` | 676 | 37 KB |
+| `04_live_system/static/app.css` | 808 | 45 KB |
 | `04_live_system/static/app.js` | 124 | 4 KB |
 
 ## 05_studies — backtest and hunt harnesses
 
-*78 files, 12,848 lines*
+*79 files, 13,057 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -341,6 +353,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `05_studies/opening_range_study.py` | 248 | 14 KB |
 | `05_studies/orb_proper.py` | 117 | 5 KB |
 | `05_studies/per_name_weights_test.py` | 136 | 6 KB |
+| `05_studies/play_structures_test.py` | 209 | 10 KB |
 | `05_studies/polymarket_score.py` | 111 | 6 KB |
 | `05_studies/predictability.py` | 52 | 3 KB |
 | `05_studies/regime_reversal_test.py` | 118 | 6 KB |
@@ -492,7 +505,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*6 files, 1,599 lines*
+*7 files, 1,662 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -502,10 +515,11 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/DESIGN.md` | 106 | 6 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
 | `docs/VERDICT_LOG.md` | 434 | 22 KB |
+| `docs/strategy_tree.json` | 63 | 11 KB |
 
 ## idt — the shared package and CLI
 
-*7 files, 572 lines*
+*7 files, 580 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -515,7 +529,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `idt/db.py` | 22 | 773 B |
 | `idt/keys.py` | 64 | 2 KB |
 | `idt/paths.py` | 62 | 3 KB |
-| `idt/snapshots.py` | 249 | 9 KB |
+| `idt/snapshots.py` | 257 | 9 KB |
 
 ## scripts — repo tooling
 
@@ -529,7 +543,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## test — the offline suite
 
-*15 files, 2,726 lines*
+*16 files, 2,954 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -539,9 +553,10 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `test/test_gamma_direction.py` | 43 | 2 KB |
 | `test/test_gates.py` | 140 | 6 KB |
 | `test/test_index_overlay.py` | 52 | 2 KB |
-| `test/test_macro_calendar.py` | 97 | 5 KB |
+| `test/test_macro_calendar.py` | 98 | 5 KB |
 | `test/test_panels.py` | 323 | 14 KB |
 | `test/test_pead.py` | 57 | 2 KB |
+| `test/test_plays.py` | 227 | 12 KB |
 | `test/test_pricing.py` | 164 | 6 KB |
 | `test/test_scan_gates.py` | 32 | 1 KB |
 | `test/test_stress_reversal.py` | 122 | 7 KB |
