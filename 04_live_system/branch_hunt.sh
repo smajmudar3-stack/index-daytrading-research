@@ -59,7 +59,7 @@ and trap 5 (one day driving a matrix) before it is written down; "not measurable
 here" is a valid verdict and is recorded as one.
 PROMPT_END
 
-"$CLAUDE" -p "$PROMPT" --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebSearch,WebFetch" >>"$LOG" 2>&1
+"$CLAUDE" -p "$PROMPT" --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebSearch,WebFetch" >>"$LOG" 2>&1 </dev/null
 STATUS=$?
 echo "claude exit: $STATUS" >>"$LOG"
 if [ "$STATUS" -ne 0 ] && tail -c 4000 "$LOG" | grep -q "Failed to authenticate"; then

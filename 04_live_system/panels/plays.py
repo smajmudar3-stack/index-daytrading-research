@@ -52,10 +52,22 @@ def _conf_sev(label):
     return "live" if label and label.startswith("measured") else "watch"
 
 
-def _decorate(r):
+def _research():
+    """The morning research file, keyed by ticker. Research is context around a play, not
+    the promise, so a card shows the latest rather than the copy frozen at issue."""
+    try:
+        r, st = snapshots.read("plays_research.json")
+        return (r or {}).get("names") or {}, (r or {}).get("as_of")
+    except Exception:                                         # noqa: BLE001
+        return {}, None
+
+
+def _decorate(r, research=None):
     """A ledger row -> everything a card needs, with the next timeline step picked out."""
     today = _today().isoformat()
     rs = r.get("reasoning") or {}
+    if research and r.get("ticker") in research:
+        rs["research"] = research[r["ticker"]]
     r["card"] = rs.get("card") or {}
     r["timeline"] = rs.get("timeline") or []
     r["sources_list"] = [s for s in (r.get("sources") or "").split(",") if s]
@@ -79,7 +91,8 @@ def _decorate(r):
 
 def _ledger():
     import plays as eng
-    rows = [_decorate(r) for r in eng.open_plays()]
+    research, _ = _research()
+    rows = [_decorate(r, research) for r in eng.open_plays()]
     monday = _monday()
     new = [r for r in rows if r["status"] == "open" and str(r["issued"])[:10] >= monday]
     managing = [r for r in rows if r["status"] == "open" and str(r["issued"])[:10] < monday]

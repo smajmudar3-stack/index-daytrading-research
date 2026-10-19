@@ -73,7 +73,7 @@ Shape (strict JSON):
 Then print one line per name: ticker, number of news items, next catalyst date. Do not edit any other file. Do not commit.
 PROMPT_END
 
-"$CLAUDE" -p "$PROMPT" --allowedTools "WebSearch,WebFetch,Write,Read,Bash" >>"$LOG" 2>&1
+"$CLAUDE" -p "$PROMPT" --allowedTools "WebSearch,WebFetch,Write,Read,Bash" >>"$LOG" 2>&1 </dev/null
 STATUS=$?
 echo "claude exit: $STATUS" >>"$LOG"
 if [ "$STATUS" -ne 0 ] && tail -c 4000 "$LOG" | grep -q "Failed to authenticate"; then
