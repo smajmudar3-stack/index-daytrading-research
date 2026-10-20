@@ -12,7 +12,7 @@
     <span><b>unfilled</b> {{ s.unfilled }}</span>{% endif %}
   </div>
   {% if p.body.recent %}
-  <table class="tbl">
+  <div class="tblwrap"><table class="tbl">
     <thead><tr><th>signal (UTC)</th><th>token</th><th>leader tags</th><th>launchpad</th><th>fill</th><th>exit</th><th>gross</th><th>net</th><th>$</th></tr></thead>
     <tbody>
     {% for t in p.body.recent %}
@@ -27,7 +27,7 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% endif %}
   {% set w = p.body.wave_rule %}{% set ws = p.body.wave_summary %}
   <div class="wk-sidebook">

@@ -15,18 +15,19 @@
     {% else %}
       <p class="note">{{ rk.note }}</p>
       {% if rk.picks %}
-      <table class="tbl">
-        <thead><tr><th>#</th><th>name</th><th>surprise / price</th><th>residual mom</th><th>12-1</th><th>spot</th></tr></thead>
+      <div class="tblwrap"><table class="tbl">
+        <thead><tr><th>#</th><th>name</th><th>surprise / price</th><th>residual mom</th><th>12-1</th><th>spot</th><th>research</th></tr></thead>
         <tbody>
         {% for r in rk.picks %}
           <tr><td>{{ r.rank }}<em>/{{ r.cohort }}</em></td><td><b>{{ r.ticker }}</b></td>
             <td class="{{ 'up' if (r.sue or 0) > 0 else 'down' }}">{{ '%+.2f'|format((r.sue or 0) * 100) }}%</td>
             <td>{{ '%+.2f'|format(r.resid_mom or 0) }}</td>
             <td class="{{ 'up' if (r.mom12_1 or 0) > 0 else 'down' }}">{{ '%+.1f'|format((r.mom12_1 or 0) * 100) }}%</td>
-            <td>{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td></tr>
+            <td>{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td>
+            <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td></tr>
         {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       {% endif %}
       {% if rk.ledger and (rk.ledger.open or rk.ledger.closed) %}
       <div class="bk-sum"><span><b>cohorts</b> {{ rk.ledger.summary.cohorts }}</span><span><b>open</b> {{ rk.ledger.summary.n_open }}</span>
@@ -51,16 +52,17 @@
     {% else %}
       <p class="note">{{ sb.note }}</p>
       {% if sb.picks %}
-      <table class="tbl">
-        <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th></tr></thead>
+      <div class="tblwrap"><table class="tbl">
+        <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th><th>research</th></tr></thead>
         <tbody>
         {% for r in sb.picks %}
           <tr><td>{{ r.rank }}<em>/{{ r.cohort }}</em></td><td><b>{{ r.ticker }}</b></td>
             <td class="down">{{ '%+.1f'|format((r.ret1m or 0) * 100) }}%</td><td class="down">{{ '%+.1f'|format((r.ret1w or 0) * 100) }}%</td>
-            <td>{{ '%+.2f'|format(r.bb_pos or 0) }}</td><td>{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td></tr>
+            <td>{{ '%+.2f'|format(r.bb_pos or 0) }}</td><td>{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td>
+            <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td></tr>
         {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       {% endif %}
       {% if sb.ledger and (sb.ledger.open or sb.ledger.closed) %}
       <div class="bk-sum"><span><b>cohorts</b> {{ sb.ledger.summary.cohorts }}</span><span><b>open</b> {{ sb.ledger.summary.n_open }}</span>

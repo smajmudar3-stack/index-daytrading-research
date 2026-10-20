@@ -1,0 +1,31 @@
+{# Every book on one card: a row per book with what it holds, what it has closed and how it
+   has done. Colour only on the performance number. Each row links to its full card below. #}
+<section class="card {{ p.severity or '' }} is-{{ p.state }} overview-card" id="panel-{{ p.key }}">
+  <h3>{{ p.title }}</h3>
+  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+  <div class="ov">
+    {% for r in p.body.rows %}
+    <a class="ov-row {{ r.sev }}" href="#panel-{{ r.key }}">
+      <div class="ov-name">
+        <b>{{ r.label }}</b>
+        <span class="ov-what">{{ r.what }}</span>
+        {% if r.chip %}<span class="chip {{ 'stop' if 'REGIME ON' in r.chip else '' }}">{{ r.chip }}</span>{% endif %}
+        {% if r.state != 'ok' %}<span class="chip {{ r.sev }}">{{ 'blocked' if r.state == 'unavailable' else r.state }}</span>{% endif %}
+      </div>
+      <div class="ov-nums">
+        <span class="ov-n"><i>{% if r.picks is not none %}{{ r.picks }}{% else %}—{% endif %}</i><em>picks</em></span>
+        <span class="ov-n"><i>{% if r.open is not none %}{{ r.open }}{% else %}—{% endif %}</i><em>open</em></span>
+        <span class="ov-n"><i>{% if r.closed is not none %}{{ r.closed }}{% else %}—{% endif %}</i><em>closed</em></span>
+        <span class="ov-n"><i>{% if r.hit is not none %}{{ r.hit }}%{% else %}—{% endif %}</i><em>hit</em></span>
+        <span class="ov-n big {{ r.avg_class }}"><i>{% if r.avg is not none %}{{ '%+.2f'|format(r.avg) }}%{% else %}—{% endif %}</i><em>{{ r.avg_label }}</em></span>
+      </div>
+      <div class="ov-foot">
+        <span class="ov-meas">measured: {{ r.measured }}</span>
+        {% if r.extra %}<span class="ov-extra">{{ r.extra }}</span>{% endif %}
+        {% if r.why %}<span class="ov-why">{{ r.why }}</span>{% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
+</section>

@@ -806,3 +806,115 @@ td.splits span { display: inline-block; min-width: 34px; font-family: var(--mono
   .play-exp { margin-left: 0; }
   .tl li { grid-template-columns: 80px 1fr; }
 }
+
+/* ================================================================ readability pass
+   2026-10-19, Sholo: "Books is a mess, Plays is a mess, make it much more visually
+   appealing and easier to read without sacrificing data." The data stays; the density and
+   the hierarchy change. Long tables scroll inside their card under a sticky header instead
+   of running three screens; every book gets one overview row; a play's reasoning is one
+   line per pillar with the long form folded; dated things are chips; the timeline keeps
+   only the prints that matter. */
+
+/* tables: compact, sticky header, right-aligned numbers, the rank's denominator faded */
+.tblwrap { max-height: 460px; overflow: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(0,0,0,0.18); }
+.tblwrap table { margin-top: 0; }
+.tblwrap thead th { position: sticky; top: 0; background: var(--card); z-index: 1; padding: 8px 10px; }
+.tbl td { padding: 6px 10px; font-size: 12.5px; }
+.tbl td:first-child, .tbl th:first-child { padding-left: 12px; }
+.tbl td em { font-style: normal; color: var(--faint); font-size: 10.5px; }
+.tbl tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+.tbl tbody tr:hover td { background: rgba(255,255,255,0.04); }
+.tbl td.rs { max-width: 300px; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+.tbl td.rs .rs-d { display: block; color: var(--text); }
+.tbl td.rs em { display: block; }
+.tbl td.rs .chip { margin-top: 3px; }
+.faint { color: var(--faint); }
+
+/* the books view: one column, the overview first, cards breathe */
+body[data-view="books"] .card { padding: 18px 22px 16px; }
+body[data-view="books"] .card > h3 { font-size: 15px; }
+body[data-view="books"] .card .note { max-width: 90ch; }
+body[data-view="books"] .bk-sum { margin: 10px 0 6px; padding: 10px 12px; background: var(--card-2); border-radius: var(--r-sm); border-bottom: 0; }
+body[data-view="books"] .bk-sum span { font-size: 12px; }
+body[data-view="books"] .wk-sidebook { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+body[data-view="books"] .wk-sidebook:first-of-type { border-top: 0; padding-top: 0; }
+body[data-view="books"] .wk-back-hd { font-size: 11px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* the overview: a row per book, click to jump */
+.ov { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.ov-row { display: grid; grid-template-columns: minmax(220px, 1.3fr) minmax(0, 2fr); gap: 6px 18px; padding: 12px 16px;
+  border-radius: 12px; background: var(--card-2); border: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.ov-row:hover { border-color: var(--line-2); text-decoration: none; background: #20242a; }
+.ov-row.stop { border-color: rgba(255,79,56,0.4); }
+.ov-row.watch { border-color: rgba(245,166,35,0.3); }
+.ov-name { display: flex; flex-direction: column; gap: 3px; }
+.ov-name b { font-size: 14px; font-weight: 800; }
+.ov-what { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.ov-name .chip { align-self: flex-start; margin-top: 2px; }
+.ov-nums { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.ov-n { display: flex; flex-direction: column; align-items: flex-end; min-width: 64px; padding: 6px 10px; border-radius: 8px; background: var(--card); }
+.ov-n i { font-style: normal; font-family: var(--mono); font-size: 15px; font-weight: 800; }
+.ov-n em { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.ov-n.big { min-width: 104px; }
+.ov-n.big i { font-size: 19px; }
+.ov-n.up i { color: var(--green); }
+.ov-n.down i { color: var(--red); }
+.ov-foot { grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; font-size: 10.5px; color: var(--faint); }
+.ov-why { color: var(--red); }
+.ov-extra { color: var(--muted); }
+
+/* the plays view: the strip, then the cards */
+.strip { margin: 10px 0 4px; }
+.strip .stat.wide { flex: 2; min-width: 260px; }
+.strip .stat.wide .n { font-size: 17px; font-family: var(--mono); }
+.strip .stat.wide .l { text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+.play { padding: 18px 20px 16px; }
+.play-top { gap: 12px; }
+.play-tk { font-size: 30px; }
+.play-struct { font-size: 12.5px; }
+.play-hero { display: grid; grid-template-columns: minmax(260px, 1.1fr) minmax(0, 2fr); gap: 12px; align-items: stretch; margin: 12px 0 0; }
+.play-hero .play-legs { margin: 0; flex-direction: column; align-items: flex-start; gap: 4px; justify-content: center; }
+.play-hero .play-legs .legs { font-size: 16px; }
+.play-hero .play-legs .spot { margin-left: 0; }
+.play-stats { margin: 0; }
+.play-stats .stat { padding: 11px 13px 9px; min-width: 110px; }
+.play-stats .stat .n { font-size: 21px; }
+.play-stats .stat.big .n { font-size: 26px; }
+.play-stats .stat .l { font-size: 9.5px; letter-spacing: 0.04em; }
+
+.play-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.play-why .wk-back-hd, .play-when .wk-back-hd { margin-bottom: 6px; }
+.pl { display: grid; grid-template-columns: 72px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.pl:last-of-type { border-bottom: 0; }
+.pl .wk-kind { min-width: 0; width: 72px; margin-top: 2px; }
+.pl-b { font-size: 12.5px; line-height: 1.5; min-width: 0; }
+.pl-b b { font-weight: 700; }
+.pl-1 { display: block; color: var(--muted); font-size: 12px; }
+.pl-more { margin-top: 3px; }
+.pl-more summary { font-size: 10.5px; color: var(--faint); }
+.pl-more summary::before { content: "+ "; }
+.pl-more[open] summary::before { content: "− "; }
+.pl-more p { margin: 5px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--muted); max-width: 78ch; }
+.pl-b.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dchip { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.dchip.earn { border-color: rgba(245,166,35,0.5); color: var(--amber); background: var(--amber-wash); }
+.dchip.res { border-color: rgba(76,159,254,0.5); color: var(--blue); background: var(--blue-wash); }
+.against { margin: 6px 0 0; padding: 0 0 0 16px; color: var(--amber); font-size: 11.5px; line-height: 1.5; }
+.against li { margin: 2px 0; }
+.play-alt { margin-top: 8px; padding: 9px 11px; }
+.play-alt .legs { font-size: 12px; }
+.play-alt .verdict { font-size: 11px; }
+
+.tl li { grid-template-columns: 86px 1fr; padding: 4px 0 4px 20px; font-size: 11.5px; }
+.tl li.macro .tl-w { color: var(--faint); }
+.tl li.macro::before { background: var(--bg); }
+.tl li.research .tl-d { color: var(--blue); }
+.tl li.next .tl-w { font-weight: 600; }
+
+@media (max-width: 900px) {
+  .play-hero { grid-template-columns: 1fr; }
+  .ov-row { grid-template-columns: 1fr; }
+  .ov-nums { justify-content: flex-start; }
+}

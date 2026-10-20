@@ -40,7 +40,7 @@ VIEWS = [
         # The two stock cohorts lead (they are what there is to act on most weeks), then the
         # quarterly book, the stress book, the emails as trades, the index overlay, the
         # weekly options cards and their ledger, the memecoin book, and the refusals.
-        "panels": [weekly.books, weekly.stock_picks, weekly.stress_book, weekly.desk_trades, weekly.overlay,
+        "panels": [weekly.books_overview, weekly.books, weekly.stock_picks, weekly.stress_book, weekly.desk_trades, weekly.overlay,
                    weekly.trades, weekly.book, weekly.memecoin_book, weekly.refused],
     },
     {

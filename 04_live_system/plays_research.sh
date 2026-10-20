@@ -34,12 +34,17 @@ p, _ = snapshots.read("plays_snapshot.json")
 names = []
 for x in (p or {}).get("open") or []:
     if x.get("status") == "open": names.append(x["ticker"])
-for x in ((p or {}).get("considered") or [])[:12]:
+for x in ((p or {}).get("considered") or [])[:10]:
     names.append(x["ticker"])
+# the week's ranker and stress cohorts, so the research shows beside those picks too
+for snap in ("swing_ranker_snapshot.json", "stress_reversal_snapshot.json"):
+    q, _ = snapshots.read(snap)
+    for x in ((q or {}).get("picks") or [])[:12]:
+        names.append(x.get("ticker"))
 seen = []
 for n in names:
-    if n not in seen: seen.append(n)
-print(" ".join(seen[:15]))
+    if n and n not in seen: seen.append(n)
+print(" ".join(seen[:40]))
 PY
 )"
 if [ -z "$NAMES" ]; then

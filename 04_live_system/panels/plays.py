@@ -69,7 +69,20 @@ def _decorate(r, research=None):
     if research and r.get("ticker") in research:
         rs["research"] = research[r["ticker"]]
     r["card"] = rs.get("card") or {}
-    r["timeline"] = rs.get("timeline") or []
+    # the timeline as frozen at issue, compacted for the page: macro rows keep only the prints
+    # that move a quarter (FOMC, CPI, jobs), lose their boilerplate, and carry a kind so the
+    # template can fade them; nothing is removed from the ledger itself
+    tl = []
+    for t in rs.get("timeline") or []:
+        what = str(t.get("what") or "")
+        kind = t.get("kind")
+        if what.startswith("macro:"):
+            if not any(k in what for k in ("FOMC", "CPI", "jobs")):
+                continue
+            what = what.split(" — ")[0]
+            kind = "macro"
+        tl.append({**t, "what": what, "kind": kind})
+    r["timeline"] = tl
     r["sources_list"] = [s for s in (r.get("sources") or "").split(",") if s]
     r["next"] = next((t for t in r["timeline"] if t["when"] >= today), None)
     try:
@@ -134,8 +147,8 @@ def desk():
         return panel("plays", title, state=EMPTY, body=body, note=why, age_min=_age_min(eng.OUT),
                      source="plays.issue() daily · ledger plays.db · priors from 05_studies/play_structures_test.py")
     note = (f"{len(new)} new this week, {len(managing)} being managed, {score.get('n_closed', 0)} closed. "
-            "Every card is a measured stock signal expressed as the option structure that measured best for its horizon, "
-            "priced off the live ladder at the ask and the bid, and recorded the day it was issued. Paper.")
+            "Every card is a measured stock signal expressed the way that measured best for its horizon (shares today; the option "
+            "legs are priced off the live ladder beside it with their own measured number), sized, dated, and recorded the day it was issued. Paper.")
     return panel("plays", title, state=STALE if st == "stale" else OK, body=body, note=note, age_min=_age_min(eng.OUT),
                  severity="watch" if any(r["vetoes"] for r in new + managing) else None,
                  source="plays.issue() daily, plays.mark() every 4h · plays.db · 02_findings/play_structures.md")

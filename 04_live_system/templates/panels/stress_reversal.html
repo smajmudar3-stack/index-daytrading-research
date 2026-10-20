@@ -5,8 +5,8 @@
   {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
 
   {% if p.body.picks %}
-  <table class="tbl">
-    <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th></tr></thead>
+  <div class="tblwrap"><table class="tbl">
+    <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th><th>research</th></tr></thead>
     <tbody>
     {% for r in p.body.picks %}
       <tr>
@@ -16,10 +16,11 @@
         <td class="down">{{ '%+.1f'|format(r.ret1w * 100) }}%</td>
         <td>{{ '%+.2f'|format(r.bb_pos) }}</td>
         <td>{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td>
+        <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% endif %}
 
   {% set led = p.body.ledger %}
@@ -31,7 +32,7 @@
     {% if led.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ led.summary.hit_rate }}%</span>{% endif %}
     {% if led.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(led.summary.avg_rel_pct) }}%</span>{% endif %}
   </div>
-  <table class="tbl">
+  <div class="tblwrap"><table class="tbl">
     <thead><tr><th>name</th><th>issued</th><th>entered</th><th>entry</th><th>now</th><th>P&amp;L</th><th>vs SPY</th><th>due</th><th>status</th></tr></thead>
     <tbody>
     {% for r in led.open + led.closed %}
@@ -48,7 +49,7 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% endif %}
 
   {% if p.body.measured %}

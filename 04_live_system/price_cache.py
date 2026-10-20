@@ -58,6 +58,16 @@ def _newest(c, tickers):
     return dict(c.execute(f"SELECT ticker, MAX(date) FROM bars WHERE ticker IN ({q}) GROUP BY ticker", tickers).fetchall()) if tickers else {}
 
 
+def _oldest(c, tickers):
+    q = ",".join("?" * len(tickers))
+    return dict(c.execute(f"SELECT ticker, MIN(date) FROM bars WHERE ticker IN ({q}) GROUP BY ticker", tickers).fetchall()) if tickers else {}
+
+
+def _short_listed(c, tk):
+    r = c.execute("SELECT note FROM status WHERE ticker=?", (tk,)).fetchone()
+    return bool(r and r[0] == "short history")
+
+
 def _store(c, tk, df):
     rows = []
     for ts, r in df.iterrows():
@@ -90,7 +100,14 @@ def refresh(tickers, days=400, budget_s=BUDGET_S, now=None):
     tickers = sorted({t for t in tickers if t})
     target = last_session(now)
     newest = _newest(c, tickers)
-    need = [t for t in tickers if (newest.get(t) or "") < target]
+    # depth: a name whose OLDEST cached bar is younger than the window asked for has been
+    # seeded at a shorter period (the first seed was one year; the ranker needs fourteen
+    # months) and must be fetched deep, not topped up. 2026-10-19: every name had 250 bars,
+    # the ranker needs 260, and it reported "0 of 1558 names" as a vendor outage.
+    oldest = _oldest(c, tickers)
+    floor = (datetime.now(ET) - timedelta(days=int(days * 1.1))).strftime("%Y-%m-%d")
+    deep = {t for t in tickers if days > 300 and (oldest.get(t) or "9999") > floor and not _short_listed(c, t)}
+    need = [t for t in tickers if (newest.get(t) or "") < target or t in deep]
     fresh = len(tickers) - len(need)
     t0 = time.time()
     fetched, failed = 0, []
@@ -99,9 +116,14 @@ def refresh(tickers, days=400, budget_s=BUDGET_S, now=None):
     while i < len(need) and time.time() - t0 < budget_s:
         chunk = need[i:i + batch]
         # a name with history only needs the tail; a new name needs the whole window
-        period = "1y" if any((newest.get(t) is None) for t in chunk) else "1mo"
-        if days > 300 and period == "1mo" and any((newest.get(t) or "") < (datetime.now(ET) - timedelta(days=20)).strftime("%Y-%m-%d") for t in chunk):
+        if any(t in deep for t in chunk) or (days > 300 and any(newest.get(t) is None for t in chunk)):
+            period = "2y"
+        elif any(newest.get(t) is None for t in chunk):
+            period = "1y"
+        elif any((newest.get(t) or "") < (datetime.now(ET) - timedelta(days=20)).strftime("%Y-%m-%d") for t in chunk):
             period = "3mo"
+        else:
+            period = "1mo"
         try:
             got = _fetch(chunk, period)
         except Exception:                                     # noqa: BLE001
@@ -109,7 +131,9 @@ def refresh(tickers, days=400, budget_s=BUDGET_S, now=None):
         for tk in chunk:
             if tk in got:
                 _store(c, tk, got[tk])
-                c.execute("INSERT OR REPLACE INTO status VALUES (?,?,?,?,?)", (tk, got[tk].index[-1].strftime("%Y-%m-%d"), time.time(), 0, None))
+                # a deep fetch that still comes back short is a young listing, not a gap: remember it
+                note = "short history" if (tk in deep and got[tk].index[0].strftime("%Y-%m-%d") > floor) else None
+                c.execute("INSERT OR REPLACE INTO status VALUES (?,?,?,?,?)", (tk, got[tk].index[-1].strftime("%Y-%m-%d"), time.time(), 0, note))
                 fetched += 1
             else:
                 prev = c.execute("SELECT fails FROM status WHERE ticker=?", (tk,)).fetchone()
@@ -123,7 +147,7 @@ def refresh(tickers, days=400, budget_s=BUDGET_S, now=None):
             time.sleep(SLEEP_S)
         i += len(chunk)
     c.close()
-    return {"fetched": fetched, "failed": failed, "not_tried": need[i:], "fresh": fresh, "seconds": round(time.time() - t0)}
+    return {"fetched": fetched, "failed": failed, "not_tried": need[i:], "fresh": fresh, "deepened": len(deep), "seconds": round(time.time() - t0)}
 
 
 def history(tickers, days=400, refresh_first=True, budget_s=BUDGET_S, now=None):

@@ -459,16 +459,19 @@ def _add_sessions(d, n):
     return d
 
 
-def _timeline(now, bits, sessions, horizon_end, events, earnings, is_shares):
+def _timeline(now, bits, sessions, horizon_end, events, earnings, is_shares, research_catalysts=None):
     t = [{"when": _add_sessions(now.date(), 1).isoformat(),
           "what": "enter at the open" + ("; the ledger fills at that print" if is_shares else ": every leg at the ask when bought, the bid when sold; the ledger records that fill")}]
     mid = _add_sessions(now.date(), sessions // 2).isoformat()
     t.append({"when": mid, "what": "checkpoint: is the thesis intact (the signal's own numbers, the macro theme, no veto)? no price stop" + ("" if is_shares else " on a debit — measured to hurt")})
     for e in events or []:
-        t.append({"when": e["date"], "what": f"macro: {e['label']} — a hazard to be through, not a reason to trade"})
+        if e.get("importance") == "high" or "FOMC" in str(e.get("label")) or "CPI" in str(e.get("label")) or "jobs" in str(e.get("label")).lower():
+            t.append({"when": e["date"], "what": f"macro: {e['label']}", "kind": "macro"})
     if earnings and earnings.get("date"):
         ed = str(earnings["date"])[:10]
         t.append({"when": ed, "what": "this name reports" + (" (inside the hold; the card carries it)" if ed <= horizon_end else " (after the exit)")})
+    for cat in research_catalysts or []:
+        t.append({"when": cat["date"], "what": f"catalyst (research, sourced): {cat['label']}", "kind": "research"})
     t.append({"when": horizon_end, "what": f"exit: the measured horizon ({sessions} sessions) ends; " + ("sell at the open" if is_shares else "close at the bid/ask, or let expiry settle if it is within days")})
     if not is_shares and bits["expiry"] != horizon_end:
         t.append({"when": bits["expiry"], "what": "expiry"})
@@ -515,8 +518,24 @@ def build_play(c, pri, now):
     for e in ctx.get("events") or []:
         if e["date"] == bits["expiry"] and e.get("importance") == "high":
             vetoes.append(f"{e['label']} lands on the expiry {e['date']}")
-    conf = confidence(p, len(c["sources"]), vetoes)
     horizon_end = _add_sessions(now.date(), SOURCES[sig]["sessions"]).isoformat()
+    # THE RESEARCH FEEDS IN HERE, and only downward. The morning session's sourced catalysts
+    # inside the hold go on the timeline; its "against" list lowers the rank between equal
+    # priors and is printed on the card; a lock-up expiry or a binary regulatory date inside
+    # the hold is a veto, because the measured drift was never measured through one.
+    res = ctx.get("research") or {}
+    against = [a for a in (res.get("against") or []) if a]
+    r_cats = []
+    for cat in res.get("catalysts") or []:
+        d = str(cat.get("date") or "")[:10]
+        if len(d) == 10 and d[:4].isdigit() and now.date().isoformat() < d <= horizon_end:
+            r_cats.append({"date": d, "label": cat.get("label") or "catalyst", "url": cat.get("url")})
+            low = (cat.get("label") or "").lower()
+            if any(k in low for k in ("lock-up", "lockup", "lock up", "fda", "pdufa", "adcom", "court ruling", "verdict")):
+                vetoes.append(f"research: {cat.get('label')} on {d}, inside the hold")
+    conf = confidence(p, len(c["sources"]), vetoes)
+    if against and not vetoes:
+        conf += f" · research flags {len(against)} concern{'s' if len(against) > 1 else ''}"
     exp_pct = p["mean"] * 100 if p else None
     contracts = max(1, int(RISK_PER_PLAY_USD // bits["max_risk"])) if bits["max_risk"] else 1
     is_shares = struct == "shares"
@@ -532,9 +551,10 @@ def build_play(c, pri, now):
         "earnings": ctx.get("earnings"),
         "vol": ctx.get("uw"),
         "research": ctx.get("research"),
+        "research_catalysts": r_cats,
         "vetoes": vetoes,
     }
-    reasoning["timeline"] = _timeline(now, bits, SOURCES[sig]["sessions"], horizon_end, reasoning["events"], ctx.get("earnings"), is_shares)
+    reasoning["timeline"] = _timeline(now, bits, SOURCES[sig]["sessions"], horizon_end, reasoning["events"], ctx.get("earnings"), is_shares, r_cats)
     reasoning["card"] = {"structure_label": STRUCT_LABEL[struct], "is_debit": bits["is_debit"], "max_reward": bits["max_reward"], "rr": bits.get("rr"),
                          "breakevens": bits.get("breakevens"), "width": bits.get("width"), "spot": bits["spot"], "contracts": contracts,
                          "median_pct": round(p["median"] * 100, 1) if p else None, "p25_pct": round(p["p25"] * 100, 1) if p else None,
@@ -551,7 +571,8 @@ def build_play(c, pri, now):
             "contracts": contracts, "risk_usd": round(bits["max_risk"] * contracts, 0),
             "hit": p["hit"] if p else None, "payoff": p["payoff"] if p else None, "confidence": conf, "reasoning": reasoning,
             "timeline": reasoning["timeline"], "card": reasoning["card"],
-            "score": (p["mean"] if p else -1) * (1.25 if len(c["sources"]) > 1 else 1.0) - (10 if vetoes else 0)}
+            "research_concerns": len(against),
+            "score": (p["mean"] if p else -1) * (1.25 if len(c["sources"]) > 1 else 1.0) - (10 if vetoes else 0) - 0.002 * len(against)}
     return play, None
 
 
@@ -583,7 +604,7 @@ def issue(now=None, force=False):
         else:
             built.append(play)
     built.sort(key=lambda p: -p["score"])
-    out["considered"] = [{k: p[k] for k in ("ticker", "sources", "structure", "structure_label", "legs_text", "expected_pct", "hit", "confidence", "cost_pct", "score")} for p in built]
+    out["considered"] = [{k: p[k] for k in ("ticker", "sources", "structure", "structure_label", "legs_text", "expected_pct", "hit", "confidence", "cost_pct", "score", "research_concerns")} for p in built]
     if due and room:
         for p in [b for b in built if not b["reasoning"]["vetoes"] and (b["expected_pct"] or 0) > 0][:room]:
             con.execute("""INSERT INTO plays (issued, ticker, sources, structure, legs_text, legs_json, expiry, dte, spot, net, max_risk, max_reward,

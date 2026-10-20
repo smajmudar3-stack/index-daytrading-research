@@ -20,7 +20,7 @@
       {% if bs and bs.open.n %}<span class="chip">open {{ bs.open.n }}{% if bs.open.avg_rel_pct is not none %} · running {{ '%+.2f'|format(bs.open.avg_rel_pct) }}% vs SPY{% endif %}</span>{% endif %}
     </div>
     {% if rows %}
-    <table class="tbl">
+    <div class="tblwrap"><table class="tbl">
       <thead><tr><th>name</th><th>side</th><th>from note</th><th>entered</th><th>entry</th><th>now</th><th>P&amp;L</th><th>vs SPY</th><th>due</th><th>why</th></tr></thead>
       <tbody>
       {% for r in rows %}
@@ -38,7 +38,7 @@
         </tr>
       {% endfor %}
       </tbody>
-    </table>
+    </table></div>
     {% else %}<p class="note">nothing open from this source.</p>{% endif %}
   </div>
   {% endfor %}
@@ -55,10 +55,10 @@
   {% endif %}
   {% if led.closed %}
   <details class="wk-refused"><summary>{{ led.closed|length }} closed</summary>
-    <table class="tbl"><thead><tr><th>name</th><th>side</th><th>source</th><th>entered</th><th>closed</th><th>P&amp;L</th><th>vs SPY</th></tr></thead><tbody>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>name</th><th>side</th><th>source</th><th>entered</th><th>closed</th><th>P&amp;L</th><th>vs SPY</th></tr></thead><tbody>
     {% for r in led.closed %}<tr><td><b>{{ r.ticker }}</b></td><td>{{ 'long' if r.dir > 0 else 'short' }}</td><td>{{ r.source }}</td><td>{{ r.entry_date }}</td><td>{{ (r.closed or '')[:10] }}</td>
       <td class="{{ 'up' if (r.pnl_pct or 0) > 0 else 'down' }}">{{ '%+.1f'|format(r.pnl_pct or 0) }}%</td><td class="{{ 'up' if (r.rel_pct or 0) > 0 else 'down' }}">{{ '%+.1f'|format(r.rel_pct or 0) }}%</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </details>
   {% endif %}
   <p class="wk-back-ft">Nothing here is backtested: the desk notes exist from 2026-09-17. These ledgers are the measurement. A short is a paper short

@@ -338,7 +338,7 @@ def stock_picks():
     if not p.get("ok"):
         return unavailable("swing_stock", "Quarterly stock book: the biggest earnings beats",
                            p.get("blocked", "the stock book did not run"), fix="idt refresh")
-    picks = p.get("picks") or []
+    picks = _annotate(p.get("picks") or [], _research_map()[0])
     body = {"picks": picks, "refused": (p.get("refused") or [])[:40], "cohort_n": p.get("cohort_n"),
             "n_ranked": p.get("n_ranked"), "hold_sessions": p.get("hold_sessions"),
             "basis": p.get("basis"), "ledger": led}
@@ -461,12 +461,13 @@ def _side_books():
     residual momentum + 12-1, top 25, 21 sessions) and the stress book (biggest losers,
     only while VIX > 25). Each is a snapshot plus its ledger summary; never a vendor call."""
     out = {"ranker": None, "stress": None}
+    rmap, out["research_as_of"] = _research_map()
     try:
         import swing_ranker as srk
         p, st = snapshots.read(srk.OUT)
         if p is not None and st not in ("absent", "unreadable", "wrong_version", "incomplete"):
             out["ranker"] = {"ok": p.get("ok"), "as_of": p.get("as_of"), "issued": p.get("issued"), "note": p.get("note"),
-                             "blocked": p.get("blocked"), "picks": (p.get("picks") or [])[:25], "cohort_n": p.get("cohort_n"),
+                             "blocked": p.get("blocked"), "picks": _annotate((p.get("picks") or [])[:25], rmap), "cohort_n": p.get("cohort_n"),
                              "hold_sessions": p.get("hold_sessions"), "measured": p.get("measured"), "stale": st == "stale",
                              "ledger": srk.ledger(limit=60)}
     except Exception as e:                                    # noqa: BLE001
@@ -477,7 +478,7 @@ def _side_books():
         if p is not None and st not in ("absent", "unreadable", "wrong_version", "incomplete"):
             out["stress"] = {"ok": p.get("ok"), "as_of": p.get("as_of"), "regime_on": p.get("regime_on"), "vix": p.get("vix"),
                              "vix_on": p.get("vix_on"), "issued": p.get("issued"), "note": p.get("note"), "blocked": p.get("blocked"),
-                             "picks": (p.get("picks") or [])[:40], "hold_sessions": p.get("hold_sessions"),
+                             "picks": _annotate((p.get("picks") or [])[:40], rmap), "hold_sessions": p.get("hold_sessions"),
                              "measured": p.get("measured"), "stale": st == "stale", "ledger": sr.ledger(limit=80)}
     except Exception as e:                                    # noqa: BLE001
         out["stress"] = {"ok": False, "blocked": f"{type(e).__name__}: {e}", "picks": [], "ledger": None}
@@ -695,3 +696,93 @@ def freshness():
                        "session instead — a `seed` state means it is still on the "
                        "transcription and has not yet been machine-verified."),
                  source="maintenance.py — ages read from each asset's own stamp")
+
+
+# ------------------------------------------------------------- research beside picks ---
+
+def _research_map():
+    """The morning research session's file, keyed by ticker: {driver, next catalyst, concerns}.
+    Context beside a pick; it never changes a rank, because the ranks were measured and the
+    research was not."""
+    try:
+        r, st = snapshots.read("plays_research.json")
+    except Exception:                                         # noqa: BLE001
+        return {}, None
+    out = {}
+    for tk, v in ((r or {}).get("names") or {}).items():
+        cats = sorted([c for c in (v.get("catalysts") or []) if str(c.get("date") or "")[:4].isdigit()], key=lambda c: str(c["date"]))
+        out[tk] = {"driver": v.get("driver"), "next": (f"{str(cats[0]['date'])[:10]} {cats[0].get('label', '')}" if cats else None),
+                   "n_against": len(v.get("against") or []), "against": v.get("against") or [],
+                   "news": (v.get("news") or [])[:2], "last_print": v.get("last_print")}
+    return out, (r or {}).get("as_of")
+
+
+def _annotate(picks, rmap):
+    for pk in picks or []:
+        pk["research"] = rmap.get(pk.get("ticker"))
+    return picks
+
+
+# ----------------------------------------------------------------- the overview ---
+
+@safe
+@describe("books_overview", "Every book at a glance")
+def books_overview():
+    """One row per paper book: what it holds, what it has closed, and how it has done against
+    SPY. Built from the other book panels' own dicts so the overview can never disagree with
+    the card it points at."""
+    rows = []
+
+    def _sum(led):
+        sm = (led or {}).get("summary") or {}
+        return {"open": sm.get("n_open"), "closed": sm.get("n"), "hit": sm.get("hit_rate"), "avg": sm.get("avg_rel_pct")}
+
+    sp = stock_picks()
+    rows.append({"key": "swing_stock", "label": "Quarterly stock book", "what": "biggest earnings beats, 63 sessions, shares",
+                 "measured": "+4.24%/quarter over SPY, all splits", "state": sp["state"], "why": sp.get("note") if sp["state"] != "ok" else None,
+                 "picks": len((sp.get("body") or {}).get("picks") or []), **_sum((sp.get("body") or {}).get("ledger"))})
+    bk = books()
+    b = bk.get("body") or {}
+    rk, sb = b.get("ranker") or {}, b.get("stress") or {}
+    rows.append({"key": "weekly_books", "label": "Swing ranker", "what": "surprise + residual + 12-1 momentum, top 25, 21 sessions",
+                 "measured": "+0.84%/hold over SPY, all splits", "state": "ok" if rk.get("ok") else ("unavailable" if rk else "empty"),
+                 "why": rk.get("blocked") if rk and not rk.get("ok") else None, "picks": len(rk.get("picks") or []), **_sum(rk.get("ledger"))})
+    rows.append({"key": "weekly_books", "label": "Stress book", "what": "40 biggest losers, 10 sessions; measured only while VIX > 25",
+                 "measured": "+2.59%/hold in regime, hit 0.56", "state": "ok" if sb.get("ok") else ("unavailable" if sb else "empty"),
+                 "why": sb.get("blocked") if sb and not sb.get("ok") else None, "picks": len(sb.get("picks") or []),
+                 "chip": (f"REGIME ON · VIX {sb.get('vix'):.1f}" if sb.get("regime_on") else (f"out of regime · VIX {sb.get('vix'):.1f}" if sb.get("vix") else None)),
+                 **_sum(sb.get("ledger"))})
+    dt = desk_trades()
+    led = (dt.get("body") or {}).get("ledger") or {}
+    sm = led.get("summary") or {}
+    rows.append({"key": "desk_trades", "label": "The emails as trades", "what": "the desk's book, its calls and its themes, in shares",
+                 "measured": "unmeasured; the ledger is the test", "state": dt["state"], "why": dt.get("note") if dt["state"] == "unavailable" else None,
+                 "picks": len(led.get("open") or []), "open": sm.get("n_open", len(led.get("open") or [])), "closed": sm.get("n"), "hit": sm.get("hit_rate"), "avg": sm.get("avg_rel_pct")})
+    ov = overlay()
+    osm = (ov.get("body") or {}).get("summary") or {}
+    rows.append({"key": "index_overlay", "label": "Index overlay", "what": "long the index 1x, 2x when VIX is backwardated in a golden cross",
+                 "measured": "15.3%/yr vs 11.5%, DD 59%", "state": ov["state"], "why": ov.get("note") if ov["state"] == "unavailable" else None,
+                 "chip": (ov.get("body") or {}).get("state_label"), "picks": None, "open": None, "closed": osm.get("sessions"), "hit": None,
+                 "avg": osm.get("return_pct"), "avg_label": "return", "extra": (f"${osm.get('equity'):,.0f} vs ${osm.get('buy_hold_equity'):,.0f} buy & hold" if osm.get("equity") else None)})
+    wb = book()
+    wsm = (wb.get("body") or {}).get("summary") or {}
+    rows.append({"key": "weekly_book", "label": "Weekly options cards", "what": "the macro-first weekly structures, marked on the chain", "measured": "direction measured null; empty most weeks",
+                 "state": wb["state"], "why": None, "picks": len((wb.get("body") or {}).get("open") or []), "open": len((wb.get("body") or {}).get("open") or []),
+                 "closed": wsm.get("n"), "hit": wsm.get("hit_rate"), "avg": wsm.get("avg_pnl_pct"), "avg_label": "avg P&L"})
+    mb = memecoin_book()
+    msm = (mb.get("body") or {}).get("summary") or {}
+    rows.append({"key": "memecoin_book", "label": "Memecoin book", "what": "copy GMGN smart money, +60 s in, +5 min out", "measured": "−17% net at 5 min on the replay",
+                 "state": mb["state"], "why": None, "picks": None, "open": None, "closed": msm.get("n"),
+                 "hit": round(msm.get("hit", 0) * 100) if msm.get("hit") is not None else None, "avg": msm.get("mean_net_pct"), "avg_label": "mean net",
+                 "extra": (f"P&L ${msm.get('pnl_usd'):,.0f}" if msm.get("pnl_usd") is not None else None)})
+    for r in rows:
+        r.setdefault("avg_label", "avg vs SPY")
+        r["sev"] = "stop" if r["state"] == "unavailable" else ("" if r["state"] == "ok" else "watch")
+        r["avg_class"] = "up" if (r.get("avg") or 0) > 0 else ("down" if (r.get("avg") or 0) < 0 else "")
+    live = sum(1 for r in rows if r["state"] == "ok")
+    blocked = [r["label"] for r in rows if r["state"] == "unavailable"]
+    return panel("books_overview", "Every book at a glance", state=OK, body={"rows": rows},
+                 severity="stop" if blocked else None,
+                 note=(f"{live} of {len(rows)} books live" + (f"; blocked: {', '.join(blocked)}" if blocked else "") +
+                       ". Every book fills at the next open, freezes its entry and marks against SPY. Click a row for the full card."),
+                 source="the book panels below; nothing here is computed separately")
