@@ -178,7 +178,7 @@ def test_plays_panels_render_in_every_state(state, monkeypatch):
     d = pp.desk()
     assert d["state"] == "ok"
     html = dashboard_app._render_panel(tpl, d)
-    for needle in ("ACME", "Buy shares at the next open", "expected ·", "Timeline", "US exceptionalism", "FOMC", "Buy 45C", "as options"):
+    for needle in ("ACME", "Buy shares at the next open", "expected profit", "What happens next", "US exceptionalism", "FOMC", "Buy 45C", "The same idea as options"):
         assert needle in html, needle
     c = pp.considered()
     assert c["state"] == "ok"

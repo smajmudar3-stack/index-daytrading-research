@@ -1,64 +1,73 @@
-{# The quarterly stock book. Ranked context, never an instruction: the surprise, the rank in
-   its cohort, and what the previous picks actually did against SPY. #}
-<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
-  <h3>{{ p.title }}</h3>
-  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
-
-  {% if p.body.picks %}
-  <div class="tblwrap"><table class="tbl">
-    <thead><tr><th>#</th><th>name</th><th>reported</th><th>EPS vs est.</th><th>surprise / price</th><th>spot</th><th>research</th></tr></thead>
-    <tbody>
-    {% for r in p.body.picks %}
-      <tr>
-        <td>{{ r.rank }}<em>/{{ r.cohort }}</em></td>
-        <td><b>{{ r.ticker }}</b></td>
-        <td>{{ r.report_date }}</td>
-        <td>{{ '%.2f'|format(r.reported) }} vs {{ '%.2f'|format(r.estimate) }}</td>
-        <td class="{{ 'up' if (r.sue_pct or 0) > 0 else 'down' }}">{{ '%+.2f'|format(r.sue_pct) }}%</td>
-        <td>{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td>
-        <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table></div>
-  {% endif %}
-
-  {% set led = p.body.ledger %}
-  {% if led and (led.open or led.closed) %}
-  <div class="bk-sum">
-    <span><b>open</b> {{ led.summary.n_open }}</span>
-    <span><b>closed</b> {{ led.summary.n }}</span>
-    {% if led.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ led.summary.hit_rate }}%</span>{% endif %}
-    {% if led.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(led.summary.avg_rel_pct) }}%</span>{% endif %}
+{# The quarterly stock book: header with its numbers, then tabs for the picks, the open
+   positions and the closed ones. Ranked context, never an instruction. #}
+{% set led = p.body.ledger %}
+{% set sm = (led.summary if led else none) or {} %}
+<section class="card {{ p.severity or '' }} is-{{ p.state }} bookcard" id="panel-{{ p.key }}">
+  <h3>Quarterly stock book</h3>
+  <div class="book">
+    <div class="bookhead">
+      <div class="bookhead-id">
+        <b>The biggest earnings beats</b>
+        <span class="bookhead-what">Top {{ p.body.picks|length }} of {{ p.body.n_ranked }} tradeable reporters by surprise size, held {{ p.body.hold_sessions }} sessions in shares; every pick fills at the next open and is marked against SPY.</span>
+        <span class="bookhead-meas">Measured +4.24% over SPY per quarter, t 2.3, hit 49%, all three periods; nothing over a week. This book feeds the Plays desk.</span>
+      </div>
+      <div class="bookhead-nums">
+        <span class="bn2"><i>{{ p.body.picks|length }}</i><em>picks</em></span>
+        <span class="bn2"><i>{{ sm.n_open if sm.n_open is not none else '—' }}</i><em>open</em></span>
+        <span class="bn2"><i>{{ sm.n if sm.n is not none else '—' }}</i><em>closed</em></span>
+        <span class="bn2"><i>{% if sm.hit_rate is not none %}{{ sm.hit_rate }}%{% else %}—{% endif %}</i><em>beat SPY</em></span>
+        <span class="bn2 big {{ 'up' if (sm.avg_rel_pct or 0) > 0 else ('down' if (sm.avg_rel_pct or 0) < 0 else '') }}"><i>{% if sm.avg_rel_pct is not none %}{{ '%+.2f'|format(sm.avg_rel_pct) }}%{% else %}—{% endif %}</i><em>avg vs SPY, closed</em></span>
+      </div>
+    </div>
+    <div class="tabs">
+      <input type="radio" name="t-{{ p.key }}" id="t-{{ p.key }}-1" checked><label for="t-{{ p.key }}-1">Picks <i>{{ p.body.picks|length }}</i></label>
+      <input type="radio" name="t-{{ p.key }}" id="t-{{ p.key }}-2"><label for="t-{{ p.key }}-2">Open <i>{{ (led.open if led else [])|length }}</i></label>
+      <input type="radio" name="t-{{ p.key }}" id="t-{{ p.key }}-3"><label for="t-{{ p.key }}-3">Closed <i>{{ (led.closed if led else [])|length }}</i></label>
+      <div class="tabpanel">
+        {% if p.body.picks %}
+        <div class="tblwrap"><table class="tbl">
+          <thead><tr><th>#</th><th>name</th><th>reported</th><th class="num">EPS vs est.</th><th class="num">surprise / price</th><th class="num">spot</th><th>research</th></tr></thead>
+          <tbody>{% for r in p.body.picks %}
+            <tr><td>{{ r.rank }}</td><td><b>{{ r.ticker }}</b></td><td>{{ r.report_date|nice }}</td>
+              <td class="num">{{ '%.2f'|format(r.reported) }} vs {{ '%.2f'|format(r.estimate) }}</td>
+              <td class="num {{ 'up' if (r.sue_pct or 0) > 0 else 'down' }}">{{ '%+.2f'|format(r.sue_pct) }}%</td>
+              <td class="num">{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td>
+              <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next: {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td></tr>{% endfor %}
+          </tbody></table></div>
+        {% else %}<p class="note">{{ p.note }}</p>{% endif %}
+        {% if p.body.refused %}
+        <details class="wk-refused"><summary>{{ p.body.refused|length }} reporters not picked, and why</summary>
+          <ul>{% for r in p.body.refused %}<li><b>{{ r.ticker }}</b> {% if r.sue_pct is not none %}({{ '%+.2f'|format(r.sue_pct) }}%){% endif %} — {{ r.why }}</li>{% endfor %}</ul>
+        </details>
+        {% endif %}
+      </div>
+      <div class="tabpanel">
+        {% if led and led.open %}
+        <div class="tblwrap"><table class="tbl">
+          <thead><tr><th>name</th><th>entered</th><th class="num">entry</th><th class="num">now</th><th class="num">P&amp;L</th><th class="num">vs SPY</th><th>exit due</th></tr></thead>
+          <tbody>{% for r in led.open %}
+            <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.entry_date|nice if r.entry_date else 'fills at the next open' }}</td>
+              <td class="num">{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td><td class="num">{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+              <td class="num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+              <td class="num {{ 'up' if (r.rel_pct or 0) > 0 else ('down' if (r.rel_pct or 0) < 0 else '') }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td>
+              <td>{{ r.exit_due|nice if r.exit_due else '—' }}</td></tr>{% endfor %}
+          </tbody></table></div>
+        {% else %}<p class="note">Nothing open.</p>{% endif %}
+      </div>
+      <div class="tabpanel">
+        {% if led and led.closed %}
+        <div class="tblwrap"><table class="tbl">
+          <thead><tr><th>name</th><th>entered</th><th>closed</th><th class="num">entry</th><th class="num">exit</th><th class="num">P&amp;L</th><th class="num">vs SPY</th></tr></thead>
+          <tbody>{% for r in led.closed %}
+            <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.entry_date|nice if r.entry_date else '—' }}</td><td>{{ (r.closed or r.exit_date or '')|nice }}</td>
+              <td class="num">{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td><td class="num">{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+              <td class="num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+              <td class="num {{ 'up' if (r.rel_pct or 0) > 0 else ('down' if (r.rel_pct or 0) < 0 else '') }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td></tr>{% endfor %}
+          </tbody></table></div>
+        {% else %}<p class="note">Nothing closed yet.</p>{% endif %}
+      </div>
+    </div>
   </div>
-  <div class="tblwrap"><table class="tbl">
-    <thead><tr><th>name</th><th>entered</th><th>entry</th><th>now</th><th>P&amp;L</th><th>vs SPY</th><th>due</th><th>status</th></tr></thead>
-    <tbody>
-    {% for r in led.open + led.closed %}
-      <tr>
-        <td><b>{{ r.ticker }}</b></td>
-        <td>{{ r.entry_date or ('pending, fills at the next open') }}</td>
-        <td>{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td>
-        <td>{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
-        <td class="{{ 'up' if (r.pnl_pct or 0) > 0 else 'down' }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
-        <td class="{{ 'up' if (r.rel_pct or 0) > 0 else 'down' }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td>
-        <td>{{ r.exit_due or '—' }}</td>
-        <td>{{ r.status }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table></div>
-  {% endif %}
-
-  {% if p.body.refused %}
-  <details class="wk-refused"><summary>{{ p.body.refused|length }} reporters not picked, and why</summary>
-    <ul>
-    {% for r in p.body.refused %}
-      <li><b>{{ r.ticker }}</b> {% if r.sue_pct is not none %}({{ '%+.2f'|format(r.sue_pct) }}%){% endif %} — {{ r.why }}</li>
-    {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
   {% if p.body.basis %}<p class="wk-back-ft">Basis: {{ p.body.basis }}.</p>{% endif %}
   {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}
 </section>

@@ -1,83 +1,119 @@
-{# The two stock books under the weekly trade cards: the ranker (every week) and the stress
-   book (only while VIX is above 25). Ranked context with ledgers; never an instruction. The
-   stress cohort, on the day it issues, is stated on Today's decision panel and nowhere else. #}
-<section class="card {{ p.severity or '' }} is-{{ p.state }}" id="panel-{{ p.key }}">
-  <h3>{{ p.title }}
+{# The two weekly share books, each as: a header with its numbers, then tabs for the picks,
+   the open positions and the closed ones. Ranked context with ledgers; never an instruction. #}
+{% macro ledger_tabs(key, led, picks_html) %}
+<div class="tabs">
+  <input type="radio" name="t-{{ key }}" id="t-{{ key }}-1" checked><label for="t-{{ key }}-1">This week's picks <i>{{ picks_html.count }}</i></label>
+  <input type="radio" name="t-{{ key }}" id="t-{{ key }}-2"><label for="t-{{ key }}-2">Open <i>{{ (led.open if led else [])|length }}</i></label>
+  <input type="radio" name="t-{{ key }}" id="t-{{ key }}-3"><label for="t-{{ key }}-3">Closed <i>{{ (led.closed if led else [])|length }}</i></label>
+  <div class="tabpanel">{{ picks_html.html|safe }}</div>
+  <div class="tabpanel">
+    {% if led and led.open %}
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>name</th><th>entered</th><th class="num">entry</th><th class="num">now</th><th class="num">P&amp;L</th><th class="num">vs SPY</th><th>exit due</th></tr></thead>
+      <tbody>{% for r in led.open %}
+        <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.entry_date|nice if r.entry_date else 'fills at the next open' }}</td>
+          <td class="num">{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td><td class="num">{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+          <td class="num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+          <td class="num {{ 'up' if (r.rel_pct or 0) > 0 else ('down' if (r.rel_pct or 0) < 0 else '') }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td>
+          <td>{{ r.exit_due|nice if r.exit_due else '—' }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    {% else %}<p class="note">Nothing open.</p>{% endif %}
+  </div>
+  <div class="tabpanel">
+    {% if led and led.closed %}
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>name</th><th>entered</th><th>closed</th><th class="num">entry</th><th class="num">exit</th><th class="num">P&amp;L</th><th class="num">vs SPY</th></tr></thead>
+      <tbody>{% for r in led.closed %}
+        <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.entry_date|nice if r.entry_date else '—' }}</td><td>{{ (r.closed or r.exit_date or '')|nice }}</td>
+          <td class="num">{% if r.entry %}{{ '%.2f'|format(r.entry) }}{% else %}—{% endif %}</td><td class="num">{% if r.cur %}{{ '%.2f'|format(r.cur) }}{% else %}—{% endif %}</td>
+          <td class="num {{ 'up' if (r.pnl_pct or 0) > 0 else ('down' if (r.pnl_pct or 0) < 0 else '') }}">{% if r.pnl_pct is not none %}{{ '%+.1f'|format(r.pnl_pct) }}%{% else %}—{% endif %}</td>
+          <td class="num {{ 'up' if (r.rel_pct or 0) > 0 else ('down' if (r.rel_pct or 0) < 0 else '') }}">{% if r.rel_pct is not none %}{{ '%+.1f'|format(r.rel_pct) }}%{% else %}—{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    {% else %}<p class="note">Nothing closed yet.</p>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro numbers(led, extra=none) %}
+{% set sm = (led.summary if led else none) or {} %}
+<div class="bookhead-nums">
+  <span class="bn2"><i>{{ sm.cohorts if sm.cohorts is defined and sm.cohorts is not none else '—' }}</i><em>cohorts</em></span>
+  <span class="bn2"><i>{{ sm.n_open if sm.n_open is not none else '—' }}</i><em>open</em></span>
+  <span class="bn2"><i>{{ sm.n if sm.n is not none else '—' }}</i><em>closed</em></span>
+  <span class="bn2"><i>{% if sm.hit_rate is not none %}{{ sm.hit_rate }}%{% else %}—{% endif %}</i><em>beat SPY</em></span>
+  <span class="bn2 big {{ 'up' if (sm.avg_rel_pct or 0) > 0 else ('down' if (sm.avg_rel_pct or 0) < 0 else '') }}"><i>{% if sm.avg_rel_pct is not none %}{{ '%+.2f'|format(sm.avg_rel_pct) }}%{% else %}—{% endif %}</i><em>avg vs SPY, closed</em></span>
+  {% if extra %}{{ extra|safe }}{% endif %}
+</div>
+{% endmacro %}
+
+{% macro research_cell(r) %}
+<td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next: {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td>
+{% endmacro %}
+
+<section class="card {{ p.severity or '' }} is-{{ p.state }} bookcard" id="panel-{{ p.key }}">
+  <h3>Weekly share books
     {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
   </h3>
-  {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
+
   {% set rk = p.body.ranker %}
-  <div class="wk-sidebook">
-    <div class="wk-back-hd">Swing ranker · surprise + residual momentum + 12-1, top 25, 21-session hold in shares
-      {% if rk and rk.stale %}<span class="chip watch">stale</span>{% endif %}</div>
-    {% if not rk %}<p class="note">no ranker snapshot yet (it runs weekly after the stock book).</p>
-    {% elif rk.blocked %}<p class="note">ranker did not run: {{ rk.blocked }}</p>
-    {% else %}
-      <p class="note">{{ rk.note }}</p>
-      {% if rk.picks %}
-      <div class="tblwrap"><table class="tbl">
-        <thead><tr><th>#</th><th>name</th><th>surprise / price</th><th>residual mom</th><th>12-1</th><th>spot</th><th>research</th></tr></thead>
-        <tbody>
-        {% for r in rk.picks %}
-          <tr><td>{{ r.rank }}<em>/{{ r.cohort }}</em></td><td><b>{{ r.ticker }}</b></td>
-            <td class="{{ 'up' if (r.sue or 0) > 0 else 'down' }}">{{ '%+.2f'|format((r.sue or 0) * 100) }}%</td>
-            <td>{{ '%+.2f'|format(r.resid_mom or 0) }}</td>
-            <td class="{{ 'up' if (r.mom12_1 or 0) > 0 else 'down' }}">{{ '%+.1f'|format((r.mom12_1 or 0) * 100) }}%</td>
-            <td>{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td>
-            <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table></div>
-      {% endif %}
-      {% if rk.ledger and (rk.ledger.open or rk.ledger.closed) %}
-      <div class="bk-sum"><span><b>cohorts</b> {{ rk.ledger.summary.cohorts }}</span><span><b>open</b> {{ rk.ledger.summary.n_open }}</span>
-        <span><b>closed</b> {{ rk.ledger.summary.n }}</span>
-        {% if rk.ledger.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ rk.ledger.summary.hit_rate }}%</span>{% endif %}
-        {% if rk.ledger.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(rk.ledger.summary.avg_rel_pct) }}%</span>{% endif %}</div>
-      {% endif %}
-      {% if rk.measured %}<p class="wk-back-ft">Measured: {{ '%+.2f'|format(rk.measured.per_hold_pct) }}% over SPY per hold, hit rate
-        {{ '%.0f'|format(rk.measured.hit * 100) }}%, wins {{ rk.measured.payoff }}x losses, {{ '%.0f'|format(rk.measured.cohort_hit * 100) }}% of cohorts positive,
-        {{ rk.measured.net_pct_yr }}%/yr net; splits {{ rk.measured.splits }}. Per-name weights were tested and lost to equal weights. {{ rk.measured.source }}.</p>{% endif %}
+  <div class="book">
+    <div class="bookhead">
+      <div class="bookhead-id">
+        <b>Swing ranker</b>
+        <span class="bookhead-what">Surprise + residual momentum + 12-1 momentum, equal rank weights; top 25 of every name that reported in the last quarter; 21 sessions in shares.</span>
+        <span class="bookhead-meas">Measured +0.84% over SPY per hold, hit 49%, all three periods. Per-name weights were tested and lost.</span>
+        {% if rk and rk.blocked %}<span class="chip stop">did not run: {{ rk.blocked }}</span>{% elif rk and rk.issued %}<span class="chip live">cohort issued {{ (rk.as_of or '')[:10]|nice }}</span>{% elif rk %}<span class="chip">{{ rk.note }}</span>{% endif %}
+      </div>
+      {{ numbers(rk.ledger if rk else none) }}
+    </div>
+    {% if rk and rk.picks %}
+    {% set picks %}
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>#</th><th>name</th><th class="num">surprise / price</th><th class="num">residual mom</th><th class="num">12-1</th><th class="num">spot</th><th>research</th></tr></thead>
+      <tbody>{% for r in rk.picks %}
+        <tr><td>{{ r.rank }}</td><td><b>{{ r.ticker }}</b></td>
+          <td class="num {{ 'up' if (r.sue or 0) > 0 else 'down' }}">{{ '%+.2f'|format((r.sue or 0) * 100) }}%</td>
+          <td class="num">{{ '%+.2f'|format(r.resid_mom or 0) }}</td>
+          <td class="num {{ 'up' if (r.mom12_1 or 0) > 0 else 'down' }}">{{ '%+.1f'|format((r.mom12_1 or 0) * 100) }}%</td>
+          <td class="num">{% if r.spot %}{{ '%.2f'|format(r.spot) }}{% else %}—{% endif %}</td>
+          {{ research_cell(r) }}</tr>{% endfor %}
+      </tbody></table></div>
+    {% endset %}
+    {{ ledger_tabs(p.key ~ '-rk', rk.ledger, {'html': picks, 'count': rk.picks|length}) }}
+    {% elif rk and rk.ledger and (rk.ledger.open or rk.ledger.closed) %}
+    {{ ledger_tabs(p.key ~ '-rk', rk.ledger, {'html': '<p class="note">No cohort this week.</p>', 'count': 0}) }}
     {% endif %}
   </div>
 
   {% set sb = p.body.stress %}
-  <div class="wk-sidebook">
-    <div class="wk-back-hd">Stress book · the 40 biggest losers, measured only while VIX is above {{ '%.0f'|format(sb.vix_on) if sb and sb.vix_on else 25 }}, 10-session hold
-      {% if sb and sb.regime_on %}<span class="chip stop">REGIME ON · VIX {{ '%.1f'|format(sb.vix) }}</span>
-      {% elif sb and sb.vix %}<span class="chip watch">out of regime · VIX {{ '%.1f'|format(sb.vix) }}</span>{% endif %}
-      {% if sb and sb.stale %}<span class="chip watch">stale</span>{% endif %}</div>
-    {% if not sb %}<p class="note">no stress-book snapshot yet.</p>
-    {% elif sb.blocked %}<p class="note">stress book did not run: {{ sb.blocked }}</p>
-    {% else %}
-      <p class="note">{{ sb.note }}</p>
-      {% if sb.picks %}
-      <div class="tblwrap"><table class="tbl">
-        <thead><tr><th>#</th><th>name</th><th>1-month</th><th>1-week</th><th>Bollinger</th><th>spot</th><th>research</th></tr></thead>
-        <tbody>
-        {% for r in sb.picks %}
-          <tr><td>{{ r.rank }}<em>/{{ r.cohort }}</em></td><td><b>{{ r.ticker }}</b></td>
-            <td class="down">{{ '%+.1f'|format((r.ret1m or 0) * 100) }}%</td><td class="down">{{ '%+.1f'|format((r.ret1w or 0) * 100) }}%</td>
-            <td>{{ '%+.2f'|format(r.bb_pos or 0) }}</td><td>{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td>
-            <td class="rs">{% if r.research %}<span class="rs-d">{{ r.research.driver }}</span>{% if r.research.next %}<em>next {{ r.research.next }}</em>{% endif %}{% if r.research.n_against %}<span class="chip watch">{{ r.research.n_against }} concerns</span>{% endif %}{% else %}<em class="faint">not researched yet</em>{% endif %}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table></div>
-      {% endif %}
-      {% if sb.ledger and (sb.ledger.open or sb.ledger.closed) %}
-      <div class="bk-sum"><span><b>cohorts</b> {{ sb.ledger.summary.cohorts }}</span><span><b>open</b> {{ sb.ledger.summary.n_open }}</span>
-        <span><b>closed</b> {{ sb.ledger.summary.n }}</span>
-        {% if sb.ledger.summary.hit_rate is not none %}<span><b>beat SPY</b> {{ sb.ledger.summary.hit_rate }}%</span>{% endif %}
-        {% if sb.ledger.summary.avg_rel_pct is not none %}<span><b>avg vs SPY</b> {{ '%+.2f'|format(sb.ledger.summary.avg_rel_pct) }}%</span>{% endif %}
-        {% set ir = sb.ledger.summary.in_regime %}{% set orr = sb.ledger.summary.out_regime %}
-        {% if ir and ir.n %}<span><b>in regime</b> {{ ir.n }} closed, {{ ir.hit_rate }}% beat, {{ '%+.2f'|format(ir.avg_rel_pct) }}%</span>{% endif %}
-        {% if orr and orr.n %}<span><b>out of regime</b> {{ orr.n }} closed, {{ orr.hit_rate }}% beat, {{ '%+.2f'|format(orr.avg_rel_pct) }}%</span>{% endif %}</div>
-      {% endif %}
-      {% if sb.picks and not sb.regime_on %}<p class="note">This cohort was issued OUT of the measured regime (VIX below {{ '%.0f'|format(sb.vix_on) }}).
-        Out of regime the same trade measured flat to negative; in regime +2.59% per hold. The ledger scores the two apart.</p>{% endif %}
-      {% if sb.measured %}<p class="wk-back-ft">Measured: {{ '%+.2f'|format(sb.measured.per_hold_pct) }}% over SPY per hold (t {{ sb.measured.t }}), hit rate
-        {{ '%.0f'|format(sb.measured.hit * 100) }}%, wins {{ sb.measured.payoff }}x losses, {{ sb.measured.dates }} dates, splits {{ sb.measured.splits }};
-        flat to negative when the regime is off. When a cohort is issued the decision panel on Today carries it. {{ sb.measured.source }}.</p>{% endif %}
+  <div class="book">
+    <div class="bookhead">
+      <div class="bookhead-id">
+        <b>Stress book</b>
+        <span class="bookhead-what">The 40 biggest losers of the S&amp;P 1500 by a reversal composite (one month, one week, Bollinger position), ten sessions in shares.</span>
+        <span class="bookhead-meas">Measured only while VIX is above {{ '%.0f'|format(sb.vix_on) if sb and sb.vix_on else 25 }}: +2.59% over SPY per hold, hit 56%. Out of regime it is flat to negative; issued every week at your instruction and scored apart.</span>
+        {% if sb and sb.regime_on %}<span class="chip stop">REGIME ON · VIX {{ '%.1f'|format(sb.vix) }}</span>
+        {% elif sb and sb.vix %}<span class="chip watch">out of regime · VIX {{ '%.1f'|format(sb.vix) }}</span>{% endif %}
+        {% if sb and sb.blocked %}<span class="chip stop">did not run: {{ sb.blocked }}</span>{% endif %}
+      </div>
+      {% set ir = (sb.ledger.summary.in_regime if sb and sb.ledger and sb.ledger.summary else none) %}
+      {% set orr = (sb.ledger.summary.out_regime if sb and sb.ledger and sb.ledger.summary else none) %}
+      {{ numbers(sb.ledger if sb else none, (('<span class="bn2"><i>' ~ ('%+.2f'|format(ir.avg_rel_pct)) ~ '%</i><em>in regime, ' ~ ir.n ~ ' closed</em></span>') if ir and ir.n else '') ~ (('<span class="bn2"><i>' ~ ('%+.2f'|format(orr.avg_rel_pct)) ~ '%</i><em>out of regime, ' ~ orr.n ~ ' closed</em></span>') if orr and orr.n else '')) }}
+    </div>
+    {% if sb and sb.picks %}
+    {% set spicks %}
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>#</th><th>name</th><th class="num">one month</th><th class="num">one week</th><th class="num">Bollinger</th><th class="num">spot</th><th>research</th></tr></thead>
+      <tbody>{% for r in sb.picks %}
+        <tr><td>{{ r.rank }}</td><td><b>{{ r.ticker }}</b></td>
+          <td class="num down">{{ '%+.1f'|format((r.ret1m or 0) * 100) }}%</td><td class="num down">{{ '%+.1f'|format((r.ret1w or 0) * 100) }}%</td>
+          <td class="num">{{ '%+.2f'|format(r.bb_pos or 0) }}</td><td class="num">{% if r.close %}{{ '%.2f'|format(r.close) }}{% else %}—{% endif %}</td>
+          {{ research_cell(r) }}</tr>{% endfor %}
+      </tbody></table></div>
+    {% endset %}
+    {{ ledger_tabs(p.key ~ '-sb', sb.ledger, {'html': spicks, 'count': sb.picks|length}) }}
+    {% elif sb and sb.ledger and (sb.ledger.open or sb.ledger.closed) %}
+    {{ ledger_tabs(p.key ~ '-sb', sb.ledger, {'html': '<p class="note">No cohort this week.</p>', 'count': 0}) }}
     {% endif %}
   </div>
   {% if p.source %}<p class="src">{{ p.source }}</p>{% endif %}

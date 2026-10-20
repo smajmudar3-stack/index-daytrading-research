@@ -1,117 +1,95 @@
-{# The week's plays. A summary strip, then one article per play: the name and the promise
-   up top, the legs, then the reasoning as a list of pillars with one line each (the long
-   form folds under "more"), the catalysts as dated chips, the research as a driver line
-   with the concerns listed, and the timeline with the next step lit. Then the plays being
-   managed, then the last few closed, because a page that shows fresh cards without what
-   happened to the last ones is a brochure. #}
+{# The week's plays, written to be read. Each play: one plain sentence saying what to do,
+   three big numbers, a short why, the next steps. Everything the engine knows is still on
+   the card, folded under "all the detail": the legs, the option alternative, the prior's
+   quartiles and splits, the full timeline, the research with its sources. #}
 {% macro money(v) %}{% if v is none %}—{% else %}${{ '{:,.0f}'.format(v) }}{% endif %}{% endmacro %}
 {% macro pct(v, d=1) %}{% if v is none %}—{% else %}{{ ('%+.' ~ d ~ 'f')|format(v) }}%{% endif %}{% endmacro %}
 
 {% macro playcard(r, fresh) %}
 <article class="play {{ r.conf_sev }} {{ 'fresh' if fresh else '' }}" id="play-{{ r.id }}">
-  <header class="play-top">
-    <span class="play-tk">{{ r.ticker }}</span>
-    <span class="play-struct">{{ r.card.structure_label or r.structure }}{% if r.card.is_shares %} · {{ r.contracts or 1 }} shares{% else %} · {{ r.contracts or 1 }}×{% endif %}</span>
-    <span class="chip2 {{ r.conf_sev }}"><span class="cs"></span>{{ r.confidence }}</span>
-    {% for s in r.sources_list %}<span class="play-src">{{ s }}</span>{% endfor %}
-    <span class="play-exp">issued {{ r.issued[:10] }} · exits {{ r.horizon_end }}{% if r.days_left is not none %} · {{ r.days_left }}d left{% endif %}</span>
+  <header class="play-head">
+    <div class="play-id">
+      <span class="play-tk">{{ r.ticker }}</span>
+      <span class="chip2 {{ r.conf_sev }}"><span class="cs"></span>{{ r.confidence }}</span>
+    </div>
+    <p class="play-line">{{ r.headline }}</p>
+    <div class="play-meta">{{ r.card.structure_label or r.structure }} · {{ r.sources_list|join(' + ') }} · issued {{ r.issued[:10]|nice }}{% if r.days_left is not none %} · {{ r.days_left }} days left{% endif %}{% if r.spot_cur %} · {{ '%.2f'|format(r.card.spot or r.spot or 0) }} → {{ '%.2f'|format(r.spot_cur) }}{% endif %}</div>
   </header>
 
-  <div class="play-hero">
-    <div class="play-legs">
-      <span class="legs">{{ r.legs_text }}</span>
-      <span class="net">{% if r.card.is_shares %}${{ '{:,.0f}'.format((r.max_risk or 0) * (r.contracts or 1)) }} notional{% else %}{{ 'debit' if r.card.is_debit else 'credit' }} {{ '%.2f'|format(r.net|abs) }} per spread · exp {{ r.expiry }}{% endif %}</span>
-      <span class="spot">{{ '%.2f'|format(r.card.spot or r.spot or 0) }} at issue{% if r.spot_cur %} → {{ '%.2f'|format(r.spot_cur) }} now{% endif %}</span>
-    </div>
-    <div class="stats play-stats">
-      <div class="stat live big"><div class="n">{{ money(r.expected_usd) }}</div><div class="l">expected · {{ pct(r.expected_pct) }} of risk</div></div>
-      <div class="stat {{ r.pnl_class }}"><div class="n {{ r.pnl_class }}">{% if r.pnl_usd is not none %}{{ money(r.pnl_usd) }}{% else %}—{% endif %}</div><div class="l">now · {{ pct(r.pnl_pct) }}</div></div>
-      <div class="stat"><div class="n">{% if r.hit is not none %}{{ '%.0f'|format(r.hit * 100) }}%{% else %}—{% endif %}</div><div class="l">hit · payoff {{ r.payoff or '—' }}×</div></div>
-      <div class="stat"><div class="n">{% if r.card.median_pct is not none %}{{ pct(r.card.median_pct) }}{% else %}—{% endif %}</div><div class="l">median · {{ pct(r.card.p25_pct, 0) }} to {{ pct(r.card.p75_pct, 0) }}</div></div>
-      <div class="stat"><div class="n">{{ money(r.max_risk * (r.contracts or 1)) }}</div><div class="l">{{ 'notional at risk' if r.card.is_shares else 'max risk' }}{% if r.max_reward %} · reward {{ money(r.max_reward * (r.contracts or 1)) }}{% endif %}</div></div>
-    </div>
+  <div class="bignums">
+    <div class="bn live"><span class="v">{{ money(r.expected_usd) }}</span><span class="k">expected profit <i>{{ pct(r.expected_pct) }} of {{ money(r.max_risk * (r.contracts or 1)) }}</i></span></div>
+    <div class="bn {{ r.pnl_class }}"><span class="v">{% if r.pnl_usd is not none %}{{ money(r.pnl_usd) }}{% else %}—{% endif %}</span><span class="k">so far <i>{{ pct(r.pnl_pct) }}</i></span></div>
+    <div class="bn"><span class="v">{% if r.hit is not none %}{{ '%.0f'|format(r.hit * 100) }}%{% else %}—{% endif %}</span><span class="k">chance it pays <i>wins {{ r.payoff or '—' }}× losses</i></span></div>
+    <div class="bn"><span class="v">{% if r.card.median_pct is not none %}{{ pct(r.card.median_pct) }}{% else %}—{% endif %}</span><span class="k">typical outcome <i>{{ pct(r.card.p25_pct, 0) }} to {{ pct(r.card.p75_pct, 0) }} middle half</i></span></div>
   </div>
 
-  <div class="play-grid">
-    <div class="play-why">
-      <div class="wk-back-hd">Why this play</div>
-
-      <div class="pl">
-        <span class="wk-kind signal">signal</span>
-        <div class="pl-b"><b>{{ r.signal.source }} book</b>
-          <span class="pl-1">{{ (r.signal.measured or '').split(';')[0] }}{% if r.signal.detail and r.signal.detail.sue %} · surprise/price {{ '%+.2f'|format(r.signal.detail.sue * 100) }}%{% endif %}{% if r.signal.detail and r.signal.detail.ret1m %} · one month {{ '%+.1f'|format(r.signal.detail.ret1m * 100) }}%{% endif %}{% if r.signal.also_in %} · also held by {{ r.signal.also_in|join(', ') }}{% endif %}</span>
-          <details class="pl-more"><summary>more</summary><p>{{ r.signal.measured }}</p></details></div>
-      </div>
-
-      <div class="pl">
-        <span class="wk-kind signal">structure</span>
-        <div class="pl-b"><b>{{ r.card.structure_label or r.structure }}</b>
-          <span class="pl-1">{% if r.card.is_shares %}the expression that measured positive; every option structure on this signal lost after the round trip{% else %}measured positive in every split{% endif %}{% if r.card.prior_n %} · {{ r.card.prior_n }} trades{% if r.card.splits %} · splits {{ pct(r.card.splits.A * 100 if r.card.splits.A is not none else none, 1) }} / {{ pct(r.card.splits.B * 100 if r.card.splits.B is not none else none, 1) }} / {{ pct(r.card.splits.C * 100 if r.card.splits.C is not none else none, 1) }}{% endif %}{% endif %}</span>
-          {% if r.structure.expiry_note %}<span class="pl-1">{{ r.structure.expiry_note }}</span>{% endif %}
-          {% set alt = r.reasoning.option_alt %}
-          {% if alt %}
-          <div class="play-alt">
-            {% if alt.legs_text %}
-            <div class="legs">as options: {{ alt.legs_text }} · exp {{ alt.expiry }} ({{ alt.dte }}d) · debit {{ '%.2f'|format(alt.net|abs) }} · risk ${{ '{:,.0f}'.format(alt.max_risk or 0) }}/contract · spread {{ '%.0f'|format(alt.cost_pct or 0) }}%{% if alt.iv_atm %} · IV {{ '%.0f'|format(alt.iv_atm) }}%{% endif %}</div>
-            <div class="verdict">{{ alt.verdict }}. Shares made {{ pct(r.expected_pct) }} on the same signal.</div>
-            {% else %}<div class="verdict">no option expression could be priced: {{ alt.refused }}</div>{% endif %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="pl">
-        <span class="wk-kind macro">macro</span>
-        <div class="pl-b">{% if r.macro.themes %}{% for m in r.macro.themes %}<b>{{ m.theme }}</b> <span class="pl-1">{{ m.stance }} · argues {{ 'for' if m.side > 0 else 'against' }} this name · {{ m.why }}</span>{% endfor %}
-          {% else %}<b>no desk theme names this stock</b> <span class="pl-1">context, not a veto{% if r.macro.regime_line %} · {{ r.macro.regime_line }}{% endif %}</span>{% endif %}</div>
-      </div>
-
-      <div class="pl">
-        <span class="wk-kind catalyst">dated</span>
-        <div class="pl-b chips">
-          {% if r.earnings and r.earnings.date %}<span class="dchip earn">reports {{ r.earnings.date }}</span>{% endif %}
-          {% for c in (r.reasoning.research_catalysts or []) %}<span class="dchip res">{{ c.date }} {{ c.label }}</span>{% endfor %}
-          {% for e in r.events %}<span class="dchip">{{ e.date[5:] }} {{ e.label|replace(' decision','')|replace(' report','') }}</span>{% endfor %}
-          {% if not r.events and not (r.earnings and r.earnings.date) and not r.reasoning.research_catalysts %}<b>nothing dated inside the hold</b>{% endif %}
-        </div>
-      </div>
-
-      <div class="pl">
-        <span class="wk-kind research">research</span>
-        <div class="pl-b">
-          {% if r.research %}
-          <b>{{ r.research.driver }}</b>
-          {% if r.research.last_print %}<span class="pl-1">last print {{ r.research.last_print.date }}: {{ r.research.last_print.result }}{% if r.research.last_print.reaction_pct is not none %}, stock {{ '%+.1f'|format(r.research.last_print.reaction_pct) }}%{% endif %}</span>{% endif %}
-          {% if r.research.against %}<ul class="against">{% for a in r.research.against %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
-          <details class="pl-more"><summary>news and sources</summary>
-            {% if r.research.last_print %}<p>{{ r.research.last_print.summary }}{% if r.research.last_print.url %} <a class="src-link" href="{{ r.research.last_print.url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>{% endif %}
-            {% for n in r.research.news or [] %}<p>{{ n.date }} · {{ n.headline }}{% if n.why_it_matters %} — {{ n.why_it_matters }}{% endif %}{% if n.url %} <a class="src-link" href="{{ n.url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>{% endfor %}
-            {% for a in r.research.analysts or [] %}<p>{{ a.date }} · {{ a.firm }}: {{ a.action }}</p>{% endfor %}
-          </details>
-          {% else %}<b>not researched yet</b> <span class="pl-1">the morning session runs weekdays at 07:40</span>{% endif %}
-        </div>
-      </div>
-      {% if r.vetoes %}<div class="wk-ev">Veto: {{ r.vetoes|join(' · ') }}</div>{% endif %}
+  <div class="play-body">
+    <div class="why">
+      <h4>Why</h4>
+      <ul class="whylist">
+        {% for w in r.why %}
+        <li class="{{ w.k }}">{{ w.t }}
+          {% if w.against %}<ul class="against">{% for a in w.against %}<li>{{ a }}</li>{% endfor %}{% if w.more_against %}<li class="more">and {{ w.more_against }} more under the detail</li>{% endif %}</ul>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
     </div>
-
-    <div class="play-when">
-      <div class="wk-back-hd">Timeline</div>
-      <ol class="tl">
-        {% for t in r.timeline %}
-        <li class="{{ 'next' if r.next and t.when == r.next.when and t.what == r.next.what else ('past' if r.next and t.when < r.next.when else '') }} {{ t.kind or '' }}">
-          <span class="tl-d">{{ t.when }}</span><span class="tl-w">{{ t.what }}</span></li>
+    <div class="nextsteps">
+      <h4>What happens next</h4>
+      <ol class="steps">
+        {% for t in r.next_steps %}
+        <li class="{{ 'now' if loop.first else '' }} {{ t.kind or '' }}"><span class="d">{{ t.when|nice }}</span><span class="w">{{ t.what }}</span></li>
         {% endfor %}
       </ol>
-      <div class="play-horizon">{{ r.horizon_sessions }} sessions measured · exits {{ r.horizon_end }}{% if not r.card.is_shares %} · expiry {{ r.expiry }}{% endif %}</div>
+      {% if r.more_steps %}<div class="morestep">and {{ r.more_steps }} more, under the detail</div>{% endif %}
     </div>
   </div>
+
+  <details class="alldetail">
+    <summary>All the detail: legs, the option alternative, the measured prior, the full timeline, research and sources</summary>
+    <div class="detail-grid">
+      <div>
+        <h5>The trade</h5>
+        <p class="mono">{{ r.legs_text }} · {% if r.card.is_shares %}{{ r.contracts or 1 }} shares · ${{ '{:,.0f}'.format((r.max_risk or 0) * (r.contracts or 1)) }} notional{% else %}{{ 'debit' if r.card.is_debit else 'credit' }} {{ '%.2f'|format(r.net|abs) }} per spread · {{ r.contracts or 1 }}× · exp {{ r.expiry }}{% endif %} · spot {{ '%.2f'|format(r.card.spot or r.spot or 0) }} at issue</p>
+        {% set alt = r.reasoning.option_alt %}
+        {% if alt %}
+        <h5>The same idea as options</h5>
+        {% if alt.legs_text %}
+        <p class="mono">{{ alt.legs_text }} · exp {{ alt.expiry }} ({{ alt.dte }}d) · debit {{ '%.2f'|format(alt.net|abs) }} · risk ${{ '{:,.0f}'.format(alt.max_risk or 0) }} per contract · spread {{ '%.0f'|format(alt.cost_pct or 0) }}% of risk{% if alt.iv_atm %} · IV {{ '%.0f'|format(alt.iv_atm) }}%{% endif %}</p>
+        <p class="warn">{{ alt.verdict }}. Shares made {{ pct(r.expected_pct) }} on the same signal.</p>
+        {% else %}<p>No option expression could be priced: {{ alt.refused }}.</p>{% endif %}
+        {% endif %}
+        <h5>The measured prior</h5>
+        <p>{{ r.signal.measured }}</p>
+        <p>{% if r.card.prior_n %}{{ r.card.prior_n }} trades: median {{ pct(r.card.median_pct) }}, middle half {{ pct(r.card.p25_pct) }} to {{ pct(r.card.p75_pct) }}{% if r.card.splits %}; by period {{ pct(r.card.splits.A * 100 if r.card.splits.A is not none else none) }} (2019–21) / {{ pct(r.card.splits.B * 100 if r.card.splits.B is not none else none) }} (2022–23) / {{ pct(r.card.splits.C * 100 if r.card.splits.C is not none else none) }} (2024–26){% endif %}.{% endif %}
+          {% if r.structure.measurement %} {{ r.structure.measurement }}.{% endif %}{% if r.structure.expiry_note %} {{ r.structure.expiry_note }}.{% endif %}</p>
+        {% if r.macro.regime_line %}<h5>The desk's read</h5><p>{{ r.macro.regime_line }}</p>{% endif %}
+      </div>
+      <div>
+        <h5>Full timeline</h5>
+        <ol class="tl">
+          {% for t in r.timeline %}
+          <li class="{{ 'next' if r.next and t.when == r.next.when and t.what == r.next.what else ('past' if r.next and t.when < r.next.when else '') }} {{ t.kind or '' }}"><span class="tl-d">{{ t.when }}</span><span class="tl-w">{{ t.what }}</span></li>
+          {% endfor %}
+        </ol>
+        {% if r.research %}
+        <h5>Research, with sources</h5>
+        {% if r.research.last_print %}<p>Last print {{ r.research.last_print.date }}: {{ r.research.last_print.result }}{% if r.research.last_print.reaction_pct is not none %}, stock {{ '%+.1f'|format(r.research.last_print.reaction_pct) }}%{% endif %}. {{ r.research.last_print.summary }}{% if r.research.last_print.url %} <a class="src-link" href="{{ r.research.last_print.url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>{% endif %}
+        {% for n in r.research.news or [] %}<p>{{ n.date }} · {{ n.headline }}{% if n.why_it_matters %} — {{ n.why_it_matters }}{% endif %}{% if n.url %} <a class="src-link" href="{{ n.url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>{% endfor %}
+        {% for c in r.research.catalysts or [] %}<p>{{ c.date }} · {{ c.label }}{% if c.url %} <a class="src-link" href="{{ c.url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>{% endfor %}
+        {% for a in r.research.analysts or [] %}<p>{{ a.date }} · {{ a.firm }}: {{ a.action }}</p>{% endfor %}
+        {% if r.research.against %}<p class="warn">Against: {{ r.research.against|join(' · ') }}</p>{% endif %}
+        {% else %}<h5>Research</h5><p>Not researched yet; the morning session runs weekdays at 07:40.</p>{% endif %}
+      </div>
+    </div>
+  </details>
 </article>
 {% endmacro %}
 
 <section class="card {{ p.severity or '' }} is-{{ p.state }} plays-card" id="panel-{{ p.key }}">
   <h3>{{ p.title }}
     {% if p.state == "stale" %}<span class="chip watch">stale{% if p.age_min %} · {{ p.age_min|round|int }} min{% endif %}</span>{% endif %}
-    {% if p.body.window %}<span class="chip">{{ p.body.window.issued_this_week }} of {{ p.body.window.cap }} this week · issues {{ (p.body.window.issue_days or ['Mon','Wed'])|join(' & ') }}</span>{% endif %}
+    {% if p.body.window %}<span class="chip">{{ p.body.window.issued_this_week }} of {{ p.body.window.cap }} this week · new plays {{ (p.body.window.issue_days or ['Mon','Wed'])|join(' and ') }}</span>{% endif %}
     {% if not p.body.priors_available %}<span class="chip watch">priors pending</span>{% endif %}
   </h3>
   {% if p.note %}<p class="note">{{ p.note }}</p>{% endif %}
@@ -125,12 +103,12 @@
     {% set ns.pnl = ns.pnl + (r.pnl_usd or 0) %}
     {% if r.next and (ns.soon is none or r.next.when < ns.soon.when) %}{% set ns.soon = {'when': r.next.when, 'what': r.ticker ~ ': ' ~ r.next.what} %}{% endif %}
   {% endfor %}
-  <div class="stats strip">
-    <div class="stat"><div class="n">{{ all|length }}</div><div class="l">plays open</div></div>
-    <div class="stat"><div class="n">{{ money(ns.notional) }}</div><div class="l">at risk</div></div>
-    <div class="stat live"><div class="n">{{ money(ns.expected) }}</div><div class="l">expected, from the priors</div></div>
-    <div class="stat {{ 'live' if ns.pnl > 0 else ('stop' if ns.pnl < 0 else '') }}"><div class="n">{{ money(ns.pnl) }}</div><div class="l">P&amp;L now</div></div>
-    {% if ns.soon %}<div class="stat info wide"><div class="n">{{ ns.soon.when }}</div><div class="l">{{ ns.soon.what|truncate(70) }}</div></div>{% endif %}
+  <div class="bignums strip">
+    <div class="bn"><span class="v">{{ all|length }}</span><span class="k">plays open</span></div>
+    <div class="bn"><span class="v">{{ money(ns.notional) }}</span><span class="k">money at work</span></div>
+    <div class="bn live"><span class="v">{{ money(ns.expected) }}</span><span class="k">expected, from the priors</span></div>
+    <div class="bn {{ 'up' if ns.pnl > 0 else ('down' if ns.pnl < 0 else '') }}"><span class="v">{{ money(ns.pnl) }}</span><span class="k">so far</span></div>
+    {% if ns.soon %}<div class="bn wide"><span class="v">{{ ns.soon.when|nice }}</span><span class="k">{{ ns.soon.what|truncate(72) }}</span></div>{% endif %}
   </div>
   {% endif %}
 
@@ -147,10 +125,10 @@
   {% if p.body.closed %}
   <div class="play-sec">Closed</div>
   <div class="tblwrap"><table class="tbl">
-    <thead><tr><th>name</th><th>structure</th><th>issued</th><th>closed</th><th>promised</th><th>delivered</th><th>P&amp;L</th><th>why</th></tr></thead>
+    <thead><tr><th>name</th><th>trade</th><th>issued</th><th>closed</th><th>promised</th><th>delivered</th><th>P&amp;L</th><th>why</th></tr></thead>
     <tbody>
     {% for r in p.body.closed %}
-      <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.legs_text }}</td><td>{{ r.issued[:10] }}</td><td>{{ (r.closed or '')[:10] }}</td>
+      <tr><td><b>{{ r.ticker }}</b></td><td>{{ r.legs_text }}</td><td>{{ r.issued[:10]|nice }}</td><td>{{ (r.closed or '')[:10]|nice }}</td>
         <td>{{ pct(r.expected_pct) }}</td><td class="{{ r.pnl_class }}">{{ pct(r.pnl_pct) }}</td><td class="{{ r.pnl_class }}">{{ money(r.pnl_usd) }}</td><td>{{ r.close_why }}</td></tr>
     {% endfor %}
     </tbody>

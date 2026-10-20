@@ -91,6 +91,11 @@ def _decorate(r, research=None):
     except (TypeError, ValueError):
         r["days_left"] = r["dte_left"] = None
     r["conf_sev"] = _conf_sev(r.get("confidence"))
+    r["headline"] = _headline(r)
+    r["why"] = _why(r, rs)
+    upcoming = [t for t in tl if t["when"] >= today]
+    r["next_steps"] = upcoming[:4]
+    r["more_steps"] = max(0, len(upcoming) - 4)
     r["pnl_class"] = "up" if (r.get("pnl_pct") or 0) > 0 else ("down" if (r.get("pnl_pct") or 0) < 0 else "")
     r["research"] = rs.get("research") or None
     r["macro"] = rs.get("macro") or {}
@@ -100,6 +105,58 @@ def _decorate(r, research=None):
     r["vetoes"] = rs.get("vetoes") or []
     r["earnings"] = rs.get("earnings")
     return r
+
+
+def _nice(d):
+    try:
+        return datetime.strptime(str(d)[:10], "%Y-%m-%d").strftime("%b %-d")
+    except (TypeError, ValueError):
+        return str(d)
+
+
+def _headline(r):
+    card = r.get("card") or {}
+    n = r.get("contracts") or 1
+    if card.get("is_shares"):
+        return (f"Buy {n} share{'s' if n != 1 else ''} at the next open, hold {r.get('horizon_sessions')} sessions, "
+                f"sell on {_nice(r.get('horizon_end'))}.")
+    return (f"{r.get('legs_text')} ({n}×), expiry {_nice(r.get('expiry'))}; close by {_nice(r.get('horizon_end'))} "
+            f"or let it settle.")
+
+
+def _why(r, rs):
+    """Three to five one-sentence reasons in plain English, from the reasoning stack."""
+    out = []
+    sig = rs.get("signal") or {}
+    src = sig.get("source") or ""
+    names = {"surprise": "the earnings-surprise book", "ranker": "the swing ranker", "stress_vix25": "the stress book, in regime",
+             "stress_all": "the stress book, out of regime"}
+    measured = (sig.get("measured") or "").split(";")[0]
+    out.append({"k": "signal", "t": f"It is in {names.get(src, src)}: {measured}." + (f" Also held by {', '.join(names.get(x, x) for x in sig.get('also_in'))}." if sig.get("also_in") else "")})
+    card = r.get("card") or {}
+    if card.get("is_shares"):
+        alt = rs.get("option_alt") or {}
+        out.append({"k": "structure", "t": "Shares, not options: every option version of this signal lost after the bid-ask was paid"
+                    + (f"; the nearest option ({alt.get('legs_text')}, exp {_nice(alt.get('expiry'))}) measured {alt.get('prior', {}).get('mean', 0) * 100:+.0f}% of risk per trade." if alt.get("prior") else ".")})
+    else:
+        out.append({"k": "structure", "t": f"{card.get('structure_label')}: the one option shape that measured positive in every split for this signal."})
+    res = rs.get("research") or {}
+    if res:
+        ag = res.get("against") or []
+        out.append({"k": "research", "t": f"What moves it: {res.get('driver')}", "against": ag[:2], "more_against": max(0, len(ag) - 2)})
+    mac = (rs.get("macro") or {}).get("themes") or []
+    if mac:
+        out.append({"k": "macro", "t": "The desk's notes " + "; ".join(f"argue {'for' if m.get('side', 0) > 0 else 'against'} it via {m.get('theme')}" for m in mac) + "."})
+    else:
+        out.append({"k": "macro", "t": "No desk theme names this stock; the macro read is context only."})
+    ev = [e for e in (rs.get("events") or []) if any(k in str(e.get("label")) for k in ("FOMC", "CPI", "jobs"))]
+    earn = (rs.get("earnings") or {}).get("date")
+    dated = ([f"it reports {_nice(earn)}"] if earn else []) + [f"{e.get('label')} {_nice(e.get('date'))}" for e in ev[:3]]
+    if dated:
+        out.append({"k": "dated", "t": "Inside the hold: " + ", ".join(dated) + ("" if len(ev) <= 3 else f" and {len(ev) - 3} more prints") + "."})
+    if rs.get("vetoes"):
+        out.append({"k": "veto", "t": "Veto: " + " · ".join(rs["vetoes"])})
+    return out
 
 
 def _ledger():

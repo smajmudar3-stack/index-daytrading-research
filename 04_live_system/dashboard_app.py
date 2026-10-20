@@ -108,6 +108,17 @@ env = Environment(
     lstrip_blocks=True,
 )
 
+def _nice_date(d):
+    """2026-10-20 -> Oct 20. Templates read better with month names; the ledger keeps ISO."""
+    from datetime import datetime as _dt
+    try:
+        return _dt.strptime(str(d)[:10], "%Y-%m-%d").strftime("%b %-d")
+    except (TypeError, ValueError):
+        return str(d or "")
+
+
+env.filters["nice"] = _nice_date
+
 FOOTER = (
     "A play is a stock signal this repo measured, expressed the way that measured best: shares, "
     "because every option structure tested on these signals lost per dollar of risk after the "

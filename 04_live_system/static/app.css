@@ -23,8 +23,8 @@
   --line-2: rgba(255, 255, 255, 0.13);
 
   --text: #f5f6f7;
-  --muted: #9aa0a9;
-  --faint: #5c626b;
+  --muted: #b4bac4;
+  --faint: #7d848e;
 
   /* the signature */
   --green: #00c805;
@@ -60,7 +60,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 400 14px/1.5 var(--sans);
+  font: 400 15px/1.55 var(--sans);
   font-feature-settings: "tnum" 1;
   -webkit-font-smoothing: antialiased;
   display: flex;
@@ -853,7 +853,7 @@ body[data-view="books"] .wk-back-hd { font-size: 11px; display: flex; align-item
 .ov-name .chip { align-self: flex-start; margin-top: 2px; }
 .ov-nums { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 .ov-n { display: flex; flex-direction: column; align-items: flex-end; min-width: 64px; padding: 6px 10px; border-radius: 8px; background: var(--card); }
-.ov-n i { font-style: normal; font-family: var(--mono); font-size: 15px; font-weight: 800; }
+.ov-n i { font-style: normal; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .ov-n em { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
 .ov-n.big { min-width: 104px; }
 .ov-n.big i { font-size: 19px; }
@@ -917,4 +917,114 @@ body[data-view="books"] .wk-back-hd { font-size: 11px; display: flex; align-item
   .play-hero { grid-template-columns: 1fr; }
   .ov-row { grid-template-columns: 1fr; }
   .ov-nums { justify-content: flex-start; }
+}
+
+
+/* ================================================================ readable, round two
+   "Still very ugly, keep going, easier to read." Fewer typefaces (mono only on numbers and
+   legs), larger type, more air, one plain sentence per play, three big numbers, a why in
+   full sentences, the next four steps, and everything else folded. Books: a header with
+   the numbers, then tabs so one table shows at a time. */
+
+.card > h3 { font-size: 17px; margin-bottom: 8px; }
+.card .note { font-size: 13.5px; line-height: 1.6; max-width: 80ch; }
+.play-sec { font-size: 12px; margin: 22px 0 12px; }
+
+/* the play */
+.play { padding: 22px 24px 18px; border-radius: 16px; }
+.play.fresh { box-shadow: none; }
+.play-head { display: flex; flex-direction: column; gap: 6px; }
+.play-id { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.play-tk { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.play-line { margin: 0; font-size: 19px; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; max-width: 60ch; }
+.play-meta { font-size: 12.5px; color: var(--faint); }
+
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 0; }
+.bn { padding: 14px 16px 12px; border-radius: 12px; background: var(--card-2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
+.bn .v { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.bn .k { font-size: 12px; color: var(--muted); line-height: 1.35; }
+.bn .k i { font-style: normal; color: var(--faint); display: block; font-size: 11px; }
+.bn.live .v, .bn.up .v { color: var(--green); }
+.bn.down .v { color: var(--red); }
+.bn.live { background: var(--green-wash); border-color: rgba(0,200,5,0.25); }
+.bn.wide { grid-column: span 2; }
+.bn.wide .v { font-size: 22px; }
+.bignums.strip { margin: 8px 0 6px; }
+
+.play-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 22px; margin-top: 18px; }
+.play-body h4, .alldetail h5 { margin: 0 0 8px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.alldetail h5 { margin-top: 16px; }
+.whylist { margin: 0; padding: 0; list-style: none; }
+.whylist > li { position: relative; padding: 6px 0 6px 18px; font-size: 14px; line-height: 1.55; color: var(--text); }
+.whylist > li::before { content: ""; position: absolute; left: 2px; top: 14px; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.whylist > li.signal::before { background: var(--green); }
+.whylist > li.research::before { background: var(--blue); }
+.whylist > li.veto { color: var(--red); }
+.whylist > li.veto::before { background: var(--red); }
+.whylist .against { margin: 4px 0 0; padding-left: 16px; font-size: 13px; }
+.whylist .against li.more { list-style: none; margin-left: -16px; color: var(--faint); font-size: 12px; }
+
+.steps { margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.45; }
+.steps li:last-child { border-bottom: 0; }
+.steps .d { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.steps li.now .d { color: var(--green); }
+.steps li.macro .w { color: var(--muted); }
+.morestep { font-size: 12px; color: var(--faint); margin-top: 6px; }
+
+.alldetail { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 10px; }
+.alldetail > summary { font-size: 13px; color: var(--muted); }
+.alldetail > summary:hover { color: var(--text); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 6px; }
+.detail-grid p { margin: 0 0 8px; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.detail-grid p.mono { font-family: var(--mono); font-size: 12.5px; color: var(--text); padding: 8px 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--line); }
+.detail-grid p.warn { color: var(--amber); }
+.detail-grid .tl li { font-size: 12.5px; }
+
+/* the books: header, numbers, tabs */
+.bookcard > h3 { margin-bottom: 4px; }
+.book { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.bookcard .book:first-of-type { border-top: 0; padding-top: 4px; }
+.bookhead { display: grid; grid-template-columns: minmax(280px, 1.4fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; margin-bottom: 12px; }
+.bookhead-id { display: flex; flex-direction: column; gap: 5px; }
+.bookhead-id b { font-size: 20px; font-weight: 800; letter-spacing: -0.015em; }
+.bookhead-what { font-size: 13.5px; line-height: 1.5; color: var(--text); max-width: 64ch; }
+.bookhead-meas { font-size: 12.5px; line-height: 1.5; color: var(--muted); max-width: 64ch; }
+.bookhead-id .chip { align-self: flex-start; margin-top: 4px; font-size: 11px; padding: 4px 10px; }
+.bookhead-nums { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.bn2 { display: flex; flex-direction: column; align-items: flex-end; min-width: 74px; padding: 10px 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.bn2 i { font-style: normal; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.bn2 em { font-style: normal; font-size: 10.5px; color: var(--faint); margin-top: 2px; text-align: right; }
+.bn2.big { min-width: 120px; }
+.bn2.big i { font-size: 24px; }
+.bn2.up i { color: var(--green); }
+.bn2.down i { color: var(--red); }
+
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.tabs > input { display: none; }
+.tabs > label { cursor: pointer; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); background: transparent; border: 1px solid transparent; }
+.tabs > label i { font-style: normal; font-weight: 700; color: var(--faint); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.tabs > label:hover { color: var(--text); }
+.tabs > input:checked + label { color: var(--text); background: var(--card-2); border-color: var(--line-2); }
+.tabs > input:checked + label i { color: var(--green); }
+.tabs > .tabpanel { display: none; flex-basis: 100%; width: 100%; margin-top: 8px; }
+.tabs > input:nth-of-type(1):checked ~ .tabpanel:nth-of-type(1),
+.tabs > input:nth-of-type(2):checked ~ .tabpanel:nth-of-type(2),
+.tabs > input:nth-of-type(3):checked ~ .tabpanel:nth-of-type(3),
+.tabs > input:nth-of-type(4):checked ~ .tabpanel:nth-of-type(4) { display: block; }
+
+.tbl th.num, .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl td.num { font-family: var(--sans); font-weight: 600; font-size: 13px; }
+.tbl td { font-size: 13.5px; padding: 8px 12px; }
+.tbl th { font-size: 10.5px; }
+.tbl td b { font-size: 14px; }
+.tblwrap { max-height: 520px; }
+.ov-what, .ov-meas { font-size: 12.5px; }
+.ov-name b { font-size: 15px; }
+
+@media (max-width: 900px) {
+  .play-body, .detail-grid, .bookhead { grid-template-columns: 1fr; }
+  .bookhead-nums { justify-content: flex-start; }
+  .bn.wide { grid-column: span 1; }
+  .play-line { font-size: 17px; }
 }
