@@ -628,6 +628,41 @@ def issue(now=None, force=False):
     return out
 
 
+# --------------------------------------------------------------- discretionary ---
+
+def book_manual(ticker, legs, expiry, net, max_risk, horizon_end, label, why, timeline, contracts=1, multiplier=100,
+                expected_pct=None, hit=None, sources="discretionary", now=None):
+    """Record a play the operator asked for by hand, so it is scored like every other card.
+    `legs` is [{right, strike, price, buying, qty}] at the fills asked (ask bought, bid sold);
+    `max_risk` and `net` are per contract in dollars and per share respectively, like the
+    engine's own rows. Confidence is 'unmeasured' by construction: nothing here came from a
+    prior. Returns the row id. Places nothing."""
+    now = now or _now()
+    con = _con()
+    if con is None:
+        return None
+    reasoning = {"signal": {"source": sources, "measured": why, "detail": None, "also_in": []},
+                 "structure": {"why": label, "prior": None, "cost_pct": None, "iv_atm": None, "expiry_note": None, "measurement": "discretionary: no measured prior"},
+                 "option_alt": None, "macro": {"themes": None}, "events": [], "earnings": None, "vol": None, "research": None,
+                 "research_catalysts": [], "vetoes": [], "timeline": sorted(timeline, key=lambda t: t["when"]),
+                 "card": {"structure_label": label, "is_debit": net > 0, "max_reward": None, "rr": None, "breakevens": None, "width": None,
+                          "spot": _spot(ticker), "contracts": contracts, "median_pct": None, "p25_pct": None, "p75_pct": None, "splits": None,
+                          "prior_n": None, "top5_share": None, "sources": [sources], "lead_source": sources, "is_shares": multiplier == 1,
+                          "unit": "share" if multiplier == 1 else "contract"}}
+    legs_text = " / ".join(f"{'Buy' if lg['buying'] else 'Sell'} {lg['strike']:g}{lg['right']}" for lg in legs)
+    cur = con.execute("""INSERT INTO plays (issued, ticker, sources, structure, legs_text, legs_json, expiry, dte, spot, net, max_risk, max_reward,
+                         cost_pct, horizon_sessions, horizon_end, expected_pct, expected_usd, hit, payoff, confidence, reasoning_json, contracts, multiplier)
+                         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                      (_stamp(), ticker, sources, "discretionary", legs_text, json.dumps(legs), expiry,
+                       (datetime.strptime(expiry, "%Y-%m-%d").date() - now.date()).days, reasoning["card"]["spot"], net, max_risk, None, None, None,
+                       horizon_end, expected_pct, round(expected_pct / 100 * max_risk * contracts, 0) if expected_pct is not None else None, hit, None,
+                       "unmeasured: asked for by hand, scored like the rest", json.dumps(reasoning, default=str), contracts, multiplier))
+    con.commit()
+    rid = cur.lastrowid
+    con.close()
+    return rid
+
+
 # ------------------------------------------------------------------ ledger ---
 
 def open_plays(con=None):
