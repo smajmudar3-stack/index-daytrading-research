@@ -9,11 +9,11 @@ tree on every run and fails if they disagree.
 [06_data_guide/DATA.md](06_data_guide/DATA.md)), the virtualenv, `__pycache__`, build
 metadata and `.env`. All are gitignored, and none is reconstructible from this repo.
 
-**518 files, 104,464 lines.**
+**519 files, 104,658 lines.**
 
 ## Repo root
 
-*12 files, 2,457 lines*
+*12 files, 2,459 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -21,7 +21,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `.gitignore` | 29 | 585 B |
 | `AGENTS.md` | 160 | 9 KB |
 | `CLAUDE.md` | 625 | 48 KB |
-| `MANIFEST.md` | 731 | 30 KB |
+| `MANIFEST.md` | 733 | 30 KB |
 | `README.md` | 218 | 11 KB |
 | `install.sh` | 197 | 9 KB |
 | `pyproject.toml` | 57 | 2 KB |
@@ -44,7 +44,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 02_findings — the current verdicts
 
-*25 files, 3,412 lines*
+*25 files, 3,418 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -69,7 +69,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `02_findings/signal_accuracy.md` | 155 | 10 KB |
 | `02_findings/statarb.md` | 28 | 2 KB |
 | `02_findings/stress_reversal.md` | 61 | 4 KB |
-| `02_findings/stress_sector_neutral.md` | 107 | 8 KB |
+| `02_findings/stress_sector_neutral.md` | 113 | 8 KB |
 | `02_findings/uw_flow.md` | 77 | 5 KB |
 | `02_findings/weekly_predictors.md` | 122 | 7 KB |
 | `02_findings/weekly_structure.md` | 114 | 7 KB |
@@ -113,7 +113,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## 04_live_system — the dashboard and its engines
 
-*95 files, 26,889 lines*
+*95 files, 26,905 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -174,7 +174,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `04_live_system/monitor.py` | 68 | 2 KB |
 | `04_live_system/option_pricer.py` | 290 | 12 KB |
 | `04_live_system/pead.py` | 100 | 5 KB |
-| `04_live_system/plays.py` | 766 | 41 KB |
+| `04_live_system/plays.py` | 782 | 42 KB |
 | `04_live_system/plays_research.sh` | 90 | 5 KB |
 | `04_live_system/polymarket_recorder.py` | 166 | 7 KB |
 | `04_live_system/positions.py` | 320 | 15 KB |
@@ -508,7 +508,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 
 ## docs — plan, audit, verdict log, UI spec
 
-*7 files, 2,135 lines*
+*8 files, 2,305 lines*
 
 | file | lines | size |
 |---|---:|---:|
@@ -516,6 +516,7 @@ metadata and `.env`. All are gitignored, and none is reconstructible from this r
 | `docs/CONTINUATION.md` | 371 | 28 KB |
 | `docs/DESIGN-BRIEF.md` | 122 | 10 KB |
 | `docs/DESIGN.md` | 106 | 6 KB |
+| `docs/HANDOFF_EVERYTHING.md` | 170 | 12 KB |
 | `docs/PLAN.md` | 336 | 19 KB |
 | `docs/VERDICT_LOG.md` | 434 | 22 KB |
 | `docs/strategy_tree.json` | 481 | 16 KB |
