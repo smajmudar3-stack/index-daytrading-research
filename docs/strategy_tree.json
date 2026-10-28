@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-19",
+ "as_of": "2026-10-24",
  "root": "money",
  "legend": {
   "status": [
@@ -101,7 +101,7 @@
    "label": "Bottom-40 reversal composite, 10-session hold, VIX > 25",
    "status": "live-paper",
    "verdict": "real",
-   "numbers": "+2.59%/hold in regime, hit 0.56; out of regime flat to negative; first live cohort (out of regime) +4.1%",
+   "numbers": "+2.59%/hold in regime, hit 0.56; out of regime flat to negative; first live cohort (out of regime) +4.1%. Re-measured 2026-10-24 on a clean calendar and current S&P 1500 constituents: +1.88%/hold (t 2.3), hit 0.57, splits +0.45/+3.15/+2.06 (stress_sector_neutral_test.py; the panel's March-2020 hole, trap 17)",
    "study": "05_studies/regime_reversal_test.py",
    "findings": "02_findings/stress_reversal.md",
    "live": "stress_reversal.py",
@@ -123,8 +123,35 @@
   },
   "stress-sector-neutral": {
    "label": "Stress reversal, losers vs own sector ETF",
-   "status": "proposed",
+   "status": "measured",
+   "verdict": "weak",
    "rule": "composite on the name's return minus its sector ETF; 10 sessions; VIX > 25",
+   "numbers": "sector-relative composite +1.32%/hold (t 1.6) vs the raw composite +1.88% (t 2.3) on the same rows, weaker in every hold and every regime definition; hedging the RAW picks with their sector ETF keeps +1.58% (t 2.4); the sector ETFs of the picks alone +0.31% (t 0.9). The money is in the names; the sector part of the signal helps choose them. Keep the raw ranking. Also found: the house panel's rolling features are NaN for 92% of names on the four crash weeks after 2020-02-17 (trap 17); the house +2.59% restates as +1.88% on a clean calendar and current-constituent universe",
+   "study": "05_studies/stress_sector_neutral_test.py",
+   "findings": "02_findings/stress_sector_neutral.md",
+   "date": "2026-10-24",
+   "children": [
+    "stress-clean-panel",
+    "stress-sector-hedged-ledger",
+    "stress-idio-within-sector"
+   ]
+  },
+  "stress-clean-panel": {
+   "label": "Stress book re-measured on a signal panel without the phantom sessions",
+   "status": "proposed",
+   "rule": "rebuild signal_panel.parquet with the names' calendar (drop any session with <70% of names, min_periods 15 on every rolling feature); re-run regime_reversal_test.py on the full 2,200-name universe; the house +2.59%/hold (bottom 40, VIX > 25, 10 sessions) is the number under test, +1.88% on current constituents is the prior; also re-price the play_structures stress rows",
+   "children": []
+  },
+  "stress-sector-hedged-ledger": {
+   "label": "Live stress ledger marked against each pick's sector ETF as well as SPY",
+   "status": "proposed",
+   "rule": "stress_reversal.py records the pick's GICS sector ETF at issue and ledger() reports P&L over SPY and over the sector ETF side by side; measured +1.58% (t 2.4, date-hit 0.68) hedged vs +1.88% (t 2.3, date-hit 0.62) unhedged, so the hedge buys consistency for 30 bp of mean; a paper short of the ETF, no borrow modelled",
+   "children": []
+  },
+  "stress-idio-within-sector": {
+   "label": "Stress losers that also fell against their own sector",
+   "status": "proposed",
+   "rule": "bottom 40 of the RAW composite AND bottom 30% of the sector-relative composite on the same date (the names that fell more than their sector did), VIX > 25, 10 sessions, over SPY; vs the raw bottom 40; the 30% of picks that A and D do not share is the cell this isolates",
    "children": []
   },
   "stress-vix-term": {

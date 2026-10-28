@@ -1,6 +1,6 @@
-# Sixteen ways a backtest lies
+# Seventeen ways a backtest lies
 
-Eight of these produced *fake winning strategies* in this repo before being
+Nine of these produced *fake winning strategies* in this repo before being
 caught. Check every new backtest against this list before believing it.
 
 ---
@@ -167,6 +167,31 @@ boundaries, it is a binning artifact, not a signal.
 
 **16. Fixed strike vs delta-based selection.** A fixed % moneyness is a
 different amount of risk in different volatility regimes. Select by delta.
+
+---
+
+## 17. A phantom session in the price file blanks every rolling feature for a month
+
+Found 2026-10-24 by `05_studies/stress_sector_neutral_test.py`. `opt_panel/ohlcv.parquet`
+carries rows for ~3,400 symbols on **2020-02-17, Presidents' Day** (the market was shut;
+the rows are stale prints from the ETFs, SPY and foreign-listed names) and only ~40% of
+the feed on two real sessions, 2019-08-23 and 2019-09-17. Pivot that file wide and those
+dates become a column of NaN for every other name. A `rolling(20)` with the default
+`min_periods` is then NaN for the next twenty sessions.
+
+In `signal_panel.parquet` that is **`bb_pos`, `vol21` and `rsi14` present for 108 of
+~1,410 names on 2020-02-21, -28, 03-06 and 03-13** — the four crash weeks — and every one
+of the 108 is a name that had the phantom row. The stress book's three-signal composite
+needs `bb_pos`, so on those weeks the "bottom 40 of the universe" was the bottom 40 of
+108 names nobody chose. The first run of the sector-neutral study, which needed a
+second rolling feature, was scored on ONE stock (CRH) for three weeks and printed it as
+"100% Materials" without an error.
+
+**Fix:** the calendar is the names' calendar. Drop any date on which fewer than ~70% of
+the universe has a row before pivoting, and use `min_periods` below the window. The
+signal panel has not been rebuilt with this; re-run `signal_accuracy.build()` with a
+cleaned calendar before trusting any rolling-feature cell dated 2019-09 to 2019-10 or
+2020-02-21 to 2020-03-13.
 
 ---
 

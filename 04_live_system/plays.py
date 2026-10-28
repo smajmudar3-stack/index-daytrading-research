@@ -692,16 +692,32 @@ def mark(now=None):
         return {"ok": False}
     marked = closed = 0
     today = now.date().isoformat()
-    for r in con.execute("SELECT * FROM plays WHERE status='open'").fetchall():
+    for r in con.execute("SELECT * FROM plays WHERE status='open' OR (status='closed' AND structure!='shares' AND close_why IN ('horizon reached','expiry'))").fetchall():
         r = dict(r)
         try:
             legs = json.loads(r["legs_json"] or "[]")
             mult = r.get("multiplier") or 100
             spot = _spot(r["ticker"])
+            expired = r["structure"] != "shares" and today > r["expiry"]
             if r["structure"] == "shares":
                 if not spot:
                     continue
                 cur = spot
+            elif expired:
+                # AN EXPIRED OPTION SETTLES AT INTRINSIC ON ITS EXPIRY CLOSE, never at a chain quote
+                # pulled after the fact. 2026-10-28: the TSLA 385/360 put spread that expired 10-23
+                # with the stock at 372.22 (worth 12.78) was marked at a stale 4.95 and booked as a
+                # -37% loser; it had made +62%.
+                import price_cache
+                h = price_cache.history([r["ticker"]], days=30, refresh_first=False).get(r["ticker"])
+                if h is None or not len(h[h.index <= r["expiry"]]):
+                    continue
+                s_exp = float(h[h.index <= r["expiry"]]["close"].iloc[-1])
+                cur = 0.0
+                for lg in legs:
+                    intr = max(s_exp - lg["strike"], 0) if lg["right"] == "C" else max(lg["strike"] - s_exp, 0)
+                    cur += (1 if lg["buying"] else -1) * lg["qty"] * intr
+                spot = s_exp
             else:
                 calls, puts = ws._chain(r["ticker"], r["expiry"])
                 cur, ok = 0.0, True
@@ -722,7 +738,7 @@ def mark(now=None):
             con.execute("UPDATE plays SET cur_net=?, pnl_usd=?, pnl_pct=?, spot_cur=?, updated=?, status=?, closed=?, close_why=? WHERE id=?",
                         (round(cur, 2), round(pnl, 0), round(pnl / risk * 100, 1) if risk else None, spot, _stamp(),
                          "closed" if done else "open", _stamp() if done else None,
-                         ("horizon reached" if today >= r["horizon_end"] else "expiry") if done else None, r["id"]))
+                         ("settled at expiry" if expired else ("horizon reached" if today >= r["horizon_end"] else "expiry")) if done else None, r["id"]))
             marked += 1
             closed += int(done)
         except Exception:                                     # noqa: BLE001
